@@ -9,7 +9,7 @@
 .mp3
 
 #ignore pychache
-.pyc
+*.pyc
 
 #ignore errorlog
 .log
