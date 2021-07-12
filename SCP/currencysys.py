@@ -92,6 +92,9 @@ class currencysys(commands.Cog):
         if proposes>=1:
             await AchievementEmbed("Engaged!")
         
+        if money>=15:
+            await AchievementEmbed("Getting By")
+
         if money>=1000000:
             await AchievementEmbed("Millionaire!")
         
@@ -370,8 +373,9 @@ class currencysys(commands.Cog):
             {"name":"First Date!", "desc":"First date with GF!", "category":"relationships"},
             
 
-
+            {"name":"Getting By", "desc":"finally making some money! good job!", "category":"finance"},
             {"name":"Millionaire!", "desc":"its what it sounds like", "category":"finance"},
+            
             {"name":"Billionaire!", "desc":"Treat your workers with respect.", "category":"finance"},
             {"name":"Employed!", "desc":"You got a job.", "category":"finance"},
 
