@@ -1,0 +1,15 @@
+#ignore images
+.jpg
+
+.png
+
+.jpeg
+
+#ignore songs
+.mp3
+
+#ignore pychache
+.pyc
+
+#ignore errorlog
+.log
