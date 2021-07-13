@@ -133,6 +133,7 @@ class currencysys(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
+        global dbcheck
         def dbcheck(user):
             DatabaseKeys = [
                 {"name":"gf", "value":0},
@@ -152,23 +153,12 @@ class currencysys(commands.Cog):
                 try:
                     value = mulah.find_one({"id":ctx.author.id},{x["name"]})[x["name"]]
                 except:
-                    if "conditional" in x.keys():
-                        try:
-                            value = mulah.find_one({"id":ctx.author.id},{x["conditional"]})[x["conditional"]]
-                            if value != next(z for z in DatabaseKeys if z["name"]==x["conditional"])["value"]:
-                                print("updated %s's %s"%(ctx.author.display_name, x["name"]))
-                                mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["ModifiedVal"]}})
-                        except:
-                            print("updated %s's %s"%(ctx.author.display_name, x["name"]))
-                            mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})                           
-                    else:
-                        print("updated %s's %s"%(ctx.author.display_name, x["name"]))
-                        mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
-            
-            
+                    print("No conditional. updated %s's %s"%(ctx.author.display_name, x["name"]))
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
         if ctx.author == self.client.user:
             return
         dbcheck(ctx.author)
+
 
 
         
@@ -2432,7 +2422,14 @@ class currencysys(commands.Cog):
             await ctx.channel.send(embed=embed)
 
 
-
+    @commands.command()
+    async def database(self, ctx,p1:discord.Member=None):
+        if p1 ==None:
+            p1=ctx.author
+        if str(ctx.author)=="SentientPlatypus#1332":
+            global dbcheck
+            dbcheck(p1)
+            await ctx.channel.send("I have completed the database check for %s, creator senpai!!!"%(p1.display_name))
 
 
 
@@ -3136,14 +3133,6 @@ class currencysys(commands.Cog):
     async def profile(self,ctx,p1:discord.Member=None):
         if p1 == None:
             p1 = ctx.author
-
-        def dbcheck(user,key):
-            try:
-                mulah.find_one({"id":user.id}, {key})[key]
-            except:
-                mulah.update_one({"id":p1.id}, {"$set":{key:0}})
-        for x in ["breakups", "kisses", "boinks"]:
-            dbcheck(p1, x)
         breakupval = mulah.find_one({"id":p1.id}, {"breakups"})["breakups"]
         kissval = mulah.find_one({"id":p1.id}, {"kisses"})["kisses"]
         boinkval = mulah.find_one({"id":p1.id}, {"boinks"})["boinks"]
