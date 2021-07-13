@@ -357,6 +357,14 @@ class currencysys(commands.Cog):
             {"name":"macd.jpg", "paste":(72,6), "size":(204,310)},
         ]
 
+        global worklists
+        worklists = [
+            {"name":"McDonalds worker", "salary":15, "req":None},
+            {"name":"Gamer", "salary":150, "req": "must have over 1000 total gameskill"},
+            {"name":"Business Man", "salary":160, "req":"must be at least level 15"},
+            {"name":"Jeff bezos", "salary":1000000000, "req":"must be Creator Senpai"},
+        ]
+
 
         global restaurants
         restaurants = [

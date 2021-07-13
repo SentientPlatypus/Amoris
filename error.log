@@ -1,0 +1,86 @@
+WARNING:discord.gateway:Can't keep up, shard ID None websocket is 16.3s behind.
+ERROR:discord.client:Attempting a reconnect in 1.71s
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\gateway.py", line 305, in from_client
+    gateway = gateway or await client.http.get_gateway()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\http.py", line 967, in get_gateway
+    data = await self.request(Route('GET', '/gateway'))
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\http.py", line 192, in request
+    async with self.__session.request(method, url, **kwargs) as r:
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\client.py", line 1117, in __aenter__
+    self._resp = await self._coro
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\client.py", line 520, in _request
+    conn = await self._connector.connect(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 535, in connect
+    proto = await self._create_connection(req, traces, timeout)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 892, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 1020, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 969, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)  # type: ignore  # noqa
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 1081, in create_connection
+    transport, protocol = await self._create_connection_transport(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 1111, in _create_connection_transport
+    await waiter
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\tasks.py", line 492, in wait_for
+    fut.result()
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\client.py", line 563, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\tasks.py", line 494, in wait_for
+    raise exceptions.TimeoutError() from exc
+asyncio.exceptions.TimeoutError
+ERROR:discord.client:Attempting a reconnect in 2.40s
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\gateway.py", line 305, in from_client
+    gateway = gateway or await client.http.get_gateway()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\http.py", line 967, in get_gateway
+    data = await self.request(Route('GET', '/gateway'))
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\http.py", line 192, in request
+    async with self.__session.request(method, url, **kwargs) as r:
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\client.py", line 1117, in __aenter__
+    self._resp = await self._coro
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\client.py", line 520, in _request
+    conn = await self._connector.connect(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 535, in connect
+    proto = await self._create_connection(req, traces, timeout)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 892, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 1020, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 969, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)  # type: ignore  # noqa
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 1081, in create_connection
+    transport, protocol = await self._create_connection_transport(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 1111, in _create_connection_transport
+    await waiter
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\tasks.py", line 492, in wait_for
+    fut.result()
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\client.py", line 563, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\tasks.py", line 494, in wait_for
+    raise exceptions.TimeoutError() from exc
+asyncio.exceptions.TimeoutError
+WARNING:discord.gateway:Can't keep up, shard ID None websocket is 12.3s behind.
+WARNING:discord.gateway:Can't keep up, shard ID None websocket is 14.0s behind.
+WARNING:discord.gateway:Can't keep up, shard ID None websocket is 11.4s behind.
