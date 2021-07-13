@@ -164,3 +164,6 @@ Traceback (most recent call last):
   File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\aiohttp\connector.py", line 1011, in _create_direct_connection
     raise ClientConnectorError(req.connection_key, exc) from exc
 aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host discord.com:443 ssl:default [getaddrinfo failed]
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.10 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
