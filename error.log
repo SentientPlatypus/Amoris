@@ -188,3 +188,117 @@ WARNING:discord.http:We are being rate limited. Retrying in 0.01 seconds. Handle
 WARNING:discord.http:We are being rate limited. Retrying in 0.05 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
 WARNING:discord.http:We are being rate limited. Retrying in 0.04 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
 WARNING:discord.http:We are being rate limited. Retrying in 0.05 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+CRITICAL:imdbpy:IMDbDataAccessError exception raised; args: ({'errcode': None, 'errmsg': 'None', 'url': 'https://www.imdb.com/title/tt0087538/episodes', 'proxy': '', 'exception type': 'IOError', 'original exception': <HTTPError 404: ''>},); kwds: {}
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\imdb\parser\http\__init__.py", line 220, in retrieve_unicode
+    response = uopener.open(url)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 523, in open
+    response = meth(req, response)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 632, in http_response
+    response = self.parent.error(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 561, in error
+    return self._call_chain(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 494, in _call_chain
+    result = func(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 641, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: 
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.11 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.11 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.gateway:Shard ID None heartbeat blocked for more than 10 seconds.
+Loop thread traceback (most recent call last):
+  File "c:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\SCP-16-Tsundere.py", line 1923, in <module>
+    client.run("ODIyMjY1NjE0MjQ0NTExNzU0.YFPwhw.cOH2DLXY1c06IsdDl6_WVuG2OLI")
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\client.py", line 713, in run
+    loop.run_forever()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\windows_events.py", line 316, in run_forever
+    super().run_forever()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 596, in run_forever
+    self._run_once()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 1890, in _run_once
+    handle._run()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\client.py", line 343, in _run_event
+    await coro(*args, **kwargs)
+  File "c:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\currencysys.py", line 168, in on_message
+    dbcheck(ctx.author)
+  File "c:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\currencysys.py", line 162, in dbcheck
+    value = mulah.find_one({"id":ctx.author.id},{x["name"]})[x["name"]]
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\collection.py", line 1319, in find_one
+    for result in cursor.limit(-1):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\cursor.py", line 1207, in next
+    if len(self.__data) or self._refresh():
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\cursor.py", line 1124, in _refresh
+    self.__send_message(q)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\cursor.py", line 999, in __send_message
+    response = client._run_operation_with_response(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\mongo_client.py", line 1368, in _run_operation_with_response
+    return self._retryable_read(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\mongo_client.py", line 1460, in _retryable_read
+    server = self._select_server(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\mongo_client.py", line 1278, in _select_server
+    server = topology.select_server(server_selector)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\topology.py", line 241, in select_server
+    return random.choice(self.select_servers(selector,
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\topology.py", line 199, in select_servers
+    server_descriptions = self._select_servers_loop(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\topology.py", line 226, in _select_servers_loop
+    self._condition.wait(common.MIN_HEARTBEAT_INTERVAL)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\threading.py", line 316, in wait
+    gotit = waiter.acquire(True, timeout)
+
+WARNING:discord.gateway:Shard ID None heartbeat blocked for more than 20 seconds.
+Loop thread traceback (most recent call last):
+  File "c:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\SCP-16-Tsundere.py", line 1923, in <module>
+    client.run("ODIyMjY1NjE0MjQ0NTExNzU0.YFPwhw.cOH2DLXY1c06IsdDl6_WVuG2OLI")
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\client.py", line 713, in run
+    loop.run_forever()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\windows_events.py", line 316, in run_forever
+    super().run_forever()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 596, in run_forever
+    self._run_once()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\base_events.py", line 1890, in _run_once
+    handle._run()
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\discord\client.py", line 343, in _run_event
+    await coro(*args, **kwargs)
+  File "c:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\currencysys.py", line 168, in on_message
+    dbcheck(ctx.author)
+  File "c:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\currencysys.py", line 162, in dbcheck
+    value = mulah.find_one({"id":ctx.author.id},{x["name"]})[x["name"]]
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\collection.py", line 1319, in find_one
+    for result in cursor.limit(-1):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\cursor.py", line 1207, in next
+    if len(self.__data) or self._refresh():
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\cursor.py", line 1124, in _refresh
+    self.__send_message(q)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\cursor.py", line 999, in __send_message
+    response = client._run_operation_with_response(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\mongo_client.py", line 1368, in _run_operation_with_response
+    return self._retryable_read(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\mongo_client.py", line 1460, in _retryable_read
+    server = self._select_server(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\mongo_client.py", line 1278, in _select_server
+    server = topology.select_server(server_selector)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\topology.py", line 241, in select_server
+    return random.choice(self.select_servers(selector,
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\topology.py", line 199, in select_servers
+    server_descriptions = self._select_servers_loop(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\pymongo\topology.py", line 226, in _select_servers_loop
+    self._condition.wait(common.MIN_HEARTBEAT_INTERVAL)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\threading.py", line 316, in wait
+    gotit = waiter.acquire(True, timeout)
+

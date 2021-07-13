@@ -65,6 +65,8 @@ class currencysys(commands.Cog):
         inv = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
         watchlist = mulah.find_one({"id":ctx.author.id}, {"watchlist"})["watchlist"]
         gameskill = mulah.find_one({"id":ctx.author.id}, {"gameskill"})["gameskill"]
+        gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
+        gamblewins = mulah.find_one({"id":ctx.author.id}, {"gamblewins"})["gamblewins"]
         
         UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
 
@@ -120,7 +122,11 @@ class currencysys(commands.Cog):
 
                 if x["parts"]["power"]>=12000:
                     await AchievementEmbed("Linus Tech Tips")
+        if gambles>=1:
+            await AchievementEmbed("Gambler!")
 
+        if gamblewins>=1:
+            await AchievementEmbed("Winner!")
         
 
         
@@ -147,7 +153,9 @@ class currencysys(commands.Cog):
                 {"name":"achievements", "value":[]},
                 {"name":"proposes", "value":0},
                 {"name":"dates", "value":0},
-                {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1}
+                {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
+                {"name":"gambles", "value":0},
+                {"name":"gamblewins","value":0}
             ]
             for x in DatabaseKeys:
                 try:
@@ -166,7 +174,7 @@ class currencysys(commands.Cog):
         if ctx.content.startswith("^"):
             print("it starts")
             return 
-        number = random.randint(1,20)
+        number = random.randint(1,40)
         try:
             gfval = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
             lpval = mulah.find_one({"id":ctx.author.id}, {"lp"})["lp"]
@@ -315,6 +323,33 @@ class currencysys(commands.Cog):
     
     @commands.Cog.listener()
     async def on_ready(self):
+        global gamble
+        def gamble(odds:int, times:int):
+            count = 0
+            wins = 0
+            while count<=times:
+                number = random.randint(1,odds)
+                if number == 1:
+                    wins+=1
+                else:
+                    pass
+                count+=1
+            return wins
+            
+
+
+
+
+        global RemoveFromInventory
+        def RemoveFromInventory(user, item, AmountToRemove:int):
+            inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
+            itemdict = next(x for x in inv if x["name"].lower() ==item.lower())
+            itemdict["amount"]-=AmountToRemove
+            mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
+
+
+
+
         global achievementcheck
         def achievementcheck(user,achievement:str):
             global achievements
@@ -381,6 +416,9 @@ class currencysys(commands.Cog):
             
             {"name":"Billionaire!", "desc":"Treat your workers with respect.", "category":"finance"},
             {"name":"Employed!", "desc":"You got a job.", "category":"finance"},
+            {"name":"Gambler!", "desc":"You gambled for the first time! ", "category":"finance"},
+            {"name":"Winner!", "desc":"You won a gamble! ", "category":"finance"},
+
 
             {"name":"Death!", "desc":"Get a life bro.", "category":"finance"},
             {"name":"virgin", "desc":"Secret!", "category":"gaming"},
@@ -833,7 +871,7 @@ class currencysys(commands.Cog):
             {"name":"phone", "value":800, "desc":"Text your Girlfriend!"},
             {"name": "laptop", "value": 1500, "desc":"Post memes, or play a game with your girlfriend"},
             {"name": "netflixsub", "value": 29, "desc": "Netflix and chill with your gf"},
-            {"name": "lotterylicket", "value": 2, "desc": "A chance to win 1 million dollars"},
+            {"name": "lotteryticket", "value": 2, "desc": "A chance to win 1 million dollars"},
             {"name": "movieticket", "value" : 16, "desc":"watch a movie with your gf"},
             {"name": "ring", "value" : 10000, "desc":"propose to your gf"},
         ]
@@ -1881,6 +1919,40 @@ class currencysys(commands.Cog):
             await ctx.channel.send("You took too long")
  
 
+
+
+    @commands.command()
+    async def use(self, ctx, item, number=None):
+        global gamble
+        global RemoveFromInventory
+        global shopitems
+        if number == None:
+            number = 1
+        else:
+            number = int(number)
+        inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+        itemdict = next((x for x in inval if x["name"].lower()==item.lower()), None)
+        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+        if itemdict is not None:
+            if item.lower() == "lotteryticket":
+                gambleval = gamble(10000, number)
+                if gambleval>=1:
+                    money+=1000000*gambleval
+                    embed = discord.Embed(title = "CONGRATULATIONS %s!!!"%(ctx.author.display_name), description = "You won the lottery!!!!", color = ctx.author.color)
+                    embed.add_field(name = "You won $%s"%(1000000*gambleval), value = "you now own $%s"%(money))
+                else:
+                    embed = discord.Embed(title = "Sorry! %s!!!"%(ctx.author.display_name), description = "You didnt win the lottery!", color = ctx.author.color)
+                    embed.add_field(name = "What were you expecting?", value = "dont let this ruin you.")
+                    
+                gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
+                gambles+=1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"gambles":gambles}})
+                await ctx.channel.send(embed=embed)
+            
+
+            RemoveFromInventory(ctx.author, item, number)
+        else:
+            await ctx.channel.send("That item is not in your inventory!")
 
     @pc.command()
     async def install(self, ctx):
@@ -3148,6 +3220,9 @@ class currencysys(commands.Cog):
         proposeval = mulah.find_one({"id":p1.id}, {"proposes"})["proposes"]
         relationships = mulah.find_one({"id":p1.id}, {"relationships"})["relationships"]
         dates = mulah.find_one({"id":p1.id}, {"dates"})["dates"]
+        gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
+        gamblewins = mulah.find_one({"id":ctx.author.id}, {"gamblewins"})["gamblewins"]
+
         embed = discord.Embed(title = "%s' Profile!"%(p1.display_name), description = "Use the reactions to navigate the profile!", color = ctx.author.color)
         embed.set_image(url = p1.avatar_url)
         reactions = ["💰","❤️","🎮", "🏆","💼", "🚪"]
@@ -3167,6 +3242,9 @@ class currencysys(commands.Cog):
                         embed = discord.Embed(title = "%s's Financial stability!"%(p1.display_name), color = ctx.author.color)
                         embed.set_image(url = p1.avatar_url)
                         embed.add_field(name ="Current balance:", value = "$%s"%(walletval))
+                        embed.add_field(name = "Total gambles:", value = gambles)
+                        embed.add_field(name = "Total successful gambles:", value = gamblewins)
+                        embed.add_field(name = "gambling winrate:", value = "%%%g"%((gamblewins/gambles)*100))
                     except:
                         embed = discord.Embed(title = "This man hasnt worked a single day in his life.", color = ctx.author.color)
                 if rawreaction == "❤️":
