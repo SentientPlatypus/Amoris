@@ -251,12 +251,16 @@ class currencysys(commands.Cog):
                         except:
                             print(traceback.format_exc())
                             print("cant get image smh")
+                            pass
 
                     try:
                         await editthis.delete()
                         editthis = await ctx.channel.send(embed=embed, file = file)
                     except:
-                        editthis = await ctx.channel.send(embed=embed, file = file)
+                        try:
+                            editthis = await ctx.channel.send(embed=embed, file = file)
+                        except:
+                            editthis = await ctx.channel.send(embed=embed)
                     for x in reactions:
                         await editthis.add_reaction(x)
                     if action == "leave":
@@ -304,6 +308,7 @@ class currencysys(commands.Cog):
             
 
         except:
+            print(traceback.format_exc())
             print("this didnt work")
 
 
@@ -2907,13 +2912,17 @@ class currencysys(commands.Cog):
                         file = discord.File("finalgf.png")
                         embed.set_image(url = "attachment://finalgf.png") 
                     except:
+                        print(traceback.format_exc())
                         try:
                             embed.set_image(url = gfval["image"])
                         except:
                             pass                        
                     await editthis.clear_reactions()
                     await editthis.delete()
-                    editthis = await ctx.channel.send(embed=embed,file = file)
+                    try:
+                        editthis = await ctx.channel.send(embed=embed,file = file)
+                    except:
+                        editthis = await ctx.channel.send(embed=embed)
                     reactions.append("🚪")
                     for x in reactions:
                         await editthis.add_reaction(x)
