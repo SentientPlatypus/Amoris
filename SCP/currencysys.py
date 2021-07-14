@@ -51,6 +51,44 @@ class currencysys(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+
+
+    @commands.Cog.listener()
+    async def on_command(self,ctx):
+        global StoryEmbed
+        async def StoryEmbed(self, user, embedict:list):
+            complete = False
+            count = 0
+            while complete == False:
+                if count==len(embedict):
+                    complete = True
+                    break
+                currentembed = embedict[count]
+                embed = discord.Embed(title = currentembed["title"], description = currentembed["description"] ,color =user.color)
+                try:
+                    if "file" in currentembed.keys():
+                        await editthis.edit(embed=embed, file = discord.File(currentembed["file"]))
+                    else:
+                        await editthis.edit(embed=embed)
+                except:
+                    if "file" in currentembed.keys():
+                        editthis = await ctx.channel.send(embed=embed, file = discord.File(currentembed["file"]))
+                    else:
+                        editthis = await ctx.channel.send(embed=embed)
+                await editthis.add_reaction("▶️")
+                def check(reaction,userr):
+                    return userr==user and str(reaction.emoji)=="▶️" and reaction.message==editthis
+                confirm = await self.client.wait_for('reaction_add', check=check, timeout = 60)
+                try:
+                    if confirm:
+                        await editthis.clear_reactions()
+                        pass
+                        count+=1
+                except asyncio.TimeoutError:
+                    await editthis.edit(embed=discord.Embed(title = "You took too long", color = user.color))
+
+
+
     @commands.Cog.listener()
     async def on_command_completion(self,ctx):
         global achievements
@@ -140,37 +178,8 @@ class currencysys(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
-        global StoryEmbed
-        async def StoryEmbed(user, embedict:list):
-            complete = False
-            count = 0
-            while complete == False:
-                if count==len(embedict):
-                    complete = True
-                    break
-                currentembed = embedict[count]
-                embed = discord.Embed(title = currentembed["title"], description = currentembed["description"] ,color =user.color)
-                try:
-                    if "file" in currentembed.keys():
-                        await editthis.edit(embed=embed, file = discord.File(currentembed["file"]))
-                    else:
-                        await editthis.edit(embed=embed)
-                except:
-                    if "file" in currentembed.keys():
-                        editthis = await ctx.channel.send(embed=embed, file = discord.File(currentembed["file"]))
-                    else:
-                        editthis = await ctx.channel.send(embed=embed)
-                await editthis.add_reaction("▶️")
-                def check(reaction,userr):
-                    return userr==user and str(reaction.emoji)=="▶️" and reaction.message==editthis
-                confirm = await self.client.wait_for('reaction_add', check=check, timeout = 60)
-                try:
-                    if confirm:
-                        await editthis.clear_reactions()
-                        pass
-                        count+=1
-                except asyncio.TimeoutError:
-                    await editthis.edit(embed=discord.Embed(title = "You took too long", color = user.color))
+
+
         global dbcheck
         async def dbcheck(user):
             global DatabaseKeys
@@ -1123,15 +1132,21 @@ class currencysys(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def mmorpg(self, ctx):
         embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
-        embed.add_field(name = "Setup commands", value = "`setup`")
+        embed.add_field(name = "Setup commands", value = "`begin`")
         await ctx.channel.send(embed=embed)
-    
+
+
+
+
+
+
+
     @mmorpg.command()
-    async def setup(self, ctx):
+    async def begin(self, ctx):
+        global StoryEmbed
         mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]
         print(mmorpg)
         if mmorpg["class"] == None:
-            global StoryEmbed
             embedict = [
                 {"title":"Game:", "description":"*So you want to be a player?*"},
                 {"title":"Game:", "description":"*Do you think you are ready?*"},
@@ -3370,9 +3385,9 @@ class currencysys(commands.Cog):
         proposeval = mulah.find_one({"id":p1.id}, {"proposes"})["proposes"]
         relationships = mulah.find_one({"id":p1.id}, {"relationships"})["relationships"]
         dates = mulah.find_one({"id":p1.id}, {"dates"})["dates"]
-        gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
-        gamblewins = mulah.find_one({"id":ctx.author.id}, {"gamblewins"})["gamblewins"]
-        mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]
+        gambles = mulah.find_one({"id":p1.id}, {"gambles"})["gambles"]
+        gamblewins = mulah.find_one({"id":p1.id}, {"gamblewins"})["gamblewins"]
+        mmorpg = mulah.find_one({"id":p1.id}, {"mmorpg"})["mmorpg"]
         embed = discord.Embed(title = "%s' Profile!"%(p1.display_name), description = "Use the reactions to navigate the profile!", color = ctx.author.color)
         embed.set_image(url = p1.avatar_url)
         reactions = ["💰","❤️","🎮", "🏆","💼", "⚔️","🚪"]
@@ -3714,7 +3729,7 @@ class currencysys(commands.Cog):
             if p1 ==None:
                 p1=ctx.author
             x = next(a for a in DatabaseKeys if a["name"].lower()==key.lower())
-            mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
+            mulah.update_one({"id":p1.id}, {"$set":{x["name"]:x["value"]}})
             await ctx.channel.send("ok creator senpai! i did it.")
     @gf.command()
     async def netflix(self,ctx):

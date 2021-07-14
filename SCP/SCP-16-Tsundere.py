@@ -85,7 +85,7 @@ async def gf(ctx):
 @help.command()
 async def mmorpg(ctx):
 	embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
-	embed.add_field(name = "Setup commands", value = "`setup`")
+	embed.add_field(name = "Setup commands", value = "`begin`")
 	await ctx.channel.send(embed=embed)
 
 @help.command()
