@@ -1,3 +1,4 @@
+
 from datetime import date
 from inspect import trace
 from logging import exception
@@ -139,33 +140,55 @@ class currencysys(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
+        global StoryEmbed
+        async def StoryEmbed(user, embedict:list):
+            complete = False
+            count = 0
+            while complete == False:
+                if count==len(embedict):
+                    complete = True
+                    break
+                currentembed = embedict[count]
+                embed = discord.Embed(title = currentembed["title"], description = currentembed["description"] ,color =user.color)
+                try:
+                    if "file" in currentembed.keys():
+                        await editthis.edit(embed=embed, file = discord.File(currentembed["file"]))
+                    else:
+                        await editthis.edit(embed=embed)
+                except:
+                    if "file" in currentembed.keys():
+                        editthis = await ctx.channel.send(embed=embed, file = discord.File(currentembed["file"]))
+                    else:
+                        editthis = await ctx.channel.send(embed=embed)
+                await editthis.add_reaction("▶️")
+                def check(reaction,userr):
+                    return userr==user and str(reaction.emoji)=="▶️" and reaction.message==editthis
+                confirm = await self.client.wait_for('reaction_add', check=check, timeout = 60)
+                try:
+                    if confirm:
+                        await editthis.clear_reactions()
+                        pass
+                        count+=1
+                except asyncio.TimeoutError:
+                    await editthis.edit(embed=discord.Embed(title = "You took too long", color = user.color))
         global dbcheck
-        def dbcheck(user):
-            DatabaseKeys = [
-                {"name":"gf", "value":0},
-                {"name":"lp", "value":0},
-                {"name":"breakups", "value":0},
-                {"name":"kisses", "value":0},
-                {"name":"boinks", "value":0},
-                {"name":"money", "value":0},
-                {"name":"inv", "value":[]},
-                {"name":"watchlist", "value":[]},
-                {"name":"achievements", "value":[]},
-                {"name":"proposes", "value":0},
-                {"name":"dates", "value":0},
-                {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
-                {"name":"gambles", "value":0},
-                {"name":"gamblewins","value":0}
-            ]
+        async def dbcheck(user):
+            global DatabaseKeys
             for x in DatabaseKeys:
                 try:
                     value = mulah.find_one({"id":ctx.author.id},{x["name"]})[x["name"]]
                 except:
-                    print("No conditional. updated %s's %s"%(ctx.author.display_name, x["name"]))
+                    if x["name"]=="gf":
+                        print("the gf bug is this")
+                        mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
                     mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
+                    print("updated %s' %s"%(ctx.author.display_name, x["name"]))
         if ctx.author == self.client.user:
+            if ctx.author.bot: return
             return
-        dbcheck(ctx.author)
+
+
+        await dbcheck(ctx.author)
 
 
 
@@ -323,6 +346,83 @@ class currencysys(commands.Cog):
     
     @commands.Cog.listener()
     async def on_ready(self):
+        global DatabaseKeys
+        DatabaseKeys = [
+            {"name":"gf", "value":0},
+            {"name":"lp", "value":0},
+            {"name":"breakups", "value":0},
+            {"name":"kisses", "value":0},
+            {"name":"boinks", "value":0},
+            {"name":"money", "value":0},
+            {"name":"inv", "value":[]},
+            {"name":"watchlist", "value":[]},
+            {"name":"achievements", "value":[]},
+            {"name":"proposes", "value":0},
+            {"name":"dates", "value":0},
+            {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
+            {"name":"gambles", "value":0},
+            {"name":"gamblewins","value":0},
+            {"name":"mmorpg",
+            "value":{
+                "level":1,
+                "class":None,
+                "stats":{
+                    "strength":1, 
+                    "intelligence":1, 
+                    "defense":1, 
+                    "health":100,
+                    "sense":1}, 
+                "abilities":{
+                }, 
+                "loadout":{
+                    "head":None, 
+                    "torso":None, 
+                    "pants":None, 
+                    "arms":None, 
+                    "hands":None, 
+                    "primary":None,
+                    "secondary":None,
+                }
+            }
+            }
+        ]
+            
+
+        global classdict
+        classdict = [
+            {"class":"warrior", 
+            "desc":"Warrior class. Great all around class.", 
+            "stats":{"strenth":50, "defense":50, "intelligence":30, "sense":20, "health":100}, 
+            "ability":"Rage", 
+            "abilitydesc":"Increase attack damage by 50%%"},
+
+            {"class":"assassin", 
+            "desc":"Assassin class. deadly damage output, low defense.", 
+            "stats":{"strenth":110, "defense":15, "intelligence":30, "sense":50, "health":80}, 
+            "ability":"stealth", 
+            "abilitydesc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat."},
+
+            {"class":"Mage", 
+            "desc":"Mage class. Uses movie science", 
+            "stats":{"strenth":40, "defense":30, "intelligence":100, "sense":60, "health":100}, 
+            "ability":"Fire ball", 
+            "abilitydesc":"Send a fire ball at your enemies!"},
+
+            {"class":"Healer", 
+            "desc":"Healer class. Can heal. A lot.", 
+            "stats":{"strenth":40, "defense":50, "intelligence":80, "sense":30, "health":150}, 
+            "ability":"Heal!", 
+            "abilitydesc":"Recover 70%% of your HP!"}
+
+        ]
+
+
+
+
+
+
+
+
         global gamble
         def gamble(odds:int, times:int):
             count = 0
@@ -999,13 +1099,8 @@ class currencysys(commands.Cog):
             {"typename": "Kamidere", "text": "I found that enjoyable. Texting is in fact, the most practical form of communication. I appreciate you.", "gaming":"I found that enjoyable. Thank you for this. We should play more often.<3", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
 
         ]              
-    @commands.Cog.listener()
-    async def setup(self, ctx):
-        try:
-            mulah.insert_one({"id":ctx.author.id, "setup":1})
-            await ctx.channel.send("done!")
-        except:
-            await ctx.channel.send("you are already set up!")
+
+
 
     @commands.command()
     async def work(self, ctx):
@@ -1025,6 +1120,61 @@ class currencysys(commands.Cog):
             await ctx.channel.send("Hey! I just finished making your economy profile. use `^work` to get money.")
 
 
+    @commands.group(invoke_without_command=True)
+    async def mmorpg(self, ctx):
+        embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
+        embed.add_field(name = "Setup commands", value = "`setup`")
+        await ctx.channel.send(embed=embed)
+    
+    @mmorpg.command()
+    async def setup(self, ctx):
+        mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]
+        print(mmorpg)
+        if mmorpg["class"] == None:
+            global StoryEmbed
+            embedict = [
+                {"title":"Game:", "description":"*So you want to be a player?*"},
+                {"title":"Game:", "description":"*Do you think you are ready?*"},
+                {"title":"Game:", "description":"*Do you fear death?*"},
+                {"title":"Game:", "description":"*So be it...*"},
+            ]
+            global classdict
+            await StoryEmbed(ctx.author, embedict=embedict)
+
+            alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟', '🚪']
+            count = 0
+            reactionlist = []
+            emptydict = {}
+            finalstring = ""
+            embed = discord.Embed(title = "Choose your class!", description = "each class has unique abilities!", color = ctx.author.color)
+
+            for x in classdict:
+                emptydict[alphlist[count]]=x["class"]
+                reactionlist.append(alphlist[count])
+                embed.add_field(name ="%s| %s"%(alphlist[count], x["class"]), value = "%s|\n basic stat increase:%s\n abilities:**%s**, %s"%(x["desc"], x["stats"], x["ability"], x["abilitydesc"]))
+
+                count+=1
+            editthis = await ctx.channel.send(embed=embed)
+            for x in reactionlist:
+                await editthis.add_reaction(x)
+            def check(reaction,user):
+                return user==ctx.author and str(reaction.emoji) in reactionlist and reaction.message==editthis
+            confirm = await self.client.wait_for('reaction_add', check=check)
+            if confirm:
+                rawreaction = str(confirm[0])
+                mmorpg["class"] = emptydict[rawreaction]
+                YourClass = next(x for x in classdict if x["class"] == emptydict[rawreaction])
+                print(YourClass)
+                mmorpg["stats"]=YourClass["stats"]
+                mmorpg["abilities"][YourClass["ability"]] = 1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"mmorpg":mmorpg}})
+                embed = discord.Embed(title = "You are now a %s"%(emptydict[rawreaction]), description = "Go explore!", color = ctx.author.color)
+                await ctx.channel.send(embed=embed)
+        else:
+            await ctx.channel.send("you already have a class lmao")
+
+
+        
 
 
 
@@ -3222,10 +3372,10 @@ class currencysys(commands.Cog):
         dates = mulah.find_one({"id":p1.id}, {"dates"})["dates"]
         gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
         gamblewins = mulah.find_one({"id":ctx.author.id}, {"gamblewins"})["gamblewins"]
-
+        mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]
         embed = discord.Embed(title = "%s' Profile!"%(p1.display_name), description = "Use the reactions to navigate the profile!", color = ctx.author.color)
         embed.set_image(url = p1.avatar_url)
-        reactions = ["💰","❤️","🎮", "🏆","💼", "🚪"]
+        reactions = ["💰","❤️","🎮", "🏆","💼", "⚔️","🚪"]
         profilembed = await ctx.channel.send(embed=embed)
         for x in reactions:
             await profilembed.add_reaction(x)
@@ -3236,6 +3386,11 @@ class currencysys(commands.Cog):
             confirm = await self.client.wait_for('reaction_add', check=check)
             if confirm:
                 rawreaction = str(confirm[0])
+                if rawreaction =="⚔️":
+                    embed = discord.Embed(title = "MMORPG stats!", color = ctx.author.color)
+                    for x in mmorpg.keys():
+                        embed.add_field(name = "%s"%(x), value = "%s"%(mmorpg[x]), inline = False)
+
                 if rawreaction == "💰":
                     try:
                         walletval = mulah.find_one({"id":p1.id}, {"money"})["money"]
@@ -3290,6 +3445,7 @@ class currencysys(commands.Cog):
                         embed = discord.Embed(title = "Your game stats", color = ctx.author.color)
                         for x in gameval.keys():
                             embed.add_field(name = "%s"%(x), value = "Skill:%s"%(gameval[x]))
+
 
                     except:
                         print(traceback.format_exc())
@@ -3551,6 +3707,15 @@ class currencysys(commands.Cog):
             mulah.update_one({"id":p1.id}, {"$set":{key:val}})
             await ctx.channel.send("ok creator senpai! i did it.")
 
+    @commands.command()
+    async def resetDB(self, ctx, key, p1:discord.Member=None):
+        global DatabaseKeys
+        if str(ctx.author)=="SentientPlatypus#1332":
+            if p1 ==None:
+                p1=ctx.author
+            x = next(a for a in DatabaseKeys if a["name"].lower()==key.lower())
+            mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
+            await ctx.channel.send("ok creator senpai! i did it.")
     @gf.command()
     async def netflix(self,ctx):
         global typegenrepraise
@@ -3838,7 +4003,7 @@ class currencysys(commands.Cog):
                 actionlist.append(action)
                 listofcomp = [Button(style = ButtonStyle.red, label = x) for x in actions]
                 if action == "start":
-                    editthis = await ctx.send(embed=embed) 
+                    editthis = await ctx.channel.send(embed=embed) 
                 if action!="start":
                     await editthis.edit(embed=embed)
                     await editthis.clear_reactions()

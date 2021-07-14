@@ -67,6 +67,7 @@ async def help(ctx):
 	embed.add_field(name = "currency💰", value = "`^help money`")
 	embed.add_field(name = "DatingSim❤️", value = "`^help gf`")
 	embed.add_field(name = "Images📷", value = "`^help image`")
+	embed.add_field(name = "MMORPG ⚔️", value = "`^help mmorpg`")
 	
 
 	await ctx.send(embed = embed)
@@ -79,6 +80,13 @@ async def gf(ctx):
 	embed.add_field(name = "commands:", value = "`^gfstats` `^getgf` `^gfinteract` `^gf gamimng` `^gf movies` `^gf kiss` `^gf hug` `^gf netflix` `^gf boink` `^gf propose`, `^gf date` `^gf talk`")
 
 	await ctx.send(embed = embed) 
+
+
+@help.command()
+async def mmorpg(ctx):
+	embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
+	embed.add_field(name = "Setup commands", value = "`setup`")
+	await ctx.channel.send(embed=embed)
 
 @help.command()
 async def money(ctx):
@@ -97,8 +105,24 @@ async def yomomma(ctx):
 	embed.add_field(name = "syntax:", value = "`^yomomma`")
 
 	await ctx.send(embed = embed) 
+@help.command()
+async def wanted(ctx):
+
+	embed = discord.Embed(title = "wanted", description = "wanted image", color = ctx.author.color)
+
+	embed.add_field(name = "syntax:", value = "`^wanted`")
+
+	await ctx.send(embed = embed) 
 
 
+@help.command()
+async def abouttocry(ctx):
+
+	embed = discord.Embed(title = "abouttocry!", description = "komi-saaan", color = ctx.author.color)
+
+	embed.add_field(name = "syntax:", value = "`^abouttocry`")
+
+	await ctx.send(embed = embed) 
 @help.command()
 async def clean(ctx):
 
@@ -1475,6 +1499,20 @@ async def wanted(ctx,user:discord.Member = None):
 	wanted.save("profile.jpg")
 	await ctx.channel.send(file = discord.File("profile.jpg"))
 
+@client.command()
+async def abouttocry(ctx,user:discord.Member = None):
+	if user == None:
+		user = ctx.author
+	wanted = Image.open("AboutToCry2.png")
+	base = Image.open("cry.png")
+	asset = user.avatar_url_as(size=128)
+	data = BytesIO(await asset.read())
+	pfp = Image.open(data)
+	pfp = pfp.resize((121,121))
+	base.paste(pfp,(415,382))
+	base.paste(wanted,(0,0),wanted)
+	base.save("profile.png")
+	await ctx.channel.send(file = discord.File("profile.png"))
 
 
 

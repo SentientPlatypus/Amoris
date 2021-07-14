@@ -302,3 +302,97 @@ Loop thread traceback (most recent call last):
   File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\threading.py", line 316, in wait
     gotit = waiter.acquire(True, timeout)
 
+CRITICAL:imdbpy:IMDbDataAccessError exception raised; args: ({'errcode': None, 'errmsg': 'None', 'url': 'https://www.imdb.com/title/tt2354158/episodes', 'proxy': '', 'exception type': 'IOError', 'original exception': <HTTPError 404: ''>},); kwds: {}
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\imdb\parser\http\__init__.py", line 220, in retrieve_unicode
+    response = uopener.open(url)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 523, in open
+    response = meth(req, response)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 632, in http_response
+    response = self.parent.error(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 561, in error
+    return self._call_chain(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 494, in _call_chain
+    result = func(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 641, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: 
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.02 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.09 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.11 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.11 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+CRITICAL:imdbpy:IMDbDataAccessError exception raised; args: ({'errcode': None, 'errmsg': 'None', 'url': 'https://www.imdb.com/title/tt2325989/episodes', 'proxy': '', 'exception type': 'IOError', 'original exception': <HTTPError 404: ''>},); kwds: {}
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\imdb\parser\http\__init__.py", line 220, in retrieve_unicode
+    response = uopener.open(url)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 523, in open
+    response = meth(req, response)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 632, in http_response
+    response = self.parent.error(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 561, in error
+    return self._call_chain(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 494, in _call_chain
+    result = func(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 641, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: 
+WARNING:discord.http:We are being rate limited. Retrying in 0.11 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+CRITICAL:imdbpy:IMDbDataAccessError exception raised; args: ({'errcode': None, 'errmsg': 'None', 'url': 'https://www.imdb.com/title/tt6336356/episodes', 'proxy': '', 'exception type': 'IOError', 'original exception': <HTTPError 404: ''>},); kwds: {}
+Traceback (most recent call last):
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\site-packages\imdb\parser\http\__init__.py", line 220, in retrieve_unicode
+    response = uopener.open(url)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 523, in open
+    response = meth(req, response)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 632, in http_response
+    response = self.parent.error(
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 561, in error
+    return self._call_chain(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 494, in _call_chain
+    result = func(*args)
+  File "C:\Users\trexx\AppData\Local\Programs\Python\Python39\lib\urllib\request.py", line 641, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: 
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.10 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.07 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions"
+WARNING:discord.http:We are being rate limited. Retrying in 0.02 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.10 seconds. Handled under the bucket "859145777141121045:None:/channels/{channel_id}/messages/{message_id}/reactions"
+WARNING:discord.http:We are being rate limited. Retrying in 0.07 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.19 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.21 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions"
+WARNING:discord.http:We are being rate limited. Retrying in 0.23 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions"
+WARNING:discord.http:We are being rate limited. Retrying in 0.15 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.18 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.20 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.10 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.11 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.12 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.14 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.07 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+WARNING:discord.http:We are being rate limited. Retrying in 0.13 seconds. Handled under the bucket "859145748988559365:None:/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
