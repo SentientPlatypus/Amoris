@@ -33,11 +33,17 @@ from pprint import pprint
 import currencysys
 from PIL import Image
 from io import BytesIO
+import mmorpgGame
+import DatabaseHandler
+import DatingSim
 from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
 
 
 cogsmulah = [currencysys]
 cogs = [levelsys]
+cogsmmorpg = [mmorpgGame]
+cogDB = [DatabaseHandler]
+coggf = [DatingSim]
 d = enchant.Dict("en_US")
 
 
@@ -1663,6 +1669,14 @@ for i in range(len(cogsmulah)):
 for i in range(len(cogs)):
 	cogs[i].setup(client)
 
+for i in range(len(cogsmmorpg)):
+	cogsmmorpg[i].setup(client)
+
+for i in range(len(cogDB)):
+	cogDB[i].setup(client)
+
+for i in range(len(coggf)):
+	coggf[i].setup(client)
 
 
 
