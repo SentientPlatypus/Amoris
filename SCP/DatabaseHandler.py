@@ -51,6 +51,36 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+
+        global achievements
+        achievements = [
+            {"name":"First Kiss!", "desc":"Kiss someone for the first time!", "category":"relationships"},
+            {"name":"Virginity Loss!", "desc":"Boink someone for the first time!", "category":"relationships"},
+            {"name":"Engaged!", "desc":"Propose to someone for the first time!", "category":"relationships"},
+            {"name":"Jerk", "desc":"Turns out you were the problem", "category":"relationships"},
+            {"name":"Divorcee!", "desc":"Get a life bro.", "category":"relationships"},
+            {"name":"First Date!", "desc":"First date with GF!", "category":"relationships"},
+            
+
+            {"name":"Getting By", "desc":"finally making some money! good job!", "category":"finance"},
+            {"name":"Millionaire!", "desc":"its what it sounds like", "category":"finance"},
+            
+            {"name":"Billionaire!", "desc":"Treat your workers with respect.", "category":"finance"},
+            {"name":"Employed!", "desc":"You got a job.", "category":"finance"},
+            {"name":"Gambler!", "desc":"You gambled for the first time! ", "category":"finance"},
+            {"name":"Winner!", "desc":"You won a gamble! ", "category":"finance"},
+
+
+            {"name":"Death!", "desc":"Get a life bro.", "category":"finance"},
+            {"name":"virgin", "desc":"Secret!", "category":"gaming"},
+            {"name":"FloorGang", "desc":"Secret!", "category":"gaming"},
+            {"name":"First PC!", "desc":"Create your first PC!", "category":"gaming"},
+            {"name":"Linus Tech Tips", "desc":"Create a beefy Computer with at least 12000 power!", "category":"gaming"},
+            {"name":"True Gamer", "desc":"Install 5 games on a single PC!", "category":"gaming"},
+            
+        ]
+
+
         global DatabaseKeys
         DatabaseKeys = [
             {"name":"gf", "value":0},

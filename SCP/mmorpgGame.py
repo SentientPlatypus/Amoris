@@ -58,7 +58,7 @@ class mmorpgGame(commands.Cog):
             "desc":"Warrior class. Great all around class.", 
             "stats":{"strenth":50, "defense":50, "intelligence":30, "sense":20, "health":100}, 
             "ability":"Rage", 
-            "abilitydesc":"Increase attack damage by 50%%"},
+            "abilitydesc":"Increase attack damage by 50%"},
 
             {"class":"assassin", 
             "desc":"Assassin class. deadly damage output, low defense.", 
@@ -80,7 +80,22 @@ class mmorpgGame(commands.Cog):
 
         ]
 
+        global abilitydict
+        abilitydict = [
+            {"name":"Rage","desc":"Increase attack damage by 50%"},
+            {"name":"Heal!","desc":"Recover 70%% of your HP"},
+            {"name":"Fire ball","desc":"Send a fire ball at your enemies!"},
+            {"name":"stealth","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat."},
+            {"name":"Necromancer","desc":"Turn your defeated enemies into your pawns!"},
+        ]
 
+        global itemdict
+        itemdict = [
+            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
+            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
+            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
+            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
+        ]
 
 
 
@@ -141,7 +156,6 @@ class mmorpgGame(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def mmorpg(self, ctx):
         embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
-        embed.add_field(name = "Setup commands", value = "`setup`")
         embed.add_field(name = "Setup commands", value = "`begin`")
         await ctx.channel.send(embed=embed)
 
