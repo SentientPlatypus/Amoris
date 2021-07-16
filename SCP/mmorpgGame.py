@@ -40,6 +40,7 @@ import os
 from PIL import Image
 from io import BytesIO
 import requests
+import Globals
 cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 mulah = cluster["discord"]["mulah"]
 
@@ -91,10 +92,11 @@ class mmorpgGame(commands.Cog):
 
         global itemdict
         itemdict = [
-            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
-            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
-            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
-            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer"},
+            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer", "rarity":"Legendary"},
+            {"name":"Saitamas Dish Gloves", "type":"hands", "desc":"The Most powerful item in the game.","rarity":"illegal", "attribute":{"strength":1000000}},
+            {"name":"Black Divider", "type":"primary", "desc":"Can deflect spells completely!", "rarity":"Legendary", "damage":39, "abilities":["Deflect"]},
+            {"name":"Doma's Flames", "type":"Runestone", "desc":"Incinerate your enemies until one of you wins. Damage is slow, but undefendable.", "rarity":"Epic"},
+
         ]
 
 
@@ -103,6 +105,44 @@ class mmorpgGame(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command(self,ctx):
+        global WearClothes
+        def WearClothes(user, item):
+            global itemdict
+            mmorpg = mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]
+            loadout = mmorpg["loadout"]
+            stats = mmorpg["stats"]
+            inv = mulah.fin
+            SpecificItem = next(x for x in itemdict if x["name"].lower() == item.lower())
+            if loadout[SpecificItem["type"]]!=None:
+                Globals.AddToInventory(ctx.author, loadout[SpecificItem["type"]], itemdict, 1)
+                Globals.RemoveFromInventory(ctx.author, SpecificItem["name"], 1)
+            loadout[SpecificItem["type"]] = SpecificItem["name"]
+            for x in SpecificItem["attribute"].keys():
+                stats[x]+= SpecificItem["attribute"][x]
+            if "abilities" in SpecificItem.keys():
+                mmorpg["abilities"][SpecificItem["abilities"]] = 1
+            mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
+            
+
+        global EquipItem
+        def EquipItem(user, item):
+            global itemdict
+            mmorpg = mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]
+            loadout = mmorpg["loadout"]
+            stats = mmorpg["stats"]
+            inv = mulah.fin
+            SpecificItem = next(x for x in itemdict if x["name"].lower() == item.lower())
+            if loadout[SpecificItem["type"]]!=None:
+                Globals.AddToInventory(ctx.author, loadout[SpecificItem["type"]], itemdict, 1)
+                Globals.RemoveFromInventory(ctx.author, SpecificItem["name"], 1)
+            loadout[SpecificItem["type"]] = SpecificItem["name"]
+            if "abilities" in SpecificItem.keys():
+                mmorpg["abilities"][SpecificItem["abilities"]] = 1
+            mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
+
+
+
+
         global StoryEmbed
         async def StoryEmbed(self, user, embedict:list):
             complete = False
@@ -168,8 +208,28 @@ class mmorpgGame(commands.Cog):
 
 
 
+    @mmorpg.command()
+    async def equip(self, ctx, items:str):
+        global WearClothes
+        global EquipItem
+        global itemdict
+        if str(ctx.author)=="SentientPlatypus#1332":
+            allperms = True
+        SpecificItem = next(x for x in itemdict if x["name"].lower()==items.lower())
 
-
+        if allperms ==True:
+            if SpecificItem["type"] in ["head", "hands", "pants", "torso", "arms"]:
+                WearClothes(ctx.author, SpecificItem["name"])
+            elif SpecificItem["type"] in ["primary", "secondary"]:
+                EquipItem(ctx.author, SpecificItem["name"])
+        else:
+            if Globals.InvCheck(ctx.author, item=items):
+                if SpecificItem["type"] in ["head", "hands", "pants", "torso", "arms"]:
+                    WearClothes(ctx.author, SpecificItem["name"])
+                elif SpecificItem["type"] in ["primary", "secondary"]:
+                    EquipItem(ctx.author, SpecificItem["name"])
+            else:
+                await ctx.channel.send("You dont have this item in your inventory.")
 
 
 

@@ -66,6 +66,18 @@ def RemoveFromInventory(user, item, AmountToRemove:int):
     itemdict["amount"]-=AmountToRemove
     mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
 
+def AddToInventory(user, item, ReferenceList:list, AmountToRemove:int):
+    inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
+    itemdict = next((x for x in inv if x["name"].lower() ==item.lower()), None)
+    ThingToAdd = next(x for x in ReferenceList if x["name"].lower()==item.lower())
+    if itemdict != None:
+        itemdict["amount"]+=AmountToRemove
+    else:
+        inv.append({"name":ThingToAdd["name"], "amount":AmountToRemove, "desc": "%s"%(ThingToAdd["desc"])})
+    mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
+
+
+
 
 def achievementcheck(user,achievement:str):
     try:
