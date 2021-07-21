@@ -41,6 +41,7 @@ from PIL import Image
 from io import BytesIO
 import requests
 import Globals
+from discord import Color
 cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 mulah = cluster["discord"]["mulah"]
 
@@ -53,29 +54,67 @@ class mmorpgGame(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        global EquipItem
+        def EquipItem(user, item):
+            global itemdict
+            mmorpg = mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]
+            loadout = mmorpg["loadout"]
+            stats = mmorpg["stats"]
+            inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
+            SpecificItem = next(x for x in itemdict if x["name"].lower() == item.lower())
+            if SpecificItem["type"] in loadout.keys():
+                if loadout[SpecificItem["type"]]!=None:
+                    CurrentItem = next(x for x in itemdict if x["name"] == loadout[SpecificItem["type"]])
+                    Globals.AddToInventory(user, CurrentItem["name"], itemdict, 1)
+                    Globals.RemoveFromInventory(user, SpecificItem["name"], 1)
+
+                    if "attribute" in CurrentItem.keys():
+                        for x in CurrentItem["attribute"].keys():
+                            print(CurrentItem["attribute"])
+                            print(stats)
+                            print(x)
+                            stats[x]-=CurrentItem["attribute"][x]
+                    if "abilities" in CurrentItem.keys():
+                        mmorpg["abilities"].remove(CurrentItem["abilities"])
+
+                loadout[SpecificItem["type"]] = SpecificItem["name"]
+
+                if "attribute" in SpecificItem.keys():
+                    for x in SpecificItem["attribute"].keys():
+                        print(x)
+                        stats[x]+= SpecificItem["attribute"][x]
+                if "abilities" in SpecificItem.keys():
+                    for x in SpecificItem["abilities"]:
+                        mmorpg["abilities"][x] = 1
+                mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
+                mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
+            
+
+
+
         global classdict
         classdict = [
             {"class":"warrior", 
             "desc":"Warrior class. Great all around class.", 
-            "stats":{"strenth":50, "defense":50, "intelligence":30, "sense":20, "health":100}, 
+            "stats":{"strength":50, "defense":50, "intelligence":30, "sense":20, "health":100}, 
             "ability":"Rage", 
             "abilitydesc":"Increase attack damage by 50%"},
 
             {"class":"assassin", 
             "desc":"Assassin class. deadly damage output, low defense.", 
-            "stats":{"strenth":110, "defense":15, "intelligence":30, "sense":50, "health":80}, 
+            "stats":{"strength":110, "defense":15, "intelligence":30, "sense":50, "health":80}, 
             "ability":"stealth", 
             "abilitydesc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat."},
 
             {"class":"Mage", 
             "desc":"Mage class. Uses movie science", 
-            "stats":{"strenth":40, "defense":30, "intelligence":100, "sense":60, "health":100}, 
+            "stats":{"strength":40, "defense":30, "intelligence":100, "sense":60, "health":100}, 
             "ability":"Fire ball", 
             "abilitydesc":"Send a fire ball at your enemies!"},
 
             {"class":"Healer", 
             "desc":"Healer class. Can heal. A lot.", 
-            "stats":{"strenth":40, "defense":50, "intelligence":80, "sense":30, "health":150}, 
+            "stats":{"strength":40, "defense":50, "intelligence":80, "sense":30, "health":150}, 
             "ability":"Heal!", 
             "abilitydesc":"Recover 70%% of your HP!"}
 
@@ -92,59 +131,48 @@ class mmorpgGame(commands.Cog):
 
         global itemdict
         itemdict = [
-            {"name":"Necromancer", "type":"Runestone", "desc":"grants the ability of Necromancer", "rarity":"Legendary"},
-            {"name":"Saitamas Dish Gloves", "type":"hands", "desc":"The Most powerful item in the game.","rarity":"illegal", "attribute":{"strength":1000000}},
-            {"name":"Black Divider", "type":"primary", "desc":"Can deflect spells completely!", "rarity":"Legendary", "damage":39, "abilities":["Deflect"]},
-            {"name":"Doma's Flames", "type":"Runestone", "desc":"Incinerate your enemies until one of you wins. Damage is slow, but undefendable.", "rarity":"Epic"},
+            {"name":"Necromancer", 
+            "type":"Runestone", 
+            "desc":"grants the ability of Necromancer", 
+            "rarity":"Legendary"},
+
+            {"name":"Saitamas Dish Gloves", 
+            "type":"hands", 
+            "desc":"The Most powerful item in the game.",
+            "rarity":"illegal", 
+            "attribute":{"strength":1000000}},
+
+            {"name":"Black Divider", 
+            "type":"primary", 
+            "desc":"Can deflect spells completely!", 
+            "rarity":"Legendary", 
+            "damage":39, 
+            "abilities":["Deflect"]},
+
+            {"name":"Doma's Flames", 
+            "type":"Runestone", 
+            "desc":"Incinerate your enemies until one of you wins. Damage is slow, but undefendable.", 
+            "rarity":"Epic"},
 
         ]
 
-
+        global RarityColors
+        RarityColors = {
+            "Epic":"blurple",
+            "Legendary":""
+        }
 
 
 
     @commands.Cog.listener()
     async def on_command(self,ctx):
-        global WearClothes
-        def WearClothes(user, item):
-            global itemdict
-            mmorpg = mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]
-            loadout = mmorpg["loadout"]
-            stats = mmorpg["stats"]
-            inv = mulah.fin
-            SpecificItem = next(x for x in itemdict if x["name"].lower() == item.lower())
-            if loadout[SpecificItem["type"]]!=None:
-                Globals.AddToInventory(ctx.author, loadout[SpecificItem["type"]], itemdict, 1)
-                Globals.RemoveFromInventory(ctx.author, SpecificItem["name"], 1)
-            loadout[SpecificItem["type"]] = SpecificItem["name"]
-            for x in SpecificItem["attribute"].keys():
-                stats[x]+= SpecificItem["attribute"][x]
-            if "abilities" in SpecificItem.keys():
-                mmorpg["abilities"][SpecificItem["abilities"]] = 1
-            mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
-            
 
-        global EquipItem
-        def EquipItem(user, item):
-            global itemdict
-            mmorpg = mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]
-            loadout = mmorpg["loadout"]
-            stats = mmorpg["stats"]
-            inv = mulah.fin
-            SpecificItem = next(x for x in itemdict if x["name"].lower() == item.lower())
-            if loadout[SpecificItem["type"]]!=None:
-                Globals.AddToInventory(ctx.author, loadout[SpecificItem["type"]], itemdict, 1)
-                Globals.RemoveFromInventory(ctx.author, SpecificItem["name"], 1)
-            loadout[SpecificItem["type"]] = SpecificItem["name"]
-            if "abilities" in SpecificItem.keys():
-                mmorpg["abilities"][SpecificItem["abilities"]] = 1
-            mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
 
 
 
 
         global StoryEmbed
-        async def StoryEmbed(self, user, embedict:list):
+        async def StoryEmbed(ctx, embedict:list):
             complete = False
             count = 0
             while complete == False:
@@ -152,7 +180,7 @@ class mmorpgGame(commands.Cog):
                     complete = True
                     break
                 currentembed = embedict[count]
-                embed = discord.Embed(title = currentembed["title"], description = currentembed["description"] ,color =user.color)
+                embed = discord.Embed(title = currentembed["title"], description = currentembed["description"] ,color =ctx.author.color)
                 try:
                     if "file" in currentembed.keys():
                         await editthis.edit(embed=embed, file = discord.File(currentembed["file"]))
@@ -165,7 +193,7 @@ class mmorpgGame(commands.Cog):
                         editthis = await ctx.channel.send(embed=embed)
                 await editthis.add_reaction("▶️")
                 def check(reaction,userr):
-                    return userr==user and str(reaction.emoji)=="▶️" and reaction.message==editthis
+                    return userr==ctx.author and str(reaction.emoji)=="▶️" and reaction.message==editthis
                 confirm = await self.client.wait_for('reaction_add', check=check, timeout = 60)
                 try:
                     if confirm:
@@ -173,7 +201,7 @@ class mmorpgGame(commands.Cog):
                         pass
                         count+=1
                 except asyncio.TimeoutError:
-                    await editthis.edit(embed=discord.Embed(title = "You took too long", color = user.color))
+                    await editthis.edit(embed=discord.Embed(title = "You took too long", color = ctx.author.color))
 
 
 
@@ -210,7 +238,6 @@ class mmorpgGame(commands.Cog):
 
     @mmorpg.command()
     async def equip(self, ctx, items:str):
-        global WearClothes
         global EquipItem
         global itemdict
         if str(ctx.author)=="SentientPlatypus#1332":
@@ -218,15 +245,9 @@ class mmorpgGame(commands.Cog):
         SpecificItem = next(x for x in itemdict if x["name"].lower()==items.lower())
 
         if allperms ==True:
-            if SpecificItem["type"] in ["head", "hands", "pants", "torso", "arms"]:
-                WearClothes(ctx.author, SpecificItem["name"])
-            elif SpecificItem["type"] in ["primary", "secondary"]:
                 EquipItem(ctx.author, SpecificItem["name"])
         else:
             if Globals.InvCheck(ctx.author, item=items):
-                if SpecificItem["type"] in ["head", "hands", "pants", "torso", "arms"]:
-                    WearClothes(ctx.author, SpecificItem["name"])
-                elif SpecificItem["type"] in ["primary", "secondary"]:
                     EquipItem(ctx.author, SpecificItem["name"])
             else:
                 await ctx.channel.send("You dont have this item in your inventory.")
@@ -240,7 +261,6 @@ class mmorpgGame(commands.Cog):
         mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]
         print(mmorpg)
         if mmorpg["class"] == None:
-            global StoryEmbed
             embedict = [
                 {"title":"Game:", "description":"*So you want to be a player?*"},
                 {"title":"Game:", "description":"*Do you think you are ready?*"},
@@ -248,7 +268,7 @@ class mmorpgGame(commands.Cog):
                 {"title":"Game:", "description":"*So be it...*"},
             ]
             global classdict
-            await StoryEmbed(ctx.author, embedict=embedict)
+            await StoryEmbed(ctx, embedict=embedict)
 
             alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟', '🚪']
             count = 0

@@ -60,23 +60,36 @@ def gamble(odds:int, times:int):
 
 
 
-def RemoveFromInventory(user, item, AmountToRemove:int):
+def RemoveFromInventory(user, item, AmountToRemove:int=None):
+    if AmountToRemove==None:
+        AmountToRemove=1
     inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
     itemdict = next(x for x in inv if x["name"].lower() ==item.lower())
     itemdict["amount"]-=AmountToRemove
+    if itemdict["amount"]==0:
+        inv.remove(itemdict)
     mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
 
-def AddToInventory(user, item, ReferenceList:list, AmountToRemove:int):
+def AddToInventory(user, item, ReferenceList:list, AmountToAdd:int=None):
+    if AmountToAdd==None:
+        AmountToAdd=1
     inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
     itemdict = next((x for x in inv if x["name"].lower() ==item.lower()), None)
     ThingToAdd = next(x for x in ReferenceList if x["name"].lower()==item.lower())
     if itemdict != None:
-        itemdict["amount"]+=AmountToRemove
+        itemdict["amount"]+=AmountToAdd
     else:
-        inv.append({"name":ThingToAdd["name"], "amount":AmountToRemove, "desc": "%s"%(ThingToAdd["desc"])})
+        inv.append({"name":ThingToAdd["name"], "amount":AmountToAdd, "desc": "%s"%(ThingToAdd["desc"])})
     mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
 
 
+def InvCheck(user, item) -> bool:
+    inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
+    check = next((x for x in inv if x["name"].lower()==item.lower()), None)
+    if check == None:
+        return True
+    else:
+        return False
 
 
 def achievementcheck(user,achievement:str):

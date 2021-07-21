@@ -1127,45 +1127,23 @@ class currencysys(commands.Cog):
         global shopitems
         global pcitems     
         global gameitems
+        if number is None:
+            number = 1   
         allitems = pcitems+shopitems+gameitems
         xvalue = []
-        for x in itertools.chain(pcitems, shopitems, gameitems):
-            itemm = x
-            if item.lower() == itemm["name"].casefold():
+        AllItems = pcitems+shopitems+gameitems
+        for x in AllItems:
+            if item.lower() == x["name"].casefold():
                 xvalue.append(x)
-                itemvalue = itemm["value"]
-                itemdesc = itemm["desc"]
+                itemvalue = x["value"]
+                itemdesc = x["desc"]
                 walletvar = mulah.find_one({"id":ctx.author.id}, {"money"})
                 walletval = walletvar["money"]
                 print(walletval, walletvar)
-                if itemvalue<=walletval:
-                    itemfind = mulah.find_one({"id":ctx.author.id}, {"inv"})
-                    try:
-                        if number is None:
-                            number = 1                     
-                        if itemvalue<=walletval*number:
-                            listtt = itemfind["inv"]
-                            listvr = []
-                            newwallet = walletval-itemvalue*number
-                            mulah.update_one({"id":ctx.author.id}, {"$set":{"money":newwallet}})                              
-                            for x in range(len(listtt)):
-                                z =  listtt[x]
-                                if ("name", itemm["name"]) in z.items():
-                                    z["amount"]+=number
-                                    listvr.append(x)
-                                    break
-
-                            if not listvr:
-                                listtt.append({"name":itemm["name"], "amount":number, "desc": "%s"%(itemdesc)})
-                            mulah.update_one({"id":ctx.author.id}, {"$set":{"inv":listtt}})
-                            embed = discord.Embed(title = "Purchase successfull!", description = "You have purchased %s %s"%(number,itemm["name"]), color = ctx.author.color)
-                            await ctx.channel.send(embed = embed)
-                            break         
-                        else:
-                            await ctx.channel.send("You dont have enough money") 
-                    except:
-                        mulah.update_one({"id":ctx.author.id}, {"$set":{"inv": []}})
-                        await ctx.channel.send("I have set up your inventory! try buying something again!")         
+                if itemvalue<=walletval*number:
+                    Globals.AddToInventory(ctx.author, item=item, ReferenceList=AllItems, AmountToAdd=number)    
+                    embed=discord.Embed(title = "Purchase successfull!", description = "You have purchased %s %s!"%(number, item), color = ctx.author.color)
+                    await ctx.channel.send(embed=embed)
                 else:
                     await ctx.channel.send("you dont have enough money for that.")
                     break
@@ -1284,7 +1262,13 @@ class currencysys(commands.Cog):
                 if rawreaction =="⚔️":
                     embed = discord.Embed(title = "MMORPG stats!", color = ctx.author.color)
                     for x in mmorpg.keys():
-                        embed.add_field(name = "%s"%(x), value = "%s"%(mmorpg[x]), inline = False)
+                        if x == "loadout":
+                            finalstring=""
+                            for x in mmorpg["loadout"].keys():
+                                finalstring+="%s: %s\n"%(x, mmorpg["loadout"][x])
+                            embed.add_field(name = "Loadout:", value = finalstring, inline=False)
+                        else:
+                            embed.add_field(name = "%s"%(x), value = "%s"%(mmorpg[x]), inline = False)
 
                 if rawreaction == "💰":
                     try:
