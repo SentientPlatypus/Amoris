@@ -40,6 +40,7 @@ import os
 from PIL import Image
 from io import BytesIO
 import requests
+import Globals
 cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 mulah = cluster["discord"]["mulah"]
 
@@ -1194,11 +1195,8 @@ class DatingSim(commands.Cog):
                     gfval["tier"] =4
                     mulah.update_one({"id":ctx.author.id},{"$set":{"gf":gfval}})
                     mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+                    Globals.RemoveFromInventory(ctx.author, "ring", 1)
                 else:
-                    if mulah.find_one({"id":ctx.author.id},{"proposes"})["proposes"]==0:
-                        proposes = mulah.find_one({"id":ctx.author.id},{"proposes"})["proposes"]    
-                        proposes+=1
-                        mulah.update_one({"id":ctx.author.id}, {"$set":{"proposes":proposes}})
                     await ctx.channel.send("%s is already your fiance, baka."%(gfval["name"]))
             else:
                 await ctx.channel.send("You need a ring to propose, bakaa. this is basic shit, man. come on.")

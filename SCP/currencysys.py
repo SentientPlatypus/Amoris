@@ -54,6 +54,9 @@ class currencysys(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        global emotionlist
+        emotionlist = ["embarrassed", "horny","surprised","climax", "image", "bed", "angry", "fear", "sad", "dissapointed"]
+
         global achievements
         achievements = [
             {"name":"First Kiss!", "desc":"Kiss someone for the first time!", "category":"relationships"},

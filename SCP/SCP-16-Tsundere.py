@@ -1064,7 +1064,7 @@ async def place(ctx, pos: int):
 	else:
 		await ctx.send("Please start a new game using the !tictactoe command.")
 
-
+	
 def checkWinner(winningConditions, mark):
 	global gameOver
 	for condition in winningConditions:
