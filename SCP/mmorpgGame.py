@@ -164,44 +164,7 @@ class mmorpgGame(commands.Cog):
 
 
 
-    @commands.Cog.listener()
-    async def on_command(self,ctx):
 
-
-
-
-
-        global StoryEmbed
-        async def StoryEmbed(ctx, embedict:list):
-            complete = False
-            count = 0
-            while complete == False:
-                if count==len(embedict):
-                    complete = True
-                    break
-                currentembed = embedict[count]
-                embed = discord.Embed(title = currentembed["title"], description = currentembed["description"] ,color =ctx.author.color)
-                try:
-                    if "file" in currentembed.keys():
-                        await editthis.edit(embed=embed, file = discord.File(currentembed["file"]))
-                    else:
-                        await editthis.edit(embed=embed)
-                except:
-                    if "file" in currentembed.keys():
-                        editthis = await ctx.channel.send(embed=embed, file = discord.File(currentembed["file"]))
-                    else:
-                        editthis = await ctx.channel.send(embed=embed)
-                await editthis.add_reaction("▶️")
-                def check(reaction,userr):
-                    return userr==ctx.author and str(reaction.emoji)=="▶️" and reaction.message==editthis
-                confirm = await self.client.wait_for('reaction_add', check=check, timeout = 60)
-                try:
-                    if confirm:
-                        await editthis.clear_reactions()
-                        pass
-                        count+=1
-                except asyncio.TimeoutError:
-                    await editthis.edit(embed=discord.Embed(title = "You took too long", color = ctx.author.color))
 
 
 
@@ -268,7 +231,7 @@ class mmorpgGame(commands.Cog):
                 {"title":"Game:", "description":"*So be it...*"},
             ]
             global classdict
-            await StoryEmbed(ctx, embedict=embedict)
+            await Globals.GlobalsStoryEmbed(self, ctx, embedict=embedict)
 
             alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟', '🚪']
             count = 0

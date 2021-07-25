@@ -171,17 +171,15 @@ def achievementpercent(achievement:str):
 
 
 ##-------------------------------------------------------------------ASYNC FUNCTS
-async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, EmbedToEdit=None):
-
-    alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
+async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'],EmbedToEdit=None):
     count = 0
     reactionlist = []
     emptydict = {}
     finalstr = ""
     for x in choices:
-        emptydict[alphlist[count]]=x
-        reactionlist.append(alphlist[count])
-        finalstr+="%s %s\n"%(alphlist[count], x)
+        emptydict[ReactionsList[count]]=x
+        reactionlist.append(ReactionsList[count])
+        finalstr+="%s %s\n"%(ReactionsList[count], x)
         count+=1
     embed = discord.Embed(title = TitleOfEmbed, description = finalstr, color = ctx.author.color)
     if EmbedToEdit!=None:
@@ -205,6 +203,26 @@ async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, EmbedToEdit=Non
                 return [emptydict[rawreaction], ThisMessage]
     except TimeoutError:
         await ctx.channel.send("You took too long! I guess we arent doing this.")
+
+
+
+
+async def AddChoices(self, ctx, choices:list, MessageToAddTo):
+    for x in choices:
+        await Embed.add_reaction(x)
+    def check(reaction, user):
+        return user==ctx.author and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
+    confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
+    try:
+        if confirm:
+            return str(confirm[0])
+    except TimeoutError:
+        await ctx.channel.send("You took too long! I guess we arent doing this.")
+
+
+
+
+
 
 async def StoryEmbed(self, ctx, embedict:list):
     complete = False
