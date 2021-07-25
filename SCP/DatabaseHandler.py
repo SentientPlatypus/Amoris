@@ -81,46 +81,6 @@ class DatabaseHandler(commands.Cog):
         ]
 
 
-        global DatabaseKeys
-        DatabaseKeys = [
-            {"name":"gf", "value":0},
-            {"name":"lp", "value":0},
-            {"name":"breakups", "value":0},
-            {"name":"kisses", "value":0},
-            {"name":"boinks", "value":0},
-            {"name":"money", "value":0},
-            {"name":"inv", "value":[]},
-            {"name":"watchlist", "value":[]},
-            {"name":"achievements", "value":[]},
-            {"name":"proposes", "value":0},
-            {"name":"dates", "value":0},
-            {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
-            {"name":"gambles", "value":0},
-            {"name":"gamblewins","value":0},
-            {"name":"mmorpg",
-            "value":{
-                "level":1,
-                "class":None,
-                "stats":{
-                    "strength":1, 
-                    "intelligence":1, 
-                    "defense":1, 
-                    "health":100,
-                    "sense":1}, 
-                "abilities":{
-                }, 
-                "loadout":{
-                    "head":None, 
-                    "torso":None, 
-                    "pants":None, 
-                    "arms":None, 
-                    "hands":None, 
-                    "primary":None,
-                    "secondary":None,
-                }
-            }
-            }
-        ]
 
 
 
@@ -130,7 +90,46 @@ class DatabaseHandler(commands.Cog):
     async def on_message(self, ctx):
         global dbcheck
         async def dbcheck(user):
-            global DatabaseKeys
+            DatabaseKeys = [
+                {"name":"gf", "value":0},
+                {"name":"lp", "value":0},
+                {"name":"breakups", "value":0},
+                {"name":"kisses", "value":0},
+                {"name":"boinks", "value":0},
+                {"name":"money", "value":0},
+                {"name":"inv", "value":[]},
+                {"name":"watchlist", "value":[]},
+                {"name":"achievements", "value":[]},
+                {"name":"proposes", "value":0},
+                {"name":"dates", "value":0},
+                {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
+                {"name":"gambles", "value":0},
+                {"name":"gamblewins","value":0},
+                {"name":"gameskill","value":{}},
+                {"name":"mmorpg",
+                "value":{
+                    "level":1,
+                    "class":None,
+                    "stats":{
+                        "strength":1, 
+                        "intelligence":1, 
+                        "defense":1, 
+                        "health":100,
+                        "sense":1}, 
+                    "abilities":{
+                    }, 
+                    "loadout":{
+                        "head":None, 
+                        "torso":None, 
+                        "pants":None, 
+                        "arms":None, 
+                        "hands":None, 
+                        "primary":None,
+                        "secondary":None,
+                    }
+                }
+                }
+            ]
             for x in DatabaseKeys:
                 try:
                     value = mulah.find_one({"id":ctx.author.id},{x["name"]})[x["name"]]
@@ -151,20 +150,23 @@ class DatabaseHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_completion(self,ctx):
         global achievements
-        gfval = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
-        lpval = mulah.find_one({"id":ctx.author.id}, {"lp"})["lp"]
-        breakups = mulah.find_one({"id":ctx.author.id}, {"breakups"})["breakups"]
-        kisses = mulah.find_one({"id":ctx.author.id}, {"kisses"})["kisses"]
-        boinks = mulah.find_one({"id":ctx.author.id}, {"boinks"})["boinks"]
-        dates = mulah.find_one({"id":ctx.author.id}, {"dates"})["dates"]
-        relationships = mulah.find_one({"id":ctx.author.id}, {"relationships"})["relationships"]
-        proposes = mulah.find_one({"id":ctx.author.id}, {"proposes"})["proposes"]
-        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
-        inv = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
-        watchlist = mulah.find_one({"id":ctx.author.id}, {"watchlist"})["watchlist"]
-        gameskill = mulah.find_one({"id":ctx.author.id}, {"gameskill"})["gameskill"]
-        gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
-        gamblewins = mulah.find_one({"id":ctx.author.id}, {"gamblewins"})["gamblewins"]
+        try:
+            gfval = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
+            lpval = mulah.find_one({"id":ctx.author.id}, {"lp"})["lp"]
+            breakups = mulah.find_one({"id":ctx.author.id}, {"breakups"})["breakups"]
+            kisses = mulah.find_one({"id":ctx.author.id}, {"kisses"})["kisses"]
+            boinks = mulah.find_one({"id":ctx.author.id}, {"boinks"})["boinks"]
+            dates = mulah.find_one({"id":ctx.author.id}, {"dates"})["dates"]
+            relationships = mulah.find_one({"id":ctx.author.id}, {"relationships"})["relationships"]
+            proposes = mulah.find_one({"id":ctx.author.id}, {"proposes"})["proposes"]
+            money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+            inv = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+            watchlist = mulah.find_one({"id":ctx.author.id}, {"watchlist"})["watchlist"]
+            gameskill = mulah.find_one({"id":ctx.author.id}, {"gameskill"})["gameskill"]
+            gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
+            gamblewins = mulah.find_one({"id":ctx.author.id}, {"gamblewins"})["gamblewins"]
+        except:
+            pass
         
         UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
 

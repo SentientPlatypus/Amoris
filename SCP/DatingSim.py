@@ -1079,10 +1079,6 @@ class DatingSim(commands.Cog):
                     embed.set_footer(text = "You have gained 100 Love points!")
                     boinks+=1
                     mulah.update_one({"id":ctx.author.id},{"$set":{"boinks":boinks}})
-
-                        
-
-
                     print(gfval["tier"])
                     if gfval["tier"]<3:
                         gfval["tier"] =3
@@ -1093,11 +1089,10 @@ class DatingSim(commands.Cog):
                     await editthis.edit(embed=embed)
                     climaxx == True
                     break
+
                 if action == "kiss":
                     kisses+=1
                     mulah.update_one({"id":ctx.author.id},{"$set":{"kisses":kisses}})
-
-
                 if action == "pin down":
                     pinned = True
                 if action in actionlist:
@@ -1105,8 +1100,8 @@ class DatingSim(commands.Cog):
                 else:
                     response = responsedict[action][0]
                 if re.search("\{0\}", response):
-                    print("this made it here")
                     response = response.format(ctx.author.display_name)
+
                 embed = discord.Embed(title = "%s:"%(gfval["name"]), description = "%s"%(response), color = ctx.author.color)
                 alphabet = string.ascii_lowercase
                 alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
@@ -2237,69 +2232,55 @@ class DatingSim(commands.Cog):
                 try:
                     gfname = await self.client.wait_for('message', check = check, timeout = 30.0)
                     newdictionary = {"name": "%s"%(gfname.content)}
-                    embed = discord.Embed(title = "Choose your type!", description = "a| tsundere\n b| yandere\n c|dandere\n d|kuudere\n e|Sweet\n f|Sadodere\n g|Kamidere", color = ctx.author.color)
-                    await ctx.channel.send(embed = embed)
-                    try:
-                        gftype = await self.client.wait_for('message', check = check, timeout = 30.0)
-                        for z in gftypes:
-                            print("here")
-                            if ("letter", str(gftype.content)) in z.items():
-                                print("here2")
-                                
-                                newdictionary["type"] = z["typename"]
-                                print("this worked")
-                                favoritesub = ["foreign language", "Math", "Computer Science", "biology", "chemistry", "Physics", "art", "gender studies", "business", "political sciences", "english."]
+                    types = [x["typename"] for x in gftypes]
+                    GfType = await Globals.ChoiceEmbed(self, ctx, types, "What is %s's type?"%(newdictionary["name"]))
+                    GfType = GfType[0]
+                    newdictionary["type"] = GfType
+                    print("this worked")
+                    favoritesub = ["language", "Math", "Computer Science", "biology", "chemistry", "Physics", "art", "gender studies", "business", "political sciences"]
 
-                                glikes = ["horror", "adventure", "creativity", "strategy", "fun", "thriller","fps", "comedy", "animation", "action", "romance", "drama"]
-                                
-                                likes = ["food", "texting", "gaming", "social media", "relaxing", "movies"]
+                    glikes = ["horror", "adventure", "creativity", "strategy", "thriller", "comedy", "animation", "action", "romance", "drama"]
+                    
+                    likes = ["food", "texting", "gaming", "social media", "relaxing", "movies"]
+                    EmbedChoices = await Globals.ChoiceEmbed(self, ctx, likes, "What does %s like?"%(newdictionary["name"]))
+                    print(EmbedChoices)
+                    randlikes = EmbedChoices[0]
+                    randsub = await Globals.ChoiceEmbed(self, ctx, favoritesub, "What is %s's Favorite Subject?"%(newdictionary["name"]))
+                    randsub = randsub[0]
+                    genre = await Globals.ChoiceEmbed(self, ctx, glikes, "What is %s's Favorite Genre?"%(newdictionary["name"]))
+                    genre = genre[0]
+                    randdislikes = await Globals.ChoiceEmbed(self, ctx, glikes, "What is %s's Least favorite genre?"%(newdictionary["name"]))
+                    randdislikes = randdislikes[0]
 
-                                randlikes = random.choice(likes)
-                                randsub = random.choice(favoritesub)
-                                genre = random.choice(glikes)
-                                randdislikes = random.choice(glikes)
-                                if randdislikes == genre:
-                                    while randdislikes==genre:
-                                        randdislikes = random.choice(glikes)
-                                
-                                newdictionary["likes"] = randlikes
-                                newdictionary["favorite subject"] = randsub
-                                newdictionary["dislikes"] = randdislikes
-                                newdictionary["favorite genre"] = genre
-                                newdictionary["tier"] = 1
-                                
-                                embed = discord.Embed(title = "You are now dating %s!"%(newdictionary["name"]), description = "Here is her profile! you can access this at anytime using `^gfstats`", color = ctx.author.color)
-                                print("this also worked")
-                                for x in newdictionary.keys():
-                                    embed.add_field(name = "%s:"%(x), value = newdictionary[x])
-                                await ctx.channel.send(embed = embed)  
-                                relationships = mulah.find_one({"id":ctx.author.id}, {"relationships"})["relationships"]
-                                relationships+=1
-                                mulah.update_one({"id":ctx.author.id}, {"$set":{"relationships":relationships}})
-                                mulah.update_one({"id":ctx.author.id}, {"$set":{"gf":newdictionary}})
-                                mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":100}})
-                                break                     
-                    except asyncio.TimeoutError:
-                        await ctx.channel.send("You took to long to respond! I guess we arent doing this.")
-
-
+                    if randdislikes == genre:
+                        while randdislikes==genre:
+                            randdislikes = random.choice(glikes)
+                    
+                    newdictionary["likes"] = randlikes
+                    newdictionary["favorite subject"] = randsub
+                    newdictionary["dislikes"] = randdislikes
+                    newdictionary["favorite genre"] = genre
+                    newdictionary["tier"] = 1
+                    
+                    embed = discord.Embed(title = "You are now dating %s!"%(newdictionary["name"]), description = "Here is her profile! you can access this at anytime using `^gfstats`", color = ctx.author.color)
+                    print("this also worked")
+                    for x in newdictionary.keys():
+                        embed.add_field(name = "%s:"%(x), value = newdictionary[x])
+                    await ctx.channel.send(embed = embed)  
+                    relationships = mulah.find_one({"id":ctx.author.id}, {"relationships"})["relationships"]
+                    relationships+=1
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"relationships":relationships}})
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"gf":newdictionary}})
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":100}})
+            
                 except asyncio.TimeoutError:
                     await ctx.channel.send("You took to long to respond! I guess we arent doing this.")
-                
-                
-
             else:
                 await ctx.channel.send("You already have a girlfriend! Infidelity is disgusting. Shame on you.")
         except:
-            try:
-                mulah.insert_one({"id":ctx.author.id, "gf":0})
-                mulah.update_one({"id": ctx.author.id}, {"$set":{"gf":0}})
-                print(exception)
-                await ctx.channel.send("I have set up your dating profile! Try `^getgf` again!")
-            except:
-                mulah.update_one({"id": ctx.author.id}, {"$set":{"gf":0}})
-                print(exception)
-                await ctx.channel.send("I have set up your dating profile! Try `^getgf` again!")
+            mulah.update_one({"id": ctx.author.id}, {"$set":{"gf":0}})
+            print(traceback.format_exc())
+            await ctx.channel.send("I have set up your dating profile! Try `^getgf` again!")
 
 
 
@@ -2340,7 +2321,7 @@ class DatingSim(commands.Cog):
         if ctx.content.startswith("^"):
             print("it starts")
             return 
-        number = random.randint(1,40)
+        number = random.randint(1,50)
         try:
             gfval = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
             lpval = mulah.find_one({"id":ctx.author.id}, {"lp"})["lp"]
@@ -2482,8 +2463,7 @@ class DatingSim(commands.Cog):
             
 
         except:
-            print(traceback.format_exc())
-            print("this didnt work")
+            pass
 
 def setup(client):
     client.add_cog(DatingSim(client))

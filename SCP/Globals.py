@@ -60,6 +60,18 @@ def gamble(odds:int, times:int):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+##-------------------------------------------------------------INV FUNCTS
 def RemoveFromInventory(user, item, AmountToRemove:int=None):
     if AmountToRemove==None:
         AmountToRemove=1
@@ -92,6 +104,24 @@ def InvCheck(user, item) -> bool:
         return False
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##----------------------------------------------------Achievement Functs
 def achievementcheck(user,achievement:str):
     try:
         value = mulah.find_one({"id":user.id}, {"achievements"})["achievements"]
@@ -113,3 +143,97 @@ def achievementpercent(achievement:str):
         except:
             pass
     return (achCount/count)*100
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##-------------------------------------------------------------------ASYNC FUNCTS
+async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, EmbedToEdit=None):
+
+    alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
+    count = 0
+    reactionlist = []
+    emptydict = {}
+    finalstr = ""
+    for x in choices:
+        emptydict[alphlist[count]]=x
+        reactionlist.append(alphlist[count])
+        finalstr+="%s %s\n"%(alphlist[count], x)
+        count+=1
+    embed = discord.Embed(title = TitleOfEmbed, description = finalstr, color = ctx.author.color)
+    if EmbedToEdit!=None:
+        EmbedToEdit = await EmbedToEdit.edit(embed=embed)
+        EmbedToEdit.clear_reactions()
+        for x in reactionlist:
+            await EmbedToEdit.add_reaction(x)
+    else:
+        ThisMessage = await ctx.channel.send(embed=embed)
+        for x in reactionlist:
+            await ThisMessage.add_reaction(x)
+    def check(reaction, user):
+        return user==ctx.author and str(reaction.emoji) in reactionlist and reaction.message == ThisMessage
+    confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
+    try:
+        if confirm:
+            rawreaction = str(confirm[0])
+            if EmbedToEdit!=None:
+                return[emptydict[rawreaction], EmbedToEdit]
+            else:
+                return [emptydict[rawreaction], ThisMessage]
+    except TimeoutError:
+        await ctx.channel.send("You took too long! I guess we arent doing this.")
+
+async def StoryEmbed(self, ctx, embedict:list):
+    complete = False
+    count = 0
+    while complete == False:
+        if count==len(embedict):
+            complete = True
+            break
+        currentembed = embedict[count]
+        embed = discord.Embed(title = currentembed["title"], description = currentembed["description"] ,color =ctx.author.color)
+        try:
+            if "file" in currentembed.keys():
+                await editthis.edit(embed=embed, file = discord.File(currentembed["file"]))
+            else:
+                await editthis.edit(embed=embed)
+        except:
+            if "file" in currentembed.keys():
+                editthis = await ctx.channel.send(embed=embed, file = discord.File(currentembed["file"]))
+            else:
+                editthis = await ctx.channel.send(embed=embed)
+        await editthis.add_reaction("▶️")
+        def check(reaction,userr):
+            return userr==ctx.author and str(reaction.emoji)=="▶️" and reaction.message==editthis
+        confirm = await self.client.wait_for('reaction_add', check=check, timeout = 60)
+        try:
+            if confirm:
+                await editthis.clear_reactions()
+                pass
+                count+=1
+        except asyncio.TimeoutError:
+            await editthis.edit(embed=discord.Embed(title = "You took too long", color = ctx.author.color))
+
