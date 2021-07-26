@@ -3,13 +3,15 @@ from datetime import date
 from inspect import trace
 from logging import exception
 from operator import mul
-from os import name
+from os import name, path
 from typing import AsyncContextManager
 import discord
 from discord import errors
 from discord import client
 from discord import channel
 from discord import embeds
+from discord import player
+from discord import file
 from discord.embeds import Embed
 from discord.ext import commands
 from discord.ext.commands.core import command
@@ -52,8 +54,132 @@ class mmorpgGame(commands.Cog):
         self.client = client
 
 
+
+
+
     @commands.Cog.listener()
     async def on_ready(self):
+        global Opponent
+        class Opponent(object):
+            def __init__(self, Name, Image, CurrentHealth, TotalHealth, Defense, Strength, Mana, Intelligence, size, paste, id=None):
+                self.CurrentHealth=CurrentHealth
+                self.TotalHealth=TotalHealth
+                self.Image=Image
+                self.Name=Name
+                self.Defense=Defense
+                self.Strength=Strength
+                self.Mana=Mana
+                self.Intelligence= Intelligence
+                self.size=size
+                self.paste=paste
+                self.id=id
+
+
+            def DamageOpponent(self, DamagePoints:int):
+                self.CurrentHealth-=(DamagePoints-self.Defense)
+
+
+
+
+        def CreateBattlefield(p1:Opponent, p2:Opponent, Effect=None):
+            Battlefield = Image.open("Battlefield.jpg")
+            p2ImageUrl = p2.Image
+            p1ImgeUrl = p1.Image
+            p2Image = Image.open(BytesIO(requests.get(p2ImageUrl).content))
+            p1Image = Image.open(BytesIO(requests.get(p1ImgeUrl).content))
+            p2Image = p2Image.resize(p2.size)
+            p1Image = p1Image.resize(p1.size)
+            try:
+                Battlefield.paste(p2Image, p2.paste, p2Image)
+            except:
+                Battlefield.paste(p2Image, p2.paste)
+            try:
+                Battlefield.paste(p1Image, p1.paste, p1Image)
+            except:
+                Battlefield.paste(p1Image, p1.paste)
+            Battlefield.save("FightScene.png")  
+               
+
+
+
+
+
+
+        global FinalDamage
+        async def FinalDamage(self, ctx, WeaponOrAbility, Op:Opponent, You:Opponent):
+            global Enemies
+            global abilitydict
+            global itemdict
+            WeaponAndAbilityDict = itemdict+abilitydict
+            DamageName = next(x for x in WeaponAndAbilityDict if x["name"].lower()==WeaponOrAbility.lower())
+
+            AmountOfDamage = int(DamageName["damage"]+(You.Strength/150))
+
+            TotalDamage = AmountOfDamage-Op.Defense
+            Op.DamageOpponent(TotalDamage)
+
+            bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
+            Yourbar = Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤")
+            
+            embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
+            embed.add_field(name="You used %s!"%(WeaponOrAbility), value = "%s recieved %s points of damage!"%(Op.Name, TotalDamage))
+            embed.set_footer(text = "%s \n %s \n %s/%s"%(You.Name, Yourbar, You.CurrentHealth, You.TotalHealth))
+            
+            CreateBattlefield(You, Op)
+            
+
+            file = discord.File("FightScene.png")
+            embed.set_image(url = "attachment://FightScene.png")
+            
+            print(embed.to_dict())
+            return [embed, file, Op.CurrentHealth]
+            
+            
+        global FightAction
+        async def FightAction(self, ctx, Op:Opponent, You:Opponent):
+            global abilitydict
+            global itemdict
+            embed = discord.Embed(title = Op.Name, description = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")+"%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
+            embed.set_footer(text = "%s\n%s\n%s/%s"%(You.Name, Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤"), You.CurrentHealth, You.TotalHealth))
+            embed.add_field(name = "❤️Heal", value = "Heal yourself!", inline=True)
+            embed.add_field(name = "⚔️Attack", value = "Attack Your Enemy!", inline=True)
+            embed.add_field(name="🏃Retreat", value = "Shameless", inline=True)
+            CreateBattlefield(You, Op)
+            file = discord.File("FightScene.png")
+            embed.set_image(url = "attachment://FightScene.png")
+            MessageToRef = await ctx.channel.send(embed=embed, file = file)
+            Choices = await Globals.AddChoices(self, ctx, ["❤️", "⚔️", "🏃"], MessageToRef)
+            if Choices == "❤️":
+                ActionChoice = [x for x in itemdict if x["type"]=="Heal" and Globals.InvCheck(You.id, x, Id=True)==True]
+                ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Heal!")
+                return [ReturnedChoice[0], "Heal"]
+
+            elif Choices =="⚔️":
+                ActionChoice = []
+                if mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["primary"]!=None:
+                    ActionChoice.append(mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["primary"])
+                if mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["secondary"]!=None:
+                    ActionChoice.append(mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["secondary"])
+                for x in mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["abilities"].keys():
+                    z = next(z for z in abilitydict if z["name"]==x)
+                    if "damage" in z.keys():
+                        ActionChoice.append(x)
+                ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Attack!")
+                return [ReturnedChoice[0], "Attack"]
+
+            elif Choices=="🏃":
+                return [None,"Retreat"]
+            
+
+
+                
+
+
+
+
+
+
+
         global EquipItem
         def EquipItem(user, item):
             global itemdict
@@ -96,25 +222,25 @@ class mmorpgGame(commands.Cog):
         classdict = [
             {"class":"warrior", 
             "desc":"Warrior class. Great all around class.", 
-            "stats":{"strength":50, "defense":50, "intelligence":30, "sense":20, "health":100}, 
+            "stats":{"strength":50, "defense":50, "intelligence":30, "sense":20, "health":100, "CurrentHealth":100}, 
             "ability":"Rage", 
             "abilitydesc":"Increase attack damage by 50%"},
 
             {"class":"assassin", 
             "desc":"Assassin class. deadly damage output, low defense.", 
-            "stats":{"strength":110, "defense":15, "intelligence":30, "sense":50, "health":80}, 
+            "stats":{"strength":110, "defense":15, "intelligence":30, "sense":50, "health":80, "CurrentHealth":100}, 
             "ability":"stealth", 
             "abilitydesc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat."},
 
             {"class":"Mage", 
             "desc":"Mage class. Uses movie science", 
-            "stats":{"strength":40, "defense":30, "intelligence":100, "sense":60, "health":100}, 
+            "stats":{"strength":40, "defense":30, "intelligence":100, "sense":60, "health":100, "CurrentHealth":100}, 
             "ability":"Fire ball", 
             "abilitydesc":"Send a fire ball at your enemies!"},
 
             {"class":"Healer", 
             "desc":"Healer class. Can heal. A lot.", 
-            "stats":{"strength":40, "defense":50, "intelligence":80, "sense":30, "health":150}, 
+            "stats":{"strength":40, "defense":50, "intelligence":80, "sense":30, "health":150, "CurrentHealth":150}, 
             "ability":"Heal!", 
             "abilitydesc":"Recover 70%% of your HP!"}
 
@@ -122,9 +248,10 @@ class mmorpgGame(commands.Cog):
 
         global abilitydict
         abilitydict = [
+            {"name":"Punch","desc":"Lmao broke","damage":10},
             {"name":"Rage","desc":"Increase attack damage by 50%"},
             {"name":"Heal!","desc":"Recover 70%% of your HP"},
-            {"name":"Fire ball","desc":"Send a fire ball at your enemies!"},
+            {"name":"Fire ball","desc":"Send a fire ball at your enemies!", "damage":50},
             {"name":"stealth","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat."},
             {"name":"Necromancer","desc":"Turn your defeated enemies into your pawns!"},
         ]
@@ -146,7 +273,7 @@ class mmorpgGame(commands.Cog):
             "type":"primary", 
             "desc":"Can deflect spells completely!", 
             "rarity":"Legendary", 
-            "damage":39, 
+            "damage":1500, 
             "abilities":["Deflect"]},
 
             {"name":"Doma's Flames", 
@@ -156,11 +283,18 @@ class mmorpgGame(commands.Cog):
 
         ]
 
-        global RarityColors
-        RarityColors = {
-            "Epic":"blurple",
-            "Legendary":""
-        }
+        global Enemies
+        Enemies = [
+            {"name":"Acnologia", 
+            "health":5000, 
+            "strength":800, 
+            "defense":400, 
+            "intelligence":1000,
+            "mana":1000,
+            "image":"https://static.wikia.nocookie.net/vsbattles/images/7/71/New_Human_Acnologia_Render.png/revision/latest/scale-to-width-down/400?cb=20200704092623", 
+            "size":((160, 199)), 
+            "paste":((468,125))}
+        ]
 
 
 
@@ -192,7 +326,29 @@ class mmorpgGame(commands.Cog):
 
 
 
+    @mmorpg.command()
+    async def Test(self, ctx, person, IsPlayer=None):
+        global Enemies
+        You = Opponent(
+            ctx.author.display_name, 
+            ctx.author.avatar_url, 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["health"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["health"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["defense"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["strength"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["intelligence"],
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["intelligence"],
+            ((123,123)),
+            ((20,199)),
+            ctx.author.id
+            )
 
+        Op = next(x for x in Enemies if x["name"].lower()==person.lower())
+        Op = Opponent(Op["name"], Op["image"], Op["health"], Op["health"], Op["defense"], Op["strength"], Op["mana"], Op["intelligence"], Op["size"], Op["paste"])
+        This1 = await FightAction(self, ctx, Op, You)
+        if This1[1]=="Attack":
+            This = await FinalDamage(self, ctx, This1[0], Op, You)
+            await ctx.channel.send(embed=This[0], file=This[1])
 
 
 
@@ -208,10 +364,10 @@ class mmorpgGame(commands.Cog):
         SpecificItem = next(x for x in itemdict if x["name"].lower()==items.lower())
 
         if allperms ==True:
-                EquipItem(ctx.author, SpecificItem["name"])
+            EquipItem(ctx.author, SpecificItem["name"])
         else:
             if Globals.InvCheck(ctx.author, item=items):
-                    EquipItem(ctx.author, SpecificItem["name"])
+                EquipItem(ctx.author, SpecificItem["name"])
             else:
                 await ctx.channel.send("You dont have this item in your inventory.")
 
@@ -231,7 +387,7 @@ class mmorpgGame(commands.Cog):
                 {"title":"Game:", "description":"*So be it...*"},
             ]
             global classdict
-            await Globals.GlobalsStoryEmbed(self, ctx, embedict=embedict)
+            await Globals.StoryEmbed(self, ctx, embedict=embedict)
 
             alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟', '🚪']
             count = 0
@@ -257,7 +413,11 @@ class mmorpgGame(commands.Cog):
                 mmorpg["class"] = emptydict[rawreaction]
                 YourClass = next(x for x in classdict if x["class"] == emptydict[rawreaction])
                 print(YourClass)
-                mmorpg["stats"]=YourClass["stats"]
+                for x in mmorpg["stats"].keys():
+                    for y in YourClass["stats"].keys():
+                        if x==y:
+                            mmorpg["stats"][x]+=YourClass["stats"][y]
+
                 mmorpg["abilities"][YourClass["ability"]] = 1
                 mulah.update_one({"id":ctx.author.id}, {"$set":{"mmorpg":mmorpg}})
                 embed = discord.Embed(title = "You are now a %s"%(emptydict[rawreaction]), description = "Go explore!", color = ctx.author.color)

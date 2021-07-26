@@ -51,6 +51,47 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        global DatabaseKeys
+        DatabaseKeys = [
+            {"name":"gf", "value":0},
+            {"name":"lp", "value":0},
+            {"name":"breakups", "value":0},
+            {"name":"kisses", "value":0},
+            {"name":"boinks", "value":0},
+            {"name":"money", "value":0},
+            {"name":"inv", "value":[]},
+            {"name":"watchlist", "value":[]},
+            {"name":"achievements", "value":[]},
+            {"name":"proposes", "value":0},
+            {"name":"dates", "value":0},
+            {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
+            {"name":"gambles", "value":0},
+            {"name":"gamblewins","value":0},
+            {"name":"gameskill","value":{}},
+            {"name":"mmorpg",
+            "value":{
+                "level":1,
+                "class":None,
+                "stats":{
+                    "strength":1, 
+                    "intelligence":100, 
+                    "defense":1, 
+                    "health":100,
+                    "sense":1}, 
+                "abilities":{"Punch":1
+                }, 
+                "loadout":{
+                    "head":None, 
+                    "torso":None, 
+                    "pants":None, 
+                    "arms":None, 
+                    "hands":None, 
+                    "primary":None,
+                    "secondary":None,
+                }
+            }
+            }
+        ]
 
         global achievements
         achievements = [
@@ -88,48 +129,12 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
+        if ctx.author == self.client.user:
+            return
+        if ctx.author.bot: return
         global dbcheck
         async def dbcheck(user):
-            DatabaseKeys = [
-                {"name":"gf", "value":0},
-                {"name":"lp", "value":0},
-                {"name":"breakups", "value":0},
-                {"name":"kisses", "value":0},
-                {"name":"boinks", "value":0},
-                {"name":"money", "value":0},
-                {"name":"inv", "value":[]},
-                {"name":"watchlist", "value":[]},
-                {"name":"achievements", "value":[]},
-                {"name":"proposes", "value":0},
-                {"name":"dates", "value":0},
-                {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
-                {"name":"gambles", "value":0},
-                {"name":"gamblewins","value":0},
-                {"name":"gameskill","value":{}},
-                {"name":"mmorpg",
-                "value":{
-                    "level":1,
-                    "class":None,
-                    "stats":{
-                        "strength":1, 
-                        "intelligence":1, 
-                        "defense":1, 
-                        "health":100,
-                        "sense":1}, 
-                    "abilities":{
-                    }, 
-                    "loadout":{
-                        "head":None, 
-                        "torso":None, 
-                        "pants":None, 
-                        "arms":None, 
-                        "hands":None, 
-                        "primary":None,
-                        "secondary":None,
-                    }
-                }
-                }
-            ]
+            global DatabaseKeys
             for x in DatabaseKeys:
                 try:
                     value = mulah.find_one({"id":ctx.author.id},{x["name"]})[x["name"]]
@@ -266,7 +271,14 @@ class DatabaseHandler(commands.Cog):
             dbcheck(p1)
             await ctx.channel.send("I have completed the database check for %s, creator senpai!!!"%(p1.display_name))
 
-
+    @commands.command()
+    async def CheckDatabase(self, ctx, key:str, p1:discord.Member=None):
+        if p1==None:
+            p1=ctx.author
+        if str(ctx.author)=="SentientPlatypus#1332":
+            Data = mulah.find_one({"id":p1.id}, {key})
+            await ctx.channel.send("```%s```"%(Data))
+            print(Data)
 
 
     @commands.command()
@@ -280,7 +292,12 @@ class DatabaseHandler(commands.Cog):
             await ctx.channel.send("I have removed %s from %s, creator senpai!"%(achievement, p1.display_name))
 
 
-
+    @commands.command()
+    async def debug(self, ctx, dictionary:str, member:discord.Member):
+        z = mulah.find_one({"id":member.id}, {dictionary})
+        await ctx.channel.send("%s"%(z))
+        x = z[dictionary]
+        await ctx.channel.send("%s"%(x))
 
 
 

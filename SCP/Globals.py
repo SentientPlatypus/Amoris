@@ -4,7 +4,7 @@ from inspect import trace
 from logging import exception
 from operator import mul
 from os import name
-from typing import AsyncContextManager
+from typing import AsyncContextManager, final
 import discord
 from discord import errors
 from discord import client
@@ -95,13 +95,21 @@ def AddToInventory(user, item, ReferenceList:list, AmountToAdd:int=None):
     mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
 
 
-def InvCheck(user, item) -> bool:
-    inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
-    check = next((x for x in inv if x["name"].lower()==item.lower()), None)
-    if check == None:
-        return True
+def InvCheck(user, item, Id=False) -> bool:
+    if Id==False:
+        inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
+        check = next((x for x in inv if x["name"].lower()==item.lower()), None)
+        if check == None:
+            return False
+        else:
+            return True
     else:
-        return False
+        inv = mulah.find_one({"id":user}, {"inv"})["inv"]
+        check = next((x for x in inv if x["name"].lower()==item.lower()), None)
+        if check == None:
+            return False
+        else:
+            return True
 
 
 
@@ -122,6 +130,18 @@ def InvCheck(user, item) -> bool:
 
 
 ##----------------------------------------------------Achievement Functs
+def XpBar(val, max, fill, empty):
+    valueOfBlue = math.floor((val/max)*20)
+    if valueOfBlue<0:
+        return empty*20
+    valueofWhite = 20-valueOfBlue
+    finalstr = fill*valueOfBlue+empty*valueofWhite
+    return finalstr
+    
+    
+
+
+
 def achievementcheck(user,achievement:str):
     try:
         value = mulah.find_one({"id":user.id}, {"achievements"})["achievements"]
@@ -209,7 +229,7 @@ async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=[
 
 async def AddChoices(self, ctx, choices:list, MessageToAddTo):
     for x in choices:
-        await Embed.add_reaction(x)
+        await MessageToAddTo.add_reaction(x)
     def check(reaction, user):
         return user==ctx.author and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
     confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
@@ -254,4 +274,5 @@ async def StoryEmbed(self, ctx, embedict:list):
                 count+=1
         except asyncio.TimeoutError:
             await editthis.edit(embed=discord.Embed(title = "You took too long", color = ctx.author.color))
+
 

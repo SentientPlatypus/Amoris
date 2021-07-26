@@ -281,12 +281,7 @@ class currencysys(commands.Cog):
     
 
 
-    @commands.command()
-    async def debug(self, ctx, dictionary:str, member:discord.Member):
-        z = mulah.find_one({"id":member.id}, {dictionary})
-        await ctx.channel.send("%s"%(z))
-        x = z[dictionary]
-        await ctx.channel.send("%s"%(x))
+
 
 
 
