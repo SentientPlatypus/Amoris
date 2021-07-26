@@ -15,6 +15,7 @@ from discord import file
 from discord.embeds import Embed
 from discord.ext import commands
 from discord.ext.commands.core import command
+from discord.ext.commands.help import _HelpCommandImpl
 from discord.member import Member
 from discord.player import PCMAudio
 from discord.utils import time_snowflake
@@ -173,6 +174,26 @@ class mmorpgGame(commands.Cog):
 
 
                 
+        global HealOpponent
+        async def HealOpponent(self, ctx, You:Opponent, Op:Opponent, value):
+            global itemdict
+            global abilitydict
+            CombinedDict = itemdict+abilitydict
+            HealDict = next(x for x in CombinedDict if x["name"].lower()==value.lower())
+            Restoration = HealDict["HealthRestoration"]
+            OldHP = You.CurrentHealth
+            You.CurrentHealth+=Restoration
+            if You.CurrentHealth>You.TotalHealth:
+                You.CurrentHealth=You.TotalHealth
+            RestoredHP = You.CurrentHealth-OldHP
+            embed = discord.Embed(title = Op.Name, description = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")+"%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
+            embed.set_footer(text = "%s\n%s\n%s/%s"%(You.Name, Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤"), You.CurrentHealth, You.TotalHealth))
+            embed.add_field(name="You Used %s"%(HealDict["name"]), value = "You have restored %s HP"%(RestoredHP))
+            CreateBattlefield(You, Op)
+            file = discord.File("FightScene.png")
+            embed.set_image(url="attachment://FightScene.png")
+
+            return [embed, file]
 
 
 
@@ -262,6 +283,12 @@ class mmorpgGame(commands.Cog):
             "type":"Runestone", 
             "desc":"grants the ability of Necromancer", 
             "rarity":"Legendary"},
+
+            {"name":"Vaccine", 
+            "type":"Heal", 
+            "desc":"grants the ability of Necromancer", 
+            "rarity":"Legendary",
+            "HealthRestoration":100},
 
             {"name":"Saitamas Dish Gloves", 
             "type":"hands", 
