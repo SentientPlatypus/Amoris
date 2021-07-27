@@ -164,6 +164,17 @@ def achievementpercent(achievement:str):
             pass
     return (achCount/count)*100
 
+def ChoiceParts(choices:list, ReactionsList = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']):
+    count = 0
+    reactionlist = []
+    emptydict = {}
+    finalstr = ""
+    for x in choices:
+        emptydict[ReactionsList[count]]=x
+        reactionlist.append(ReactionsList[count])
+        finalstr+="%s %s\n"%(ReactionsList[count], x)
+        count+=1
+    return [emptydict, finalstr, reactionlist]
 
 
 
@@ -227,17 +238,31 @@ async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=[
 
 
 
-async def AddChoices(self, ctx, choices:list, MessageToAddTo):
+async def AddChoices(self, ctx, choices:list, MessageToAddTo, Perms = None):
     for x in choices:
         await MessageToAddTo.add_reaction(x)
-    def check(reaction, user):
-        return user==ctx.author and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
+    asyncio.sleep(1)
+    if Perms ==None:
+        def check(reaction, user):
+            return user==ctx.author and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
+    if Perms == "Bot":
+        def check(reaction, user):
+            return user==self.client.user and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
+    if Perms=="All":      
+        def check(reaction):
+            return str(reaction.emoji) in choices and reaction.message == MessageToAddTo  
+    else:
+        Perms=discord.Member
+        def check(reaction, user):
+            return user==Perms and str(reaction.emoji) in choices and reaction.message == MessageToAddTo        
     confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
     try:
         if confirm:
             return str(confirm[0])
     except TimeoutError:
-        await ctx.channel.send("You took too long! I guess we arent doing this.")
+        await ctx.channel.send("You took too long!")
+        return "Timeout"
+
 
 
 

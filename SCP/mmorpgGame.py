@@ -1,9 +1,10 @@
 
+from asyncio.events import set_child_watcher
 from datetime import date
 from inspect import trace
 from logging import exception
 from operator import mul
-from os import name, path
+from os import name, path, spawnl
 from typing import AsyncContextManager
 import discord
 from discord import errors
@@ -33,6 +34,7 @@ import string
 import itertools
 from imdb import IMDb
 from pymongo.database import Database
+from pymongo.read_preferences import Secondary
 from youtube_search import YoutubeSearch
 import json
 import youtube_dl
@@ -62,7 +64,7 @@ class mmorpgGame(commands.Cog):
     async def on_ready(self):
         global Opponent
         class Opponent(object):
-            def __init__(self, Name, Image, CurrentHealth, TotalHealth, Defense, Strength, Mana, Intelligence, size, paste, id=None):
+            def __init__(self, Name, Image, CurrentHealth, TotalHealth, Defense, Strength, Mana, Intelligence, size, paste, Attacks:list=None, Defenses:list=None, support:list=None, Player:discord.Member=None):
                 self.CurrentHealth=CurrentHealth
                 self.TotalHealth=TotalHealth
                 self.Image=Image
@@ -73,12 +75,53 @@ class mmorpgGame(commands.Cog):
                 self.Intelligence= Intelligence
                 self.size=size
                 self.paste=paste
-                self.id=id
+                self.Attacks=Attacks
+                self.Defenses=Defenses
+                self.support=support
+                self.Player=Player
 
 
             def DamageOpponent(self, DamagePoints:int):
                 self.CurrentHealth-=(DamagePoints-self.Defense)
+        global Attack
+        class Attack(object):
+            def __init__(self, sender:Opponent, reciever:Opponent,name, type, damage, effects=None):
+                self.sender = sender
+                self.reciever=reciever
+                self.type=type
+                self.damage=damage
+                self.name=name
+                self.effects=effects
 
+            def Deflect(self, embed):
+                self.sender.CurrentHealth-=self.damage
+                self.damage=0
+                embed.add_field(name = "%s used %s, but it was Deflected!"%(self.sender.Name, self.name), value = "%s was hit with his own attack, and recieved %s points of damage"%(self.sender.Name, self.damage))
+                return embed
+
+                
+            
+
+        global Defense
+        class Defense(object):
+            def __init__(self,name, type, worksagainst,defends, special=False, effects=None):
+                self.type=type
+                self.name=name
+                self.worksagainst = worksagainst
+                self.defends=defends
+                self.special=special
+                self.effects=effects
+
+        global Support
+        class Support(object):
+            def __init__(self, ToSupport:Opponent,name, type, category, value, special=False,effects=None):
+                self.ToSupport = ToSupport
+                self.type=type
+                self.value=value
+                self.category=category
+                self.name=name
+                self.special=special
+                self.effects=effects
 
 
 
@@ -99,33 +142,59 @@ class mmorpgGame(commands.Cog):
             except:
                 Battlefield.paste(p1Image, p1.paste)
             Battlefield.save("FightScene.png")  
-               
+    
 
+        global GetAttribute
+        def GetAttribute(att, user, Isplayer=False):
+            global abilitydict
+            if Isplayer==False:
+                global Enemies
+                dictionary = next(x for x in Enemies if x["name"].lower()==user.lower())
+                return dictionary[att]
+            else:
+                user= discord.Member
+                abilities =mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]["abilities"]
+                ReturnList = []
+                for x in abilities.keys():
+                    AbilityDictionary = next(z for z in abilitydict if z["name"].lower()==x.lower())
+                    if AbilityDictionary["category"]==att:
+                        ReturnList.append(AbilityDictionary["name"])
+                return ReturnList
+                    
+                    
 
 
 
 
 
         global FinalDamage
-        async def FinalDamage(self, ctx, WeaponOrAbility, Op:Opponent, You:Opponent):
+        async def FinalDamage(self, ctx, WeaponOrAbility:Attack, Op:Opponent, You:Opponent, Defended=False, Defense:Defense=None):
             global Enemies
             global abilitydict
             global itemdict
-            WeaponAndAbilityDict = itemdict+abilitydict
-            DamageName = next(x for x in WeaponAndAbilityDict if x["name"].lower()==WeaponOrAbility.lower())
-
-            AmountOfDamage = int(DamageName["damage"]+(You.Strength/150))
-
-            TotalDamage = AmountOfDamage-Op.Defense
-            Op.DamageOpponent(TotalDamage)
-
             bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
-            Yourbar = Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤")
-            
             embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
-            embed.add_field(name="You used %s!"%(WeaponOrAbility), value = "%s recieved %s points of damage!"%(Op.Name, TotalDamage))
+
+            if Defense.worksagainst== "All" or Defense.worksagainst== WeaponOrAbility.type:
+                if Defense.special==False:
+                    WeaponOrAbility.damage-=Defense.defends
+                    AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
+
+                    TotalDamage = AmountOfDamage-Op.Defense
+                    Op.DamageOpponent(TotalDamage)
+                    embed.add_field(name="%s used %s!"%(You.name, WeaponOrAbility.name), value = "%s recieved %s points of damage!"%(Op.Name, TotalDamage))
+                else:
+                    FunctionToCall = Defense.name
+                    embed = await WeaponOrAbility.FunctionToCall(embed)
+
+            else:
+                AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
+                TotalDamage = AmountOfDamage-Op.Defense
+                Op.DamageOpponent(TotalDamage)                
+                embed.add_field(name="%s used %s!"%(You.name, WeaponOrAbility.name), value = "%s recieved %s points of damage!"%(Op.Name, TotalDamage))
+
+            Yourbar = Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤")     
             embed.set_footer(text = "%s \n %s \n %s/%s"%(You.Name, Yourbar, You.CurrentHealth, You.TotalHealth))
-            
             CreateBattlefield(You, Op)
             
 
@@ -140,9 +209,11 @@ class mmorpgGame(commands.Cog):
         async def FightAction(self, ctx, Op:Opponent, You:Opponent):
             global abilitydict
             global itemdict
+            global AttackDict
+
             embed = discord.Embed(title = Op.Name, description = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")+"%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
             embed.set_footer(text = "%s\n%s\n%s/%s"%(You.Name, Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤"), You.CurrentHealth, You.TotalHealth))
-            embed.add_field(name = "❤️Heal", value = "Heal yourself!", inline=True)
+            embed.add_field(name = "❤️Support", value = "Support yourself!", inline=True)
             embed.add_field(name = "⚔️Attack", value = "Attack Your Enemy!", inline=True)
             embed.add_field(name="🏃Retreat", value = "Shameless", inline=True)
             CreateBattlefield(You, Op)
@@ -150,21 +221,14 @@ class mmorpgGame(commands.Cog):
             embed.set_image(url = "attachment://FightScene.png")
             MessageToRef = await ctx.channel.send(embed=embed, file = file)
             Choices = await Globals.AddChoices(self, ctx, ["❤️", "⚔️", "🏃"], MessageToRef)
+
             if Choices == "❤️":
-                ActionChoice = [x for x in itemdict if x["type"]=="Heal" and Globals.InvCheck(You.id, x, Id=True)==True]
-                ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Heal!")
-                return [ReturnedChoice[0], "Heal"]
+                ActionChoice = [x for x in You.support.keys()]
+                ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Support!")
+                return [ReturnedChoice[0], "Support"]
 
             elif Choices =="⚔️":
-                ActionChoice = []
-                if mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["primary"]!=None:
-                    ActionChoice.append(mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["primary"])
-                if mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["secondary"]!=None:
-                    ActionChoice.append(mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["loadout"]["secondary"])
-                for x in mulah.find_one({"id":You.id}, {"mmorpg"})["mmorpg"]["abilities"].keys():
-                    z = next(z for z in abilitydict if z["name"]==x)
-                    if "damage" in z.keys():
-                        ActionChoice.append(x)
+                ActionChoice = [x for x in You.Attacks.keys()]
                 ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Attack!")
                 return [ReturnedChoice[0], "Attack"]
 
@@ -174,28 +238,63 @@ class mmorpgGame(commands.Cog):
 
 
                 
-        global HealOpponent
-        async def HealOpponent(self, ctx, You:Opponent, Op:Opponent, value):
-            global itemdict
-            global abilitydict
-            CombinedDict = itemdict+abilitydict
-            HealDict = next(x for x in CombinedDict if x["name"].lower()==value.lower())
-            Restoration = HealDict["HealthRestoration"]
-            OldHP = You.CurrentHealth
-            You.CurrentHealth+=Restoration
-            if You.CurrentHealth>You.TotalHealth:
-                You.CurrentHealth=You.TotalHealth
-            RestoredHP = You.CurrentHealth-OldHP
+        global SupportOpponent
+        async def SupportOpponent(self, ctx, PersonToAffect:Opponent, Op:Opponent, ability:Support):
+            ValueToEdit=ability.category
+            if ValueToEdit == "health":
+                PersonToAffect.CurrentHealth+=ability.value
+                if PersonToAffect.CurrentHealth>PersonToAffect.TotalHealth:
+                    PersonToAffect.CurrentHealth=PersonToAffect.TotalHealth
+                finalval = PersonToAffect.CurrentHealth
+            elif ValueToEdit=="strength":
+                PersonToAffect.Strength+=ability.value
+                finalval = PersonToAffect.Strength
+            elif ValueToEdit=="intelligence":
+                PersonToAffect.Intelligence+=ability.value
+            elif ValueToEdit=="defense":
+                PersonToAffect.Defenses+=ability.value
+            
             embed = discord.Embed(title = Op.Name, description = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")+"%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
-            embed.set_footer(text = "%s\n%s\n%s/%s"%(You.Name, Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤"), You.CurrentHealth, You.TotalHealth))
-            embed.add_field(name="You Used %s"%(HealDict["name"]), value = "You have restored %s HP"%(RestoredHP))
-            CreateBattlefield(You, Op)
+            embed.set_footer(text = "%s\n%s\n%s/%s"%(PersonToAffect.Name, Globals.XpBar(PersonToAffect.CurrentHealth, PersonToAffect.TotalHealth, "❤️", "🖤"), PersonToAffect.CurrentHealth, PersonToAffect.TotalHealth))
+            embed.add_field(name="You Used %s"%(ability.name), value = "%s's %s is now %s"%(PersonToAffect.Name, ability.category, FinalValue))
+            CreateBattlefield(PersonToAffect, Op)
             file = discord.File("FightScene.png")
             embed.set_image(url="attachment://FightScene.png")
 
             return [embed, file]
 
+        global Defend
+        async def Defend(self, ctx, You:Opponent, Op:Opponent, WeaponOrAbility:Attack, IsPlayer=False):
+            global Enemies
+            global abilitydict
+            global itemdict
+            WeaponAndAbilityDict = itemdict+abilitydict
 
+            bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
+            Yourbar = Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤")
+            
+            embed = discord.Embed(title = "%s is Using %s!"%(You.Name, WeaponOrAbility.name), description = "%s' health:\n"%(Op.Name) + bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
+            
+            ChoiceList = Globals.ChoiceParts([x for x in Op.Defenses])
+            ChoiceDict = ChoiceList[0]
+            ChoiceString = ChoiceList[1]
+            ReactionList = ChoiceList[2]
+            
+            embed.add_field(name="%s can Defend!"%(Op.Name), value = "Make sure To defend In time!\n%s"%(ChoiceString))
+            embed.set_footer(text = "%s \n %s \n %s/%s"%(You.Name, Yourbar, You.CurrentHealth, You.TotalHealth))
+            CreateBattlefield(You, Op)
+            file = discord.File("FightScene.png")
+            embed.set_image(url = "attachment://FightScene.png")     
+
+            Msg = await ctx.channel.send(embed=embed, file=file)
+            if IsPlayer==False:
+                ReturnChoices = random.choice(ReactionList)
+            else:
+                ReturnChoices = await Globals.AddChoices(self, ctx, ReactionList, Op.Player)
+            try:
+                return ChoiceDict[ReturnChoices]
+            except:
+                return ReturnChoices
 
 
 
@@ -269,13 +368,44 @@ class mmorpgGame(commands.Cog):
 
         global abilitydict
         abilitydict = [
-            {"name":"Punch","desc":"Lmao broke","damage":10},
-            {"name":"Rage","desc":"Increase attack damage by 50%"},
-            {"name":"Heal!","desc":"Recover 70%% of your HP"},
-            {"name":"Fire ball","desc":"Send a fire ball at your enemies!", "damage":50},
-            {"name":"stealth","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat."},
-            {"name":"Necromancer","desc":"Turn your defeated enemies into your pawns!"},
+            #support
+            {"name":"Rage","category":"support","desc":"Increase attack damage", "value":100,"attributeToSupport":"strength"},
+            {"name":"Heal!","category":"support","desc":"Recover your HP", "value":100, "attributeToSupport":"health"},
+            {"name":"stealth","category":"support","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat.", "value":100, "attributeToSupport":"strength"},
+            {"name":"vaccine","category":"support", "desc":"Heal!", "value":100, "attributeToSupport":"health"},
+            
+            
+            
+            
+            
+            ##defend
+            {"name":"Deflect","category":"defense", "type":"Physical", "WorksAgainst":"Magic","defends":1500, "desc":"Returns all magic damage to its sender!", "special":True},
+            {"name":"Absorb","category":"defense", "type":"Magic", "WorksAgainst":"All","defends":1500, "desc":"Absorbs!"},
+        
+        
+        
+        
+            #attacks
+            {"name":"Necromancer", "category":"attack", "type":"Magic", "damage":0,"desc":"Turn your defeated enemies into your pawns!"},
+            {"name":"Fire ball", "category":"attack","desc":"Send a fire ball at your enemies!", "attack":"Fire Ball"},
+            {"name":"Black Slash", "category":"attack", "type":"Physical", "damage":1500, "desc":"A devastating attack from the Black Divider"},
+            {"name":"Fire Ball", "category":"attack", "type":"Magic", "damage":50, "desc":"A basic skill from mages"},
+            {"name":"Punch", "category":"attack","type":"Physical", "damage":10, "desc":"A basic attack anyone can do."},
         ]
+
+
+
+
+        global DefendDict
+        DefendDict = [
+            {"name":"Deflect", "type":"Physical", "WorksAgainst":"Magic","defends":1500, "desc":"Returns all magic damage to its sender!"},
+        ]
+
+        global SupportDict
+        SupportDict = [
+            {"name":"vaccine", "type":"Physical", "restores":100}
+        ]
+
 
         global itemdict
         itemdict = [
@@ -285,10 +415,10 @@ class mmorpgGame(commands.Cog):
             "rarity":"Legendary"},
 
             {"name":"Vaccine", 
-            "type":"Heal", 
+            "type":"Heal",
             "desc":"grants the ability of Necromancer", 
             "rarity":"Legendary",
-            "HealthRestoration":100},
+            "abilities":{"vaccine":1}},
 
             {"name":"Saitamas Dish Gloves", 
             "type":"hands", 
@@ -300,8 +430,8 @@ class mmorpgGame(commands.Cog):
             "type":"primary", 
             "desc":"Can deflect spells completely!", 
             "rarity":"Legendary", 
-            "damage":1500, 
-            "abilities":["Deflect"]},
+            "abilities":{"Black Slash":1}
+            },
 
             {"name":"Doma's Flames", 
             "type":"Runestone", 
@@ -320,7 +450,10 @@ class mmorpgGame(commands.Cog):
             "mana":1000,
             "image":"https://static.wikia.nocookie.net/vsbattles/images/7/71/New_Human_Acnologia_Render.png/revision/latest/scale-to-width-down/400?cb=20200704092623", 
             "size":((160, 199)), 
-            "paste":((468,125))}
+            "paste":((468,125)),
+            "attack":[{"Fire Ball":1}],
+            "defense":[{"Absorb":1}]
+            }
         ]
 
 
@@ -355,7 +488,9 @@ class mmorpgGame(commands.Cog):
 
     @mmorpg.command()
     async def Test(self, ctx, person, IsPlayer=None):
+        global abilitydict
         global Enemies
+        global GetAttribute
         You = Opponent(
             ctx.author.display_name, 
             ctx.author.avatar_url, 
@@ -367,15 +502,49 @@ class mmorpgGame(commands.Cog):
             mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["intelligence"],
             ((123,123)),
             ((20,199)),
-            ctx.author.id
+            GetAttribute("attack", ctx.author, IsPlayer=True),
+            GetAttribute("defense", ctx.author, IsPlayer=True),
+            GetAttribute("support", ctx.author, IsPlayer=True),
+            ctx.author,
             )
 
         Op = next(x for x in Enemies if x["name"].lower()==person.lower())
-        Op = Opponent(Op["name"], Op["image"], Op["health"], Op["health"], Op["defense"], Op["strength"], Op["mana"], Op["intelligence"], Op["size"], Op["paste"])
+        Op = Opponent(
+            Op["name"], 
+            Op["image"], 
+            Op["health"], 
+            Op["health"], 
+            Op["defense"], 
+            Op["strength"], 
+            Op["mana"], 
+            Op["intelligence"], 
+            Op["size"], 
+            Op["paste"],
+            GetAttribute("attack", "acologia"),
+            GetAttribute("defense", "acologia"),
+            )
+
         This1 = await FightAction(self, ctx, Op, You)
         if This1[1]=="Attack":
-            This = await FinalDamage(self, ctx, This1[0], Op, You)
+            AttackDictSpec = next(x for x in abilitydict if x["name"].lower()==This1[0].lower())
+            ThisAttack = Attack(You, Op, AttackDictSpec["name"], AttackDictSpec["type"], AttackDictSpec["damage"])
+            Thee = await FightAction(self, ctx, Op, You)
+            if Thee == "Error":
+                This = await FinalDamage(self, ctx, This1[0], Op, Defeded=False)
+            else:
+                DefenseReference=next(x for x in abilitydict if x["name"].lower()==Thee.lower())
+                if DefenseReference["special"]==True:
+                    TheirDefense = Defense(DefenseReference["name"], DefenseReference["type"], DefenseReference["worksagainst"], DefenseReference["defends"], special=True )
+                else:
+                    TheirDefense = Defense(DefenseReference["name"], DefenseReference["type"], DefenseReference["worksagainst"], DefenseReference["defends"], special=False )
+                This = await FinalDamage(self, ctx, This1[0], Op, Defeded=True, Defense = TheirDefense)
             await ctx.channel.send(embed=This[0], file=This[1])
+
+        elif This1[1]=="support":
+            AttackDictSpec = next(x for x in abilitydict if x["name"].lower()==This1[0].lower())
+            ThisSupport = Support(You, AttackDictSpec["name"], AttackDictSpec["type"], AttackDictSpec["category"], AttackDictSpec["damage"])
+            This = await SupportOpponent(self, ctx, You, Op, ThisSupport)
+            await ctx.channel.send(embed=This[0], file=This[1])            
 
 
 
