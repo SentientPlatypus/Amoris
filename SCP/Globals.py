@@ -61,7 +61,9 @@ def gamble(odds:int, times:int):
 
 
 
-
+def GetFirstKey(dict:dict):
+    for x in dict:
+        return x
 
 
 
@@ -130,7 +132,7 @@ def InvCheck(user, item, Id=False) -> bool:
 
 
 ##----------------------------------------------------Achievement Functs
-def XpBar(val, max, fill, empty):
+def XpBar(val, max, fill=":blue_square:", empty=":white_large_square:"):
     valueOfBlue = math.floor((val/max)*20)
     if valueOfBlue<0:
         return empty*20
@@ -139,6 +141,13 @@ def XpBar(val, max, fill, empty):
     return finalstr
     
     
+def GetKeysFromDictInList(list:list):
+    keys= []
+    for x in list:
+        for z in x.keys():
+            keys.append(z)
+    return keys
+
 
 
 
@@ -238,26 +247,17 @@ async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=[
 
 
 
-async def AddChoices(self, ctx, choices:list, MessageToAddTo, Perms = None):
+async def AddChoices(self, ctx, choices:list, MessageToAddTo):
     for x in choices:
         await MessageToAddTo.add_reaction(x)
-    asyncio.sleep(1)
-    if Perms ==None:
-        def check(reaction, user):
-            return user==ctx.author and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
-    if Perms == "Bot":
-        def check(reaction, user):
-            return user==self.client.user and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
-    if Perms=="All":      
-        def check(reaction):
-            return str(reaction.emoji) in choices and reaction.message == MessageToAddTo  
-    else:
-        Perms=discord.Member
-        def check(reaction, user):
-            return user==Perms and str(reaction.emoji) in choices and reaction.message == MessageToAddTo        
+
+    def check(reaction, user):
+        return user==ctx.author and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
+     
     confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
     try:
         if confirm:
+            print("Yes, This check worked")
             return str(confirm[0])
     except TimeoutError:
         await ctx.channel.send("You took too long!")

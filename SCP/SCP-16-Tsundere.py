@@ -830,7 +830,7 @@ async def talk(ctx):
 
 @client.command(name = "hello", help = "I say hello. ")
 async def hello(ctx):
-	if str(ctx.author) =="SentientPlatypus#1332":
+	if ctx.author.id==643764774362021899:
 		await ctx.send("Hello  creator senpai!, Is there anything I can do for you today?, Make sure to stay hydrated when you update me!")
 	else:
 		await ctx.send("hello there, i am Sentient's bot. talk to me if you need something from the real me. My  creator senpai is very busy.")
@@ -860,7 +860,7 @@ def conversationstart(self):
 
 @client.command(name = "talk", help = "I will start a conversation with you")
 async def talk(ctx):
-	if str(ctx.author)=="SentientPlatypus#1332":
+	if ctx.author.id==643764774362021899:
 		trexytalk = ["How are you doing today,  creator senpai?", "Can you please update me today?", "What are your thoughts on coexistance?", "Im bored, can you please update me,  creator senpai?", "Please stay healthy and do well in school,  creator senpai."]
 		randtrexytalk=random.choice(trexytalk)
 		await ctx.send(randtrexytalk)
@@ -872,7 +872,7 @@ async def talk(ctx):
 
 @client.command(name = "howru", help = "ask the bot how it is doing")
 async def howru(ctx):
-	if str(ctx.author)=="SentientPlatypus#1332":
+	if ctx.author.id==643764774362021899:
 		trexyhow = ["Im doing very well,  creator senpai. Is there anything I can do for you today?", "My day would be better if you had updated me.", "I dont care about that! How are you? are you healthy? are you maintaining good grades?"]
 		randtrexyhow = random.choice(trexyhow)
 		await ctx.send(randtrexyhow)
@@ -893,7 +893,7 @@ async def laughat(ctx,person):
 
 @client.command(name = "scold", help = "Scold me if I misbehave.")
 async def scold(ctx):
-	if str(ctx.author)=="SentientPlatypus#1332":
+	if ctx.author.id==643764774362021899:
 		trexyscold = ["Im sorry  creator senpai. I wont do it again.", "sumimasen.", "Its your fault for making me that way! Baka!"]
 		randtrexyscold = random.choice(trexyscold)
 		await ctx.send(randtrexyscold)
@@ -1877,7 +1877,7 @@ async def on_message(ctx):
 	#FUNNY
 	funny = ["lol", "lmao", "haha", "Lol", "Lmao"]
 	if any(word in ctx.content.casefold() for word in funny):
-		if str(ctx.author)=="SentientPlatypus#1332":
+		if ctx.author.id==643764774362021899:
 			trexyfunny = ["hahaha", "lmao", "lol"]
 			randtrexyfunny = random.choice(trexyfunny)
 			await ctx.channel.send(randtrexyfunny)
@@ -1889,7 +1889,7 @@ async def on_message(ctx):
 	#SAD
 	sad = ["sad", "depressed", "depression", "unhappy"]
 	if any(word in ctx.content for word in sad):
-		if str(ctx.author) =="SentientPlatypus#1332":
+		if ctx.author.id==643764774362021899:
 			trexysad = [" creator senpai! dont be sad, Is there anything I can do to cheer you up?", " creator senpai, please feel better.", "NO, You are not allowed to feel that way,  creator senpai."]
 			randtrexysad = random.choice(trexysad)
 			await ctx.channel.send(randtrexysad)
@@ -1912,7 +1912,7 @@ async def on_message(ctx):
 
 		#WHY
 	if ctx.content.startswith("why"):
-		if str(ctx.author)=="SentientPlatypus#1332":
+		if ctx.author.id==643764774362021899:
 			trexywhy = ["I will find out asap.", "I will google it for you,  creator senpai", "Someone, answer  creator senpai's question!"]
 			randtrexywhy = random.choice(trexywhy)
 			await ctx.channel.send(randtrexywhy)
@@ -1956,7 +1956,7 @@ async def on_message(ctx):
 	shutupre = re.findall(shutup,ctx.content.casefold())
 	trexyscold = ["Im sorry  creator senpai. I wont do it again.", "sumimasen.", "Its your fault for making me that way! Baka!"]
 	if len(shutupre)>0:
-		if str(ctx.author)=="SentientPlatypus#1332":
+		if ctx.author.id==643764774362021899:
 			await ctx.channel.send(random.choice(trexyscold))
 		else:
 			await ctx.channel.send(random.choice(shutupresponse))

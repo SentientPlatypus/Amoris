@@ -78,8 +78,8 @@ class DatabaseHandler(commands.Cog):
                     "defense":1, 
                     "health":100,
                     "sense":1}, 
-                "abilities":{"Punch":1
-                }, 
+                "abilities":{"Punch":1},
+                
                 "loadout":{
                     "head":None, 
                     "torso":None, 
@@ -149,7 +149,6 @@ class DatabaseHandler(commands.Cog):
             return
 
 
-        await dbcheck(ctx.author)
 
 
     @commands.Cog.listener()
@@ -236,13 +235,13 @@ class DatabaseHandler(commands.Cog):
 
 
 
-
+    
 
 
 
     @commands.command()
     async def editDB(self,ctx, key, val:int, p1:discord.Member=None):
-        if str(ctx.author)=="SentientPlatypus#1332":
+        if ctx.author.id==643764774362021899:
             if p1 ==None:
                 p1=ctx.author
             mulah.update_one({"id":p1.id}, {"$set":{key:val}})
@@ -253,7 +252,7 @@ class DatabaseHandler(commands.Cog):
     @commands.command()
     async def resetDB(self, ctx, key, p1:discord.Member=None):
         global DatabaseKeys
-        if str(ctx.author)=="SentientPlatypus#1332":
+        if ctx.author.id==643764774362021899:
             if p1 ==None:
                 p1=ctx.author
             x = next(a for a in DatabaseKeys if a["name"].lower()==key.lower())
@@ -266,7 +265,7 @@ class DatabaseHandler(commands.Cog):
     async def database(self, ctx,p1:discord.Member=None):
         if p1 ==None:
             p1=ctx.author
-        if str(ctx.author)=="SentientPlatypus#1332":
+        if ctx.author.id==643764774362021899:
             global dbcheck
             dbcheck(p1)
             await ctx.channel.send("I have completed the database check for %s, creator senpai!!!"%(p1.display_name))
@@ -275,7 +274,7 @@ class DatabaseHandler(commands.Cog):
     async def CheckDatabase(self, ctx, key:str, p1:discord.Member=None):
         if p1==None:
             p1=ctx.author
-        if str(ctx.author)=="SentientPlatypus#1332":
+        if ctx.author.id==643764774362021899:
             Data = mulah.find_one({"id":p1.id}, {key})
             await ctx.channel.send("```%s```"%(Data))
             print(Data)
