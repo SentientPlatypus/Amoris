@@ -75,16 +75,17 @@ class mmorpgGame(commands.Cog):
 
         global Attack
         class Attack(object):
-            def __init__(self,name, type, damage, mana=None, effects:list=None):
+            def __init__(self,name, type, damage,cooldown, mana=None, effects:list=None,):
                 self.type=type
                 self.damage=damage
                 self.name=name
                 self.effects=effects
                 self.mana=mana
+                self.cooldown=cooldown
 
         global Defense
         class Defense(object):
-            def __init__(self,name, type, WorksAgainst,defends, special=None, mana=None, effects:list=None):
+            def __init__(self,name, type, WorksAgainst,defends,cooldown, special=None, mana=None, effects:list=None):
                 self.type=type
                 self.name=name
                 self.WorksAgainst = WorksAgainst
@@ -92,10 +93,11 @@ class mmorpgGame(commands.Cog):
                 self.special=special
                 self.effects=effects
                 self.mana=mana
+                self.cooldown=cooldown
 
         global Support
         class Support(object):
-            def __init__(self,name, type, attributeToSupport, value, special=None, mana=None,effects:list=None,SupportUser:bool=True, percentage=False):
+            def __init__(self,name, type, attributeToSupport, value,cooldown, special=None, mana=None,effects:list=None,SupportUser:bool=True, percentage=False):
                 self.SupportUser = SupportUser
                 self.type=type
                 self.value=value
@@ -105,6 +107,7 @@ class mmorpgGame(commands.Cog):
                 self.effects=effects
                 self.mana=mana
                 self.percentage=percentage
+                self.cooldown=cooldown
 
 
         global Opponent
@@ -179,15 +182,14 @@ class mmorpgGame(commands.Cog):
 
 
 
-            def AddToCooldown(self, category, name):
+            def AddToCooldown(self, Thing):
                 global abilitydict
-                DictionaryTOFInd = next(x for x in abilitydict if x["name"].lower()==name.lower() and x["category"].lower()==category.lower())
-                if "cooldown" in DictionaryTOFInd.keys():
-                    if {DictionaryTOFInd["name"]:DictionaryTOFInd["cooldown"]} in self.OnCooldown:
-                        z = next(x for x in self.OnCooldown if Globals.GetFirstKey(x)==DictionaryTOFInd["name"])
-                        z[DictionaryTOFInd["name"]]=DictionaryTOFInd["cooldown"]
+                if Thing.cooldown:
+                    if Thing in Globals.GetKeysFromDictInList(self.OnCooldown):
+                        z = next(x for x in self.OnCooldown if Globals.GetFirstKey(x)==Thing)
+                        self.OnCooldown[z][Thing] = Thing.cooldown
                     else:  
-                        self.OnCooldown.append({DictionaryTOFInd["name"]:DictionaryTOFInd["cooldown"]})
+                        self.OnCooldown.append({Thing:Thing.cooldown})
                 else:
                     pass
 
@@ -212,67 +214,65 @@ class mmorpgGame(commands.Cog):
                             self.Effects.remove(x)
             
             def AddEffect(self, effect:Effect):
-                self.Effects.append({effect.name:effect.length})
+                self.Effects.append({effect:effect.length})
 
 
             def CallEffect(self):
                 global effectdict
                 if self.Effects:
                     for x in self.Effects:
-                        ThisDict = next(z for z in effectdict if z["name"].lower()==Globals.GetFirstKey(x).lower())
-                        Ef = Effect(ThisDict["name"], ThisDict["type"], ThisDict["category"], ThisDict["AffectsSender"], ThisDict["value"], ThisDict["length"], ThisDict["ValSet"])
                         thingtochange=""
-                        if Ef.Category.lower()=="strength":
+                        if Globals.GetFirstKey(x).Category.lower()=="strength":
                             limit=self.TotalStrength
-                            if Ef.ValSet:
-                                if x[Globals.GetFirstKey(x)]== Ef.length:
-                                    self.Strength*=(Ef.Value/100)
+                            if Globals.GetFirstKey(x).ValSet:
+                                if x[Globals.GetFirstKey(x)]== Globals.GetFirstKey(x).length:
+                                    self.Strength*=(Globals.GetFirstKey(x).Value/100)
                                 elif x[Globals.GetFirstKey(x)]==1:
-                                    self.Strength*=(100/Ef.Value)
+                                    self.Strength*=(100/Globals.GetFirstKey(x).Value)
                                 else:
                                     pass
                             else:
-                                self.Strength*=(Ef.Value/100)
+                                self.Strength*=(Globals.GetFirstKey(x).Value/100)
                                 if self.Strength>limit:
                                     self.Strength=limit
-                        if Ef.Category.lower()=="health":
+                        if Globals.GetFirstKey(x).Category.lower()=="health":
                             limit=self.TotalHealth
-                            if Ef.ValSet:
-                                if x[Globals.GetFirstKey(x)]== Ef.length:
-                                    self.CurrentHealth*=(Ef.Value/100)
+                            if Globals.GetFirstKey(x).ValSet:
+                                if x[Globals.GetFirstKey(x)]== Globals.GetFirstKey(x).length:
+                                    self.CurrentHealth*=(Globals.GetFirstKey(x).Value/100)
                                 elif x[Globals.GetFirstKey(x)]==1:
-                                    self.CurrentHealth*=(100/Ef.Value)
+                                    self.CurrentHealth*=(100/Globals.GetFirstKey(x).Value)
                                 else:
                                     pass
                             else:
-                                self.CurrentHealth*=(Ef.Value/100)
+                                self.CurrentHealth*=(Globals.GetFirstKey(x).Value/100)
                                 if self.CurrentHealth>limit:
                                     self.CurrentHealth=limit
-                        if Ef.Category.lower()=="intelligence":
+                        if Globals.GetFirstKey(x).Category.lower()=="intelligence":
                             limit=self.Intelligence
-                            if Ef.ValSet:
-                                if x[Globals.GetFirstKey(x)]== Ef.length:
-                                    self.Mana*=(Ef.Value/100)
+                            if Globals.GetFirstKey(x).ValSet:
+                                if x[Globals.GetFirstKey(x)]== Globals.GetFirstKey(x).length:
+                                    self.Mana*=(Globals.GetFirstKey(x).Value/100)
                                 elif x[Globals.GetFirstKey(x)]==1:
-                                    self.Mana*=(100/Ef.Value)
+                                    self.Mana*=(100/Globals.GetFirstKey(x).Value)
                                 else:
                                     pass
                             else:
-                                self.Mana*=(Ef.Value/100)
+                                self.Mana*=(Globals.GetFirstKey(x).Value/100)
                                 if self.Mana>limit:
                                     self.Mana=limit
 
-                        if Ef.Category.lower()=="defense":
+                        if Globals.GetFirstKey(x).Category.lower()=="defense":
                             limit=self.TotalDefense
-                            if Ef.ValSet:
-                                if x[Globals.GetFirstKey(x)]== Ef.length:
-                                    self.Defense*=(Ef.Value/100)
+                            if Globals.GetFirstKey(x).ValSet:
+                                if x[Globals.GetFirstKey(x)]== Globals.GetFirstKey(x).length:
+                                    self.Defense*=(Globals.GetFirstKey(x).Value/100)
                                 elif x[Globals.GetFirstKey(x)]==1:
-                                    self.Defense*=(100/Ef.Value)
+                                    self.Defense*=(100/Globals.GetFirstKey(x).Value)
                                 else:
                                     pass
                             else:
-                                self.Defense*=(Ef.Value/100)
+                                self.Defense*=(Globals.GetFirstKey(x).Value/100)
                                 if self.Defense>limit:
                                     self.Defense=limit
 
@@ -319,14 +319,11 @@ class mmorpgGame(commands.Cog):
         def GetAttribute(att, user:discord.Member):
             abilities =mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]["abilities"]
             ReturnList = []
-            print(abilities)
             for x in abilities.keys():
                 AbilityDictionary = next(z for z in abilitydict if z["name"].lower()==x.lower())
-                print(AbilityDictionary)
                 Effects = []
                 if AbilityDictionary["effect"]!=None:
                     for z in AbilityDictionary["effect"]:
-                        print(z)
                         EffectDictionary = next((a for a in effectdict if a["name"].lower()==z.lower()), None)
                         Effects.append(
                             Effect(
@@ -347,6 +344,7 @@ class mmorpgGame(commands.Cog):
                                 AbilityDictionary["name"],
                                 AbilityDictionary["type"],
                                 AbilityDictionary["damage"],
+                                AbilityDictionary["cooldown"],
                                 AbilityDictionary["mana"],
                                 Effects
 
@@ -360,6 +358,7 @@ class mmorpgGame(commands.Cog):
                                 AbilityDictionary["type"],
                                 AbilityDictionary["WorksAgainst"],
                                 AbilityDictionary["defends"],
+                                AbilityDictionary["cooldown"],
                                 AbilityDictionary["special"],
                                 AbilityDictionary["mana"],
                                 Effects
@@ -373,6 +372,7 @@ class mmorpgGame(commands.Cog):
                                 AbilityDictionary["type"],
                                 AbilityDictionary["attributeToSupport"],
                                 AbilityDictionary["value"],
+                                AbilityDictionary["cooldown"],
                                 AbilityDictionary["special"],
                                 AbilityDictionary["mana"],
                                 Effects,
@@ -416,6 +416,7 @@ class mmorpgGame(commands.Cog):
                                 AbilityDictionary["name"],
                                 AbilityDictionary["type"],
                                 AbilityDictionary["damage"],
+                                AbilityDictionary["cooldown"],
                                 AbilityDictionary["mana"],
                                 Effects
 
@@ -429,6 +430,7 @@ class mmorpgGame(commands.Cog):
                                 AbilityDictionary["type"],
                                 AbilityDictionary["WorksAgainst"],
                                 AbilityDictionary["defends"],
+                                AbilityDictionary["cooldown"],
                                 AbilityDictionary["special"],
                                 AbilityDictionary["mana"],
                                 Effects
@@ -442,6 +444,7 @@ class mmorpgGame(commands.Cog):
                                 AbilityDictionary["type"],
                                 AbilityDictionary["attributeToSupport"],
                                 AbilityDictionary["value"],
+                                AbilityDictionary["cooldown"],
                                 AbilityDictionary["special"],
                                 AbilityDictionary["mana"],
                                 Effects,
@@ -463,7 +466,8 @@ class mmorpgGame(commands.Cog):
             global Enemies
             global abilitydict
             global itemdict        
-
+            You.EffectCooldown()
+            Op.EffectCooldown()
             if WeaponOrAbility.effects:
                 for x in WeaponOrAbility.effects:
                     if x.AffectsSender==True:
@@ -471,7 +475,6 @@ class mmorpgGame(commands.Cog):
                     else:
                         Op.AddEffect(x)
             if Defense.effects:
-                print("Yes this defense has effects")
                 for x in Defense.effects:
                     if x.AffectsSender==True:
                         Op.AddEffect(x)
@@ -480,7 +483,6 @@ class mmorpgGame(commands.Cog):
 
             if Defense!=None:
                 if Defense.WorksAgainst== "All" or Defense.WorksAgainst== WeaponOrAbility.type:
-                    print(Defense.special)
                     if Defense.special==None:
                         AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
                         AmountOfDamage-=Defense.defends
@@ -499,6 +501,7 @@ class mmorpgGame(commands.Cog):
                         embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
 
                         FunctionToCall = Defense.special
+
                         ret = FunctionToCall(You, Op, WeaponOrAbility,embed)
                         embed = ret[0]
                         TotalDamage = ret[1]
@@ -526,15 +529,11 @@ class mmorpgGame(commands.Cog):
             Op.CallEffect()
 
 
-            You.EffectCooldown()
-            Op.EffectCooldown()
-            print("this is the effects")
-            print(Op.Effects)
             if Op.Effects:
                 finalstr = ""
                 for x in Op.Effects:
-                    midstr="%s (%s/%s)"%(Globals.GetFirstKey(x), x[Globals.GetFirstKey(x)], next(z for z in effectdict if z["name"].lower()==Globals.GetFirstKey(x).lower())["length"])
-                    finalstr+="%s\n%s\n"%(midstr, Globals.XpBar(x[Globals.GetFirstKey(x)], next(z for z in effectdict if z["name"].lower()==Globals.GetFirstKey(x).lower())["length"], NumOfSquares=5))
+                    midstr="%s (%s/%s)"%(Globals.GetFirstKey(x).name, x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).length)
+                    finalstr+="%s\n%s\n"%(midstr, Globals.XpBar(x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).length, NumOfSquares=5))
                 embed.add_field(name = "%s' Current Effects"%(Op.Name), value = finalstr)
             embed.add_field(name="%s used %s!"%(You.Name, WeaponOrAbility.name), value = "%s recieved %s points of damage!"%(Op.Name, TotalDamage))
 
@@ -545,9 +544,6 @@ class mmorpgGame(commands.Cog):
             CreateBattlefield(You, Op)
             file = discord.File("FightScene.png")
             embed.set_image(url = "attachment://FightScene.png")
-            print("Affects of Op:")
-            print(Op.Effects)
-            print(Op.Defense)
             return [embed, file, Op.CurrentHealth]
             
             
@@ -568,8 +564,8 @@ class mmorpgGame(commands.Cog):
             if You.OnCooldown:
                 finlstr = ""
                 for x in You.OnCooldown:
-                    midstr = "%s (%s/%s)"%(Globals.GetFirstKey(x),x[Globals.GetFirstKey(x)], next(x for x in abilitydict if x["name"].lower()==Globals.GetFirstKey(x).lower())["cooldown"])
-                    finlstr+="%s\n%s\n"%(midstr.center(20), Globals.XpBar(x[Globals.GetFirstKey(x)], next(x for x in abilitydict if x["name"].lower()==Globals.GetFirstKey(x).lower())["cooldown"], NumOfSquares=5))
+                    midstr = "%s (%s/%s)"%(Globals.GetFirstKey(x).name,x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).cooldown)
+                    finlstr+="%s\n%s\n"%(midstr.center(20), Globals.XpBar(x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).cooldown, NumOfSquares=5))
                 embed.add_field(name = "Abilities Still On Cooldown:", value = finlstr)
 
 
@@ -582,12 +578,11 @@ class mmorpgGame(commands.Cog):
             await asyncio.sleep(2)
             while done==False:
                 if You.Player!=None:
-                    Choices = await Globals.AddChoices(self, ctx, ["❤️", "⚔️", "🏃"], MessageToRef)
+                    Choices = await Globals.AddChoices(self, ctx, ["❤️", "⚔️", "🏃"], MessageToRef, You.Player)
                     if Choices == "❤️":
                         if You.support:
-                            ActionChoice = [x.name for x in You.support if You.Mana>=x.mana and x.name not in Globals.GetKeysFromDictInList(You.OnCooldown)]
-                            ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Support!")
-                            print(ReturnedChoice)
+                            ActionChoice = [x.name for x in You.support if You.Mana>=x.mana and x not in Globals.GetKeysFromDictInList(You.OnCooldown)]
+                            ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Support!", p=You.Player)
                             You.Mana-=next(z for z in abilitydict if z["name"]==ReturnedChoice[0])["mana"]
                             return [next(x for x in You.support if x.name==ReturnedChoice[0]), "Support"]
                             break
@@ -597,10 +592,8 @@ class mmorpgGame(commands.Cog):
 
                     elif Choices =="⚔️":
                         if You.Attacks:
-                            print(You.Attacks)
-                            ActionChoice = [x.name for x in You.Attacks if You.Mana>=x.mana and x.name not in Globals.GetKeysFromDictInList(You.OnCooldown)]
-                            ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Attack!")
-                            print(ReturnedChoice)
+                            ActionChoice = [x.name for x in You.Attacks if You.Mana>=x.mana and x not in Globals.GetKeysFromDictInList(You.OnCooldown)]
+                            ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Attack!", p=You.Player)
                             You.Mana-=next(z for z in abilitydict if z["name"]==ReturnedChoice[0])["mana"]
                             return [next(x for x in You.Attacks if x.name==ReturnedChoice[0]), "Attack"]
                             break
@@ -614,10 +607,6 @@ class mmorpgGame(commands.Cog):
                         return [None,"Retreat"]
                         break
                 else:
-                    print("This is an Enemy")
-                    print(You.Attacks)
-                    print(You.Defenses)
-                    print(You.support)
                     Choices = "⚔️"
                     if You.CurrentHealth<You.TotalHealth:
                         Choices = random.choice(["❤️", "⚔️"])
@@ -627,7 +616,6 @@ class mmorpgGame(commands.Cog):
                         if You.support:                  
                             ActionChoice = [x.name for x in You.support if You.Mana>=x.mana and x.name not in Globals.GetKeysFromDictInList(You.OnCooldown)]
                             ReturnedChoice = random.choice(ActionChoice)
-                            print(ReturnedChoice)
                             You.Mana-=next(z for z in abilitydict if z["name"]==ReturnedChoice)["mana"]
 
                             await ctx.channel.send(embed=discord.Embed(title = "%s Will use %s!"%(You.Name, ReturnedChoice)))
@@ -643,7 +631,6 @@ class mmorpgGame(commands.Cog):
                             ActionChoice = [x.name for x in You.Attacks if You.Mana>=x.mana and x.name not in Globals.GetKeysFromDictInList(You.OnCooldown)]
                             ReturnedChoice = random.choice(ActionChoice)
                             await ctx.channel.send(embed=discord.Embed(title = "%s Will use %s!"%(You.Name, ReturnedChoice)))
-                            print(ReturnedChoice)
                             You.Mana-=next(z for z in abilitydict if z["name"]==ReturnedChoice)["mana"]
                             
                             return [next(x for x in You.Attacks if x.name==ReturnedChoice), "Attack"]
@@ -667,6 +654,13 @@ class mmorpgGame(commands.Cog):
                 finalval = User.SupportMe(ability)
             else:
                 finalval = Op.SupportMe(ability)
+            
+            if ability.effects:
+                for x in ability.effects:
+                    if x.AffectsSender==True:
+                        User.AddEffect(x)
+                    else:
+                        Op.AddEffect(x)
             embed = discord.Embed(title = Op.Name, description = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")+"%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
             embed.set_footer(text = "%s\n%s\n%s/%s"%(User.Name, Globals.XpBar(User.CurrentHealth, User.TotalHealth, "❤️", "🖤"), User.CurrentHealth, User.TotalHealth))
             embed.add_field(name="%s Used %s"%(User.Name ,ability.name), value = "%s's %s is increased by %s"%(User.Name, ability.attributeToSupport, finalval))
@@ -692,13 +686,24 @@ class mmorpgGame(commands.Cog):
             
             embed = discord.Embed(title = "%s is Using %s!"%(You.Name, WeaponOrAbility.name), description = "%s' health:\n"%(Op.Name) + bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
             
-            ChoiceList = Globals.ChoiceParts([x.name for x in Op.Defenses])
+            ChoiceList = Globals.ChoiceParts([x.name for x in Op.Defenses if x not in Globals.GetKeysFromDictInList(Op.OnCooldown)])
+            if Op.OnCooldown:
+
+                finlstr = ""
+                for x in Op.OnCooldown:
+                    try:
+                        if x.defends:
+                            midstr = "%s (%s/%s)"%(Globals.GetFirstKey(x).name,x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).cooldown)
+                            finlstr+="%s\n%s\n"%(midstr.center(20), Globals.XpBar(x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).cooldown, NumOfSquares=5))
+                    except:
+                        pass
+                try:
+                    embed.add_field(name = "Defenses Still On Cooldown:", value = finlstr)
+                except:
+                    pass
             ChoiceDict = ChoiceList[0]
             ChoiceString = ChoiceList[1]
             ReactionList = ChoiceList[2]
-            print(ReactionList)
-            print(ChoiceString)
-            print(ChoiceDict)
             if not ChoiceDict:
                 return "Error"
             embed.add_field(name="%s can Defend!"%(Op.Name), value = "Make sure To defend In time!\n%s"%(ChoiceString))
@@ -715,23 +720,15 @@ class mmorpgGame(commands.Cog):
             await asyncio.sleep(2)
             try:
                 Key = ChoiceDict[ReturnChoices]
-                print(Key)
-                print(Op.Defenses)
-                for x in Op.Defenses:
-                    print(x.name)
                 DefenseSpec = next(x for x in Op.Defenses if x.name.lower()==Key.lower())
                 if Op.Mana>=DefenseSpec.mana:
-                    TheDefense = Defense(DefenseSpec.name, DefenseSpec.type, DefenseSpec.WorksAgainst, DefenseSpec.defends, DefenseSpec.special, DefenseSpec.mana, DefenseSpec.effects)
-                    print("This made it here")
+                    TheDefense = Defense(DefenseSpec.name, DefenseSpec.type, DefenseSpec.WorksAgainst, DefenseSpec.defends, DefenseSpec.cooldown,DefenseSpec.special, DefenseSpec.mana, DefenseSpec.effects)
                     await ctx.channel.send(embed=discord.Embed(title = "%s Defends with %s!"%(Op.Name, TheDefense.name)))
                     return TheDefense
                 else:
                     await ctx.channel.send(embed=discord.Embed(title = "You dont Have enough Mana!"))
-                    print("Not enough mana")
                     return "Error"
             except:
-                print("Didnt wrk")
-                print(traceback.format_exc())
                 return ReturnChoices
 
 
@@ -754,9 +751,6 @@ class mmorpgGame(commands.Cog):
 
                     if "attribute" in CurrentItem.keys():
                         for x in CurrentItem["attribute"].keys():
-                            print(CurrentItem["attribute"])
-                            print(stats)
-                            print(x)
                             stats[x]-=CurrentItem["attribute"][x]
                     if "abilities" in CurrentItem.keys():
                         for x in CurrentItem["abilities"].keys():
@@ -768,7 +762,6 @@ class mmorpgGame(commands.Cog):
 
                 if "attribute" in SpecificItem.keys():
                     for x in SpecificItem["attribute"].keys():
-                        print(x)
                         stats[x]+= SpecificItem["attribute"][x]
                 if "abilities" in SpecificItem.keys():
                     for x in SpecificItem["abilities"]:
@@ -819,27 +812,27 @@ class mmorpgGame(commands.Cog):
         abilitydict = [
 
             #suppor
-            {"name":"Rage","category":"support","SupportUser":True , "percentage":True, "type":"Magic","desc":"Increase attack damage", "value":150,"attributeToSupport":"strength", "special":None, "mana":10, "effect":None},
-            {"name":"Heal!","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Recover your HP", "value":150, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
-            {"name":"stealth","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat.", "value":100, "attributeToSupport":"strength", "mana":10, "effect":["Defenseless"]},
-            {"name":"vaccine","category":"support","SupportUser":True, "percentage":True, "type":"Magic", "desc":"Heal!", "value":100, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
+            {"name":"Rage","category":"support","SupportUser":True , "percentage":True, "type":"Magic","desc":"Increase attack damage", "value":150,"cooldown":0,"attributeToSupport":"strength", "special":None, "mana":10, "effect":None},
+            {"name":"Heal!","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Recover your HP", "value":150,"cooldown":0, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
+            {"name":"stealth","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat.", "value":100,"cooldown":0, "attributeToSupport":"strength", "mana":10, "effect":["Defenseless"]},
+            {"name":"vaccine","category":"support","SupportUser":True, "percentage":True, "type":"Magic", "desc":"Heal!", "value":100,"cooldown":0, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
             
             
             
             
             
             ##defend
-            {"name":"Deflect","category":"defense", "type":"Physical", "WorksAgainst":"Magic","defends":1500, "desc":"Returns all magic damage to its sender!", "special":Deflect, "mana":10, "effect":["Defenseless"]},
-            {"name":"Absorb","category":"defense", "type":"Magic", "WorksAgainst":"All","defends":1500, "desc":"Absorbs!", "special":None,"mana":10, "effect":None},
+            {"name":"Deflect","category":"defense", "type":"Physical", "WorksAgainst":"Magic","defends":1500, "desc":"Returns all magic damage to its sender!","cooldown":0, "special":Deflect, "mana":10, "effect":["Defenseless"]},
+            {"name":"Absorb","category":"defense", "type":"Magic", "WorksAgainst":"All","defends":1500, "desc":"Absorbs!", "special":None, "cooldown":0, "mana":10, "effect":None},
         
         
         
         
             #attacks
-            {"name":"Necromancer", "category":"attack", "type":"Magic", "damage":0,"desc":"Turn your defeated enemies into your pawns!", "special":None, "mana":10},
-            {"name":"Black Slash", "category":"attack", "type":"Physical", "damage":1800, "desc":"A devastating attack from the Black Divider", "special":None, "mana":10, "effect":["Bleed"]},
-            {"name":"Fire Ball", "category":"attack", "type":"Magic", "damage":50, "desc":"A basic skill from mages", "special":None, "mana":10, "effect":None},
-            {"name":"Punch", "category":"attack","type":"Physical", "damage":10, "desc":"A basic attack anyone can do.", "special":None, "mana":10, "effect":None},
+            {"name":"Necromancer", "category":"attack", "type":"Magic", "damage":0,"desc":"Turn your defeated enemies into your pawns!","cooldown":0, "special":None, "mana":10},
+            {"name":"Black Slash", "category":"attack", "type":"Physical", "damage":1800, "desc":"A devastating attack from the Black Divider","cooldown":3, "special":None, "mana":10, "effect":["Bleed"]},
+            {"name":"Fire Ball", "category":"attack", "type":"Magic", "damage":50, "desc":"A basic skill from mages", "special":None,"cooldown":0, "mana":10, "effect":None},
+            {"name":"Punch", "category":"attack","type":"Physical", "damage":10, "desc":"A basic attack anyone can do.", "special":None,"cooldown":0, "mana":10, "effect":None},
         ]
 
 
@@ -974,7 +967,6 @@ class mmorpgGame(commands.Cog):
 
             )
 
-        print(You.Attacks)
         
         GameOver=False
         while GameOver==False:
@@ -986,21 +978,19 @@ class mmorpgGame(commands.Cog):
             This1 = await FightAction(self, ctx, Op, You)
             if This1[1]=="Attack":
                 ThisAttack = This1[0]
-                You.AddToCooldown("Attack", ThisAttack.name)
+                You.AddToCooldown(ThisAttack)
                 Thee = await Defend(self, ctx, You, Op, ThisAttack)
                 await asyncio.sleep(2)
                 if Thee == "Error":
-                    print("No defense.")
                     This = await FinalDamage(self, ctx, ThisAttack, Op, You)
                 else:
-                    print("Is defense")
                     This = await FinalDamage(self, ctx, ThisAttack, Op, You, Defense = Thee)
                 await ctx.channel.send(embed=This[0], file=This[1])
             
             elif This1[1]=="Support":
                 await asyncio.sleep(2)
                 ThisSupport = This1[0]
-                You.AddToCooldown("support", ThisSupport.name)
+                You.AddToCooldown(ThisSupport)
                 This = await SupportOpponent(self, ctx, You, Op, ThisSupport)
                 await ctx.channel.send(embed=This[0], file=This[1])  
 
@@ -1018,7 +1008,7 @@ class mmorpgGame(commands.Cog):
             This1 = await FightAction(self, ctx, You, Op)
             if This1[1]=="Attack":
                 ThisAttack = This1[0]
-                Op.AddToCooldown("Attack", ThisAttack.name)
+                Op.AddToCooldown(ThisAttack)
                 Thee = await Defend(self, ctx, Op, You, ThisAttack)
                 await asyncio.sleep(2)
                 if Thee == "Error":
@@ -1030,7 +1020,7 @@ class mmorpgGame(commands.Cog):
             elif This1[1]=="Support":
                 await asyncio.sleep(2)
                 ThisSupport = This1[0]
-                Op.AddToCooldown("support", ThisSupport.name)
+                Op.AddToCooldown(ThisSupport)
                 This = await SupportOpponent(self, ctx, Op, You, ThisSupport)
                 await ctx.channel.send(embed=This[0], file=This[1])  
 
@@ -1071,7 +1061,6 @@ class mmorpgGame(commands.Cog):
     async def begin(self, ctx):
         global StoryEmbed
         mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]
-        print(mmorpg)
         if mmorpg["class"] == None:
             embedict = [
                 {"title":"Game:", "description":"*So you want to be a player?*"},
@@ -1105,7 +1094,6 @@ class mmorpgGame(commands.Cog):
                 rawreaction = str(confirm[0])
                 mmorpg["class"] = emptydict[rawreaction]
                 YourClass = next(x for x in classdict if x["class"] == emptydict[rawreaction])
-                print(YourClass)
                 for x in mmorpg["stats"].keys():
                     for y in YourClass["stats"].keys():
                         if x==y:

@@ -211,7 +211,7 @@ def ChoiceParts(choices:list, ReactionsList = ['1️⃣', '2️⃣', '3️⃣', 
 
 
 ##-------------------------------------------------------------------ASYNC FUNCTS
-async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'],EmbedToEdit=None):
+async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'],p:discord.Member=None,EmbedToEdit=None):
     count = 0
     reactionlist = []
     emptydict = {}
@@ -231,8 +231,11 @@ async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=[
         ThisMessage = await ctx.channel.send(embed=embed)
         for x in reactionlist:
             await ThisMessage.add_reaction(x)
+    if not p:
+        p=ctx.author
+
     def check(reaction, user):
-        return user==ctx.author and str(reaction.emoji) in reactionlist and reaction.message == ThisMessage
+        return user==p and str(reaction.emoji) in reactionlist and reaction.message == ThisMessage
     confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
     try:
         if confirm:

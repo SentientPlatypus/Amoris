@@ -7,6 +7,8 @@ import traceback
 from discord import message
 from discord import embeds
 from discord import channel
+from discord import activity
+from discord.enums import ActivityType
 from discord.flags import Intents
 import requests
 import random
@@ -52,7 +54,7 @@ tagre = "\#\d{4}$"
 
 
 
-client = commands.Bot(command_prefix="^", intents =discord.Intents.all())
+client = commands.Bot(command_prefix="^", intents =discord.Intents.all(), status=discord.Status.online)
 client.remove_command("help")
 
 
@@ -1842,9 +1844,9 @@ async def hangman(ctx, word):
 
 status = cycle(['with Ooferbot', 'Eating ice cream', 'visiting an art museum with Creator Senpai', 'uno with Creator Senpai'])
 
-@tasks.loop(seconds=10)
+@client.event
 async def on_ready():
-	await client.change_presence(activity=discord.Game(next(status)))
+	await client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help. \nProviding Girlfriends to %s lonely servers"%(len(client.guilds)+1)))
 
 #
 
