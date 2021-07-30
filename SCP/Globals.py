@@ -132,11 +132,11 @@ def InvCheck(user, item, Id=False) -> bool:
 
 
 ##----------------------------------------------------Achievement Functs
-def XpBar(val, max, fill=":blue_square:", empty=":white_large_square:"):
-    valueOfBlue = math.floor((val/max)*20)
+def XpBar(val, max, fill=":blue_square:", empty=":white_large_square:", NumOfSquares=20):
+    valueOfBlue = math.floor((val/max)*NumOfSquares)
     if valueOfBlue<0:
-        return empty*20
-    valueofWhite = 20-valueOfBlue
+        return empty*NumOfSquares
+    valueofWhite = NumOfSquares-valueOfBlue
     finalstr = fill*valueOfBlue+empty*valueofWhite
     return finalstr
     
@@ -247,12 +247,13 @@ async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=[
 
 
 
-async def AddChoices(self, ctx, choices:list, MessageToAddTo):
+async def AddChoices(self, ctx, choices:list, MessageToAddTo, p:discord.Member=None):
     for x in choices:
         await MessageToAddTo.add_reaction(x)
-
+    if p==None:
+        p=ctx.author
     def check(reaction, user):
-        return user==ctx.author and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
+        return user==p and str(reaction.emoji) in choices and reaction.message == MessageToAddTo
      
     confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
     try:
