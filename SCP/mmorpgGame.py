@@ -463,11 +463,13 @@ class mmorpgGame(commands.Cog):
 
         global FinalDamage
         async def FinalDamage(self, ctx, WeaponOrAbility:Attack, Op:Opponent, You:Opponent, Defense:Defense=None):
+            z = Op.CurrentHealth
             global Enemies
             global abilitydict
             global itemdict        
-            You.EffectCooldown()
-            Op.EffectCooldown()
+            bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
+            embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
+
             if WeaponOrAbility.effects:
                 for x in WeaponOrAbility.effects:
                     if x.AffectsSender==True:
@@ -484,6 +486,12 @@ class mmorpgGame(commands.Cog):
             if Defense!=None:
                 if Defense.WorksAgainst== "All" or Defense.WorksAgainst== WeaponOrAbility.type:
                     if Defense.special==None:
+
+                        You.CallEffect()
+                        Op.CallEffect()
+                        You.EffectCooldown()
+                        Op.EffectCooldown()
+
                         AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
                         AmountOfDamage-=Defense.defends
                         if AmountOfDamage<0:
@@ -493,49 +501,55 @@ class mmorpgGame(commands.Cog):
                         if TotalDamage<0:
                             TotalDamage=0
                         Op.DamageOpponent(TotalDamage)
-                        bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
-                        embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
-
                     else:
-                        bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
-                        embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
-
-                        FunctionToCall = Defense.special
-
-                        ret = FunctionToCall(You, Op, WeaponOrAbility,embed)
-                        embed = ret[0]
-                        TotalDamage = ret[1]
+                        pass
 
                 else:
+                    You.CallEffect()
+                    Op.CallEffect()
+                    You.EffectCooldown()
+                    Op.EffectCooldown()
+
                     AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
                     TotalDamage = AmountOfDamage-Op.Defense
                     if TotalDamage<0:
                         TotalDamage=0
                     Op.DamageOpponent(TotalDamage)   
-                    bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
-                    embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
-
             else:
+                You.CallEffect()
+                Op.CallEffect()
+                You.EffectCooldown()
+                Op.EffectCooldown()
+
                 AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
                 TotalDamage = AmountOfDamage-Op.Defense
                 if TotalDamage<0:
                     TotalDamage=0
                 Op.DamageOpponent(TotalDamage)   
-                bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
-                embed = discord.Embed(title = "%s"%(Op.Name), description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
 
+            if Defense:
+                if Defense.WorksAgainst== "All" or Defense.WorksAgainst== WeaponOrAbility.type:
+                    if Defense.special:
+                        FunctionToCall = Defense.special
+                        ret = FunctionToCall(You, Op, WeaponOrAbility,embed)
+                        You.CallEffect()
+                        Op.CallEffect()
+                        You.EffectCooldown()
+                        Op.EffectCooldown()
 
-            You.CallEffect()
-            Op.CallEffect()
+                        embed = ret[0]
+                        TotalDamage = ret[1]
 
-
+            bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
+            embed.title = "%s"%(Op.Name)
+            embed.description = bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth)
             if Op.Effects:
                 finalstr = ""
                 for x in Op.Effects:
                     midstr="%s (%s/%s)"%(Globals.GetFirstKey(x).name, x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).length)
                     finalstr+="%s\n%s\n"%(midstr, Globals.XpBar(x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).length, NumOfSquares=5))
                 embed.add_field(name = "%s' Current Effects"%(Op.Name), value = finalstr)
-            embed.add_field(name="%s used %s!"%(You.Name, WeaponOrAbility.name), value = "%s recieved %s points of damage!"%(Op.Name, TotalDamage))
+            embed.add_field(name="%s used %s!"%(You.Name, WeaponOrAbility.name), value = "%s recieved %s points of damage!"%(Op.Name, Op.CurrentHealth-z))
 
             embed.add_field(name = "%s' Mana"%(You.Name), value = "%s/%s"%(You.Mana, You.Intelligence))
             Yourbar = Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤")     
@@ -697,10 +711,9 @@ class mmorpgGame(commands.Cog):
                             finlstr+="%s\n%s\n"%(midstr.center(20), Globals.XpBar(x[Globals.GetFirstKey(x)], Globals.GetFirstKey(x).cooldown, NumOfSquares=5))
                     except:
                         pass
-                try:
+                if finlstr!="":
                     embed.add_field(name = "Defenses Still On Cooldown:", value = finlstr)
-                except:
-                    pass
+
             ChoiceDict = ChoiceList[0]
             ChoiceString = ChoiceList[1]
             ReactionList = ChoiceList[2]

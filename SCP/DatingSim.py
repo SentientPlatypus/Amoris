@@ -670,7 +670,6 @@ class DatingSim(commands.Cog):
                 emptydict[alphlist[count]]=x
                 reactionlist.append(alphlist[count])
                 count+=1
-            print(emotionlist, emotionlist)
             reactionlist.append('🚪')
             embed = discord.Embed(title = "Girlfriend Images!", description = "Personalize your girlfriend experience with images based upon emotion! transparent images are preferred, as they will look nicer.", color = ctx.author.color)
             count = 0
@@ -727,7 +726,6 @@ class DatingSim(commands.Cog):
                             leave = True
                             break
                         if reactionstrr == '📁':
-                            print(emptydict[reactionstr])
                             embed = discord.Embed(title = "input a url to update image", description = "url must be http or https", color = ctx.author.color)
                             await msg.clear_reactions()
                             await msg.edit(embed = embed)
@@ -737,13 +735,10 @@ class DatingSim(commands.Cog):
                             confirm3 = await self.client.wait_for('message', check=check3)
                             turl = confirm3.content
                             emotion = emptydict[reactionstr]
-                            print(emotion)
                             if emotion is None:
                                 emotion = "image"
                             if emotion.lower() in emotionlist:
                                 if turl.startswith('http'):
-                                    print("yes it starts")
-                                    print(turl)
                                     try:
                                         gfdict[emotion] = turl
                                         mulah.update_one({"id":ctx.author.id}, {"$set":{"gf":gfdict}})
@@ -751,7 +746,6 @@ class DatingSim(commands.Cog):
                                         embed.set_image(url = turl)
                                         await ctx.channel.send(embed = embed)
                                     except:
-                                        print(traceback.format_exc())
                                         await ctx.channel.send("Get a girlfriend first")
                                 else:
                                     await ctx.channel.send("make sure its http or https")
@@ -857,8 +851,6 @@ class DatingSim(commands.Cog):
                 emptydict[alphlist[count]] = str(x)
                 finalstring+= alphlist[count] + "| " + "%s\n"%(x)
                 count+=1
-            print(movielist)
-            print(emptydict)
 
 
             embed = discord.Embed(title = "Choose a Movie/Show!", description = finalstring, color = ctx.author.color)
@@ -895,7 +887,6 @@ class DatingSim(commands.Cog):
                         try:
                             dialogue += next(item for item in typegenrepraise if item["typename"] == gfval["type"])[gfval["favorite genre"]]
                         except:
-                            print(traceback.format_exc())
                             pass
                         gfsat*=115/100
                     if gfval["likes"] == "relaxing":
@@ -1079,7 +1070,6 @@ class DatingSim(commands.Cog):
                     embed.set_footer(text = "You have gained 100 Love points!")
                     boinks+=1
                     mulah.update_one({"id":ctx.author.id},{"$set":{"boinks":boinks}})
-                    print(gfval["tier"])
                     if gfval["tier"]<3:
                         gfval["tier"] =3
                         embed.add_field(name = "%s levelled up!"%(gfval["name"]), value = "she is now tier %s"%(gfval["tier"]))
@@ -1272,7 +1262,6 @@ class DatingSim(commands.Cog):
                     for x in restaurant["menu"]:
                         menu.append(x)
                     order = random.choice(typemap["whattoeat"])
-                    print(order)
                     gforder = random.choice(menu)
                     try:
                         order = order.format(order = gforder)
@@ -1282,12 +1271,10 @@ class DatingSim(commands.Cog):
                         except:
                             pass
 
-                    print(order)
                     count = 0
                     emptydict = {}
                     reactions = []
                     finalstring = ""
-                    print(restaurant["menu"])
                     for x in restaurant["menu"]:
                         emptydict[alphlist[count]]=x
                         reactions.append(alphlist[count])
@@ -1312,7 +1299,6 @@ class DatingSim(commands.Cog):
                         file = discord.File("finalgf.png")
                         embed.set_image(url = "attachment://finalgf.png") 
                     except:
-                        print(traceback.format_exc())
                         try:
                             embed.set_image(url = gfval["image"])
                         except:
@@ -1333,7 +1319,6 @@ class DatingSim(commands.Cog):
                             return user==ctx.author and str(reaction.emoji) in reactions and reaction.message==editthis
                         confirm2 = await self.client.wait_for('reaction_add', check=check2)
                         if confirm2:
-                            print('ye')
                             if str(confirm2[0])=="🚪":
                                 leave=True
                                 break
@@ -1450,8 +1435,6 @@ class DatingSim(commands.Cog):
                 emptydict[alphlist[count]] = str(x)
                 finalstring+= alphlist[count] + "| " + "%s\n"%(x)
                 count+=1
-            print(movielist)
-            print(emptydict)
 
 
             embed = discord.Embed(title = "Choose a Movie!", description = finalstring, color = ctx.author.color)
@@ -1469,8 +1452,6 @@ class DatingSim(commands.Cog):
                     moviefind = moviesDB.get_movie(id)
                     genre = moviefind["genres"]
                     genre = [x.lower() for x in genre]
-                    print(genre)
-                    print(gfval["favorite genre"])
                     gfsat = 23
                     dialogue = ""
                     dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["movieresponse"]
@@ -1481,7 +1462,6 @@ class DatingSim(commands.Cog):
                         try:
                             dialogue += next(item for item in typegenrepraise if item["typename"] == gfval["type"])[gfval["favorite genre"]]
                         except:
-                            print(traceback.format_exc())
                             pass
                         gfsat*=115/100
                     if gfval["likes"] == "movies":
@@ -1611,7 +1591,7 @@ class DatingSim(commands.Cog):
                                             extrastring = x["text"]
                                             break
                                 else:
-                                    print("shit didnt work!")
+                                    pass
                                 newgfsat = math.floor((gfsat/100)*textdict["lpincrease"])
 
 
@@ -1630,14 +1610,12 @@ class DatingSim(commands.Cog):
                                 try:
                                     embed.set_image(url = "%s"%(authorgf["gf"]["image"]))      
                                 except:
-                                    print(traceback.format_exc())
                                     pass
                                 await ctx.channel.send(embed = embed)
                                 break
                         if len(xlist) ==0:
                             await ctx.channel.send("you need a %s"%(textdict["itemrequired"]))
                     except Exception as e:
-                        print(traceback.format_exc())
                         await ctx.channel.send("you need a %s"%(textdict["itemrequired"]))
 
 
@@ -1672,7 +1650,7 @@ class DatingSim(commands.Cog):
                     elif authorgfdislikes == textdict["category"]:
                         gfsat = gfsat*.85
                     else:
-                        print("shit didnt work!")
+                        pass
                     newgfsat = math.floor((gfsat/100)*textdict["lpincrease"])
 
 
@@ -1726,8 +1704,6 @@ class DatingSim(commands.Cog):
                 finalstring+= "%s:%s\n"%(alphlist[count], x["name"])
                 emptydict[alphlist[count]] = x["name"]
                 count+=1
-        print(emptydict)
-        print(pcnames)
         if finalstring !="":
             embed = discord.Embed(title = "Which PC would you like to use?", description = finalstring, color = ctx.author.color)
             await ctx.channel.send(embed=embed)
@@ -1762,7 +1738,6 @@ class DatingSim(commands.Cog):
                                         if x["recommendedspecs"]["totalram"]>pcdict["parts"]["totalram"] or x["recommendedspecs"]["power"]>pcdict["parts"]["power"]:
                                             specscheck.append("nope")
                                 if not specscheck:
-                                    print(newdict[msg.content])
                                     for x in gamewords:
                                         if x["name"] == newdict[msg.content]:
                                             randomword = random.choice(x["words"])
@@ -1793,11 +1768,9 @@ class DatingSim(commands.Cog):
                                         try:
                                             skilldict[newdict[msg.content]] +=skillint
                                         except:
-                                            print(traceback.format_exc())
                                             skilldict[newdict[msg.content]] = 0
                                             skilldict[newdict[msg.content]]+=skillint
                                     except:
-                                        print(traceback.format_exc())   
                                         skilldict = {}
                                         skilldict[newdict[msg.content]] =0
                                         skilldict[newdict[msg.content]] +=skillint
@@ -1810,28 +1783,22 @@ class DatingSim(commands.Cog):
                                     gfsat = gamedict["lpincrease"]*(skilldict[newdict[msg.content]]/100)
                                     if skilldict[newdict[msg.content]]<35:
                                         finalstring+="%s"%(responsedict["poor"])
-                                        print(finalstring)
                                     elif 35<=skilldict[newdict[msg.content]]<45:
                                         finalstring+="%s"%(responsedict["medium"])
-                                        print(finalstring)
                                     elif 45<=skilldict[newdict[msg.content]]:
                                         finalstring+="%s"%(responsedict["good"])
-                                        print(finalstring)
 
                                     dislikes = False
                                     if gfval["likes"] == "gaming":
                                         finalstring+="%s"%(gflikesgaming["gaming"])
                                         gfsat= gfsat*(115/100)
-                                        print(finalstring)
                                     if gfval["dislikes"] in gamedict["genre"]:
                                         dislikes = True
                                         finalstring+="%s"%(gfgenrebad[gfval["dislikes"]])
                                         gfsat= gfsat*(85/100)
-                                        print(finalstring)
                                     elif gfval["favorite genre"] in gamedict["genre"]:
                                         finalstring+="%s"%(gfgenregood[gfval["favorite genre"]])
                                         gfsat= gfsat*(115/100)
-                                        print(finalstring)
 
                                     
 
@@ -1932,7 +1899,6 @@ class DatingSim(commands.Cog):
                 return m.author==ctx.author and m.channel==ctx.channel
             msg = await self.client.wait_for('message', check = check)
             emotiondict = te.get_emotion(msg.content)
-            print(emotiondict)
             highestemotelen = 0
             highestemote=""
             for x in emotiondict.keys():
@@ -1940,7 +1906,6 @@ class DatingSim(commands.Cog):
                     highestemotelen = emotiondict[x]
                     highestemote=x
             highestemote = highestemote.lower()
-            print(highestemote)
             if highestemote == "fear":
                 highestemote = "scared"
             if highestemote == "surprise":
@@ -1961,17 +1926,13 @@ class DatingSim(commands.Cog):
                 kisses = mulah.find_one({"id":ctx.author.id},{"kisses"})["kisses"]
                 kisses+=1
                 mulah.update_one({"id":ctx.author.id},{"$set":{"kisses":kisses}})
-            print(action)
             if action in ["comfortgf", "yeah sure what?"]:
                 action = random.choice(["comfortgf1", "comfortgf2", "comfortgf3","comfortgf4"])
             if action in ["gaming", "movies", "netflix"]:
                 cmd = self.client.get_command("gf "+action)
                 await cmd(ctx)
                 break
-            print(action)
-            print(str(action))
             talkdict = next(x for x in talklistdict if x["action"] == str(action))
-            print(talkdict["background"])
             penultres = random.choice(talkdict["response"])
             if re.search("\{0\}", penultres):
                 finalstring = penultres.format(ctx.author.display_name)
@@ -2004,9 +1965,6 @@ class DatingSim(commands.Cog):
                         embed.set_image(url = "attachment://finalgf.png")
                     except:
                         backgroundict = next(a for a in backgrounds if a["name"] == talkdict["background"])
-                        print(backgrounds)
-                        print(backgroundict)
-                        print(backgroundict["name"])
                         asset = requests.get(gfval[talkdict["img"]])
                         data = BytesIO(asset.content)
                         foreground = Image.open(data)
@@ -2020,23 +1978,17 @@ class DatingSim(commands.Cog):
                         file = discord.File("finalgf.png")
                         embed.set_image(url = "attachment://finalgf.png")                        
                 except:
-                    print("nonono")
-                    print(traceback.format_exc())
                     embed.set_image(url = gfval[talkdict["img"]])
             except:
                 try:
                     embed.set_image(url = gfval["image"])
                 except:
-                    print(traceback.format_exc())
-                    print("cant get image smh")
-
+                    pass
             try:
                 await editthis.delete()
                 editthis = await ctx.channel.send(embed=embed, file = file)
             except:
                 try:
-                    print(traceback.format_exc())
-                    print("yesss")
                     editthis = await ctx.channel.send(embed=embed, file = file)
                 except:
                     editthis = await ctx.channel.send(embed=embed)
@@ -2052,7 +2004,6 @@ class DatingSim(commands.Cog):
             confirm = await self.client.wait_for('reaction_add', check=check)
             if confirm:
                 action = emptydict[str(confirm[0])]
-                print("this worked. the action is %s"%(action))
 
 
 
@@ -2180,16 +2131,13 @@ class DatingSim(commands.Cog):
 
                 embed.add_field(name = "❤️Love Points", value = "%s"%(lpval))
                 try:
-                    print(gfdict["image"])
                     if gfdict["image"].startswith("http"):
-                        print("yes, it starts with http")
                         embed.set_image(url = gfdict["image"])
                 except:
-                    print(traceback.format_exc())
+                    pass
                 await ctx.channel.send(embed=embed)
                         
             except:
-                print(traceback.format_exc())
                 await ctx.channel.send("Get a Gf.")
                 
         except:
@@ -2236,14 +2184,12 @@ class DatingSim(commands.Cog):
                     GfType = await Globals.ChoiceEmbed(self, ctx, types, "What is %s's type?"%(newdictionary["name"]))
                     GfType = GfType[0]
                     newdictionary["type"] = GfType
-                    print("this worked")
                     favoritesub = ["language", "Math", "Computer Science", "biology", "chemistry", "Physics", "art", "gender studies", "business", "political sciences"]
 
                     glikes = ["horror", "adventure", "creativity", "strategy", "thriller", "comedy", "animation", "action", "romance", "drama"]
                     
                     likes = ["food", "texting", "gaming", "social media", "relaxing", "movies"]
                     EmbedChoices = await Globals.ChoiceEmbed(self, ctx, likes, "What does %s like?"%(newdictionary["name"]))
-                    print(EmbedChoices)
                     randlikes = EmbedChoices[0]
                     randsub = await Globals.ChoiceEmbed(self, ctx, favoritesub, "What is %s's Favorite Subject?"%(newdictionary["name"]))
                     randsub = randsub[0]
@@ -2263,7 +2209,6 @@ class DatingSim(commands.Cog):
                     newdictionary["tier"] = 1
                     
                     embed = discord.Embed(title = "You are now dating %s!"%(newdictionary["name"]), description = "Here is her profile! you can access this at anytime using `^gfstats`", color = ctx.author.color)
-                    print("this also worked")
                     for x in newdictionary.keys():
                         embed.add_field(name = "%s:"%(x), value = newdictionary[x])
                     await ctx.channel.send(embed = embed)  
@@ -2279,7 +2224,6 @@ class DatingSim(commands.Cog):
                 await ctx.channel.send("You already have a girlfriend! Infidelity is disgusting. Shame on you.")
         except:
             mulah.update_one({"id": ctx.author.id}, {"$set":{"gf":0}})
-            print(traceback.format_exc())
             await ctx.channel.send("I have set up your dating profile! Try `^getgf` again!")
 
 
@@ -2319,7 +2263,6 @@ class DatingSim(commands.Cog):
     async def on_message(self, ctx):
 
         if ctx.content.startswith("^"):
-            print("it starts")
             return 
         number = random.randint(1,50)
         try:
@@ -2342,11 +2285,8 @@ class DatingSim(commands.Cog):
                         kisses = mulah.find_one({"id":ctx.author.id},{"kisses"})["kisses"]
                         kisses+=1
                         mulah.update_one({"id":ctx.author.id},{"$set":{"kisses":kisses}})
-                    print(action)
                     if action in ["comfortgf", "yeah sure what?"]:
                         action = random.choice(["comfortgf1", "comfortgf2", "comfortgf3","comfortgf4"])
-                    print(action)
-                    print(str(action))
                     talkdict = next(x for x in talklistdict if x["action"] == str(action))
                     penultres = random.choice(talkdict["response"])
                     if re.search("\{0\}", penultres):
@@ -2380,9 +2320,6 @@ class DatingSim(commands.Cog):
                                 embed.set_image(url = "attachment://finalgf.png")
                             except:
                                 backgroundict = next(a for a in backgrounds if a["name"] == talkdict["background"])
-                                print(backgrounds)
-                                print(backgroundict)
-                                print(backgroundict["name"])
                                 asset = requests.get(gfval[talkdict["img"]])
                                 data = BytesIO(asset.content)
                                 foreground = Image.open(data)
@@ -2397,15 +2334,11 @@ class DatingSim(commands.Cog):
                                 file = discord.File("finalgf.png")
                                 embed.set_image(url = "attachment://finalgf.png")                        
                         except:
-                            print("nonono")
-                            print(traceback.format_exc())
                             embed.set_image(url = gfval[talkdict["img"]])
                     except:
                         try:
                             embed.set_image(url = gfval["image"])
                         except:
-                            print(traceback.format_exc())
-                            print("cant get image smh")
                             pass
 
                     try:
@@ -2428,7 +2361,6 @@ class DatingSim(commands.Cog):
                         confirm = await self.client.wait_for('reaction_add', check=check, timeout = 20)
                         if confirm:
                             action = emptydict[str(confirm[0])]
-                            print("this worked. the action is %s"%(action))
                             if action in ["gaming", "movies", "netflix", "kiss", "hug"]:
                                 cmd = self.client.get_command("gf "+action)
                                 await cmd(ctx)
