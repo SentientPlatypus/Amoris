@@ -1,4 +1,4 @@
-
+from discord.ext.commands.cooldowns import BucketType
 from datetime import date
 from inspect import trace
 from logging import exception
@@ -16,7 +16,7 @@ from discord.ext.commands.core import command
 from discord.member import Member
 from discord.player import PCMAudio
 from discord.utils import time_snowflake
-from pymongo import MongoClient
+from pymongo import MongoClient, settings
 import names
 from pymongo.collection import _FIND_AND_MODIFY_DOC_FIELDS
 import re
@@ -44,6 +44,7 @@ import Globals
 cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
+DiscordGuild = cluster["discord"]["guilds"]
 
 class DatabaseHandler(commands.Cog):
     def __init__(self, client):
@@ -51,6 +52,25 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        global ServerSettings
+        ServerSettings = {
+            "Profanity Filter":{"desc":"Censors Profanity.", "enabled":True},
+            "lol on message":{"desc":"sends a lol message when someone laughs", "enabled":True},
+            "sad on message":{"desc":"sends a comforting message when someone cries", "enabled":True},
+            "on message":{"desc":"sends meaningless messages", "enabled":True},
+            "announce":{"desc":"settings for `^announce`", "enabled":True},
+            "suggest":{"desc":"settings for `^suggest`", "enabled":True},
+        }
+        global ServerConfig
+        ServerConfig = [
+            {"name":"badwords", "value":[]},
+            {"name":"announcement channels", "value":[]},
+            {"name":"suggestion channels", "value":[]},
+        ]
+            
+        
+
+
         global DatabaseKeys
         DatabaseKeys = [
             {"name":"gf", "value":0},
@@ -144,9 +164,44 @@ class DatabaseHandler(commands.Cog):
                         mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
                     mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
                     print("updated %s' %s"%(ctx.author.display_name, x["name"]))
+
+
+        async def Serverdbcheck(ctx):
+            global ServerConfig
+            for x in ServerConfig:
+                try:
+                    value = DiscordGuild.find_one({"id":ctx.guild.id},{x["name"]})[x["name"]]
+                except:
+                    DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{x["name"]:x["value"]}})
+
+        async def ServerCheck(ctx):
+            global ServerSettings
+            try:
+                settings = DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]
+                for x in ServerSettings.keys():
+                    try:
+                        z = settings[x]
+                    except:
+                        settings[x] = ServerSettings[x]
+                        DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}})
+
+            except:
+                print(traceback.format_exc())
+                stats = levelling.find_one({"id" : ctx.guild.id})
+                if stats == None:
+                    DiscordGuild.insert_one({"id":ctx.guild.id, "settings":ServerSettings})
+                    print("updated %s' guild, inserted"%(ctx.author))                
+                else:
+                    DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}})
+                    print("updated %s' guild"%(ctx.author))
+
+
         if ctx.author == self.client.user:
             if ctx.author.bot: return
             return
+
+        await ServerCheck(ctx)
+        await Serverdbcheck(ctx)
 
 
 
@@ -235,7 +290,12 @@ class DatabaseHandler(commands.Cog):
 
 
 
-    
+    @commands.command()
+    async def ResetGuildSettings(self, ctx):
+        if ctx.author.guild_permissions.administrator:
+            DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}})
+            print("updated %s' guild"%(ctx.author))
+            await ctx.channel.send("Done.   ")
 
 
 

@@ -132,13 +132,21 @@ def InvCheck(user, item, Id=False) -> bool:
 
 
 ##----------------------------------------------------Achievement Functs
-def XpBar(val, max, fill=":blue_square:", empty=":white_large_square:", NumOfSquares=20):
-    valueOfBlue = math.floor((val/max)*NumOfSquares)
-    if valueOfBlue<0:
-        return empty*NumOfSquares
-    valueofWhite = NumOfSquares-valueOfBlue
-    finalstr = fill*valueOfBlue+empty*valueofWhite
-    return finalstr
+def XpBar(val, max, fill=":blue_square:", empty=":white_large_square:", NumOfSquares=20, righttoleft=False):
+    if righttoleft:
+        valueOfBlue = math.floor((val/max)*NumOfSquares)
+        if valueOfBlue<0:
+            return empty*NumOfSquares
+        valueofWhite = NumOfSquares-valueOfBlue
+        finalstr = empty*valueofWhite+fill*valueOfBlue
+        return finalstr   
+    else:
+        valueOfBlue = math.floor((val/max)*NumOfSquares)
+        if valueOfBlue<0:
+            return empty*NumOfSquares
+        valueofWhite = NumOfSquares-valueOfBlue
+        finalstr = fill*valueOfBlue+empty*valueofWhite
+        return finalstr
     
     
 def GetKeysFromDictInList(list:list):

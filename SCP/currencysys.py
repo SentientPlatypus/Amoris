@@ -12,6 +12,7 @@ from discord import channel
 from discord import embeds
 from discord.embeds import Embed
 from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
 from discord.ext.commands.core import command
 from discord.member import Member
 from discord.player import PCMAudio
@@ -157,6 +158,7 @@ class currencysys(commands.Cog):
 
 
     @commands.command()
+    @commands.cooldown(1, 60, BucketType.user)
     async def work(self, ctx):
         workk = mulah.find_one({"id" : ctx.author.id}, {"money"})
 

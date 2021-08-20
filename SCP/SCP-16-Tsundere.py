@@ -37,17 +37,21 @@ from PIL import Image
 from io import BytesIO
 import mmorpgGame
 import DatabaseHandler
+from pymongo import MongoClient
 import DatingSim
+import GuildHandler
+import sys	
 from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
-
-
+import datetime
+cogGuild = [GuildHandler]
 cogsmulah = [currencysys]
 cogs = [levelsys]
 cogsmmorpg = [mmorpgGame]
 cogDB = [DatabaseHandler]
 coggf = [DatingSim]
 d = enchant.Dict("en_US")
-
+cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+DiscordGuild = cluster["discord"]["guilds"]
 
 
 tagre = "\#\d{4}$"
@@ -76,6 +80,7 @@ async def help(ctx):
 	embed.add_field(name = "DatingSim❤️", value = "`^help gf`")
 	embed.add_field(name = "Images📷", value = "`^help image`")
 	embed.add_field(name = "MMORPG ⚔️", value = "`^help mmorpg`")
+	embed.add_field(name = "Settings ⚙️", value = "`^help config`")
 	
 
 	await ctx.send(embed = embed)
@@ -89,6 +94,12 @@ async def gf(ctx):
 
 	await ctx.send(embed = embed) 
 
+@help.command()
+async def config(ctx):
+
+	embed = discord.Embed(title = "Settings!", description = "use `^settings` to view server settings. `^settings <command> <enable|disable>` to edit settings.", color = ctx.author.color)
+	embed.set_footer(text = "Settings may only be changed by admins")
+	await ctx.send(embed = embed) 
 
 @help.command()
 async def mmorpg(ctx):
@@ -549,7 +560,7 @@ async def resume(ctx):
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if voice.is_paused():
         voice.resume()
-    else:
+    else:	
         await ctx.send("what am I supposed to unpause?")
 
 
@@ -590,28 +601,22 @@ async def pp(ctx):
 
 
 ##-------------------------------------------------MODERATION-----------------------------------------------
-originalmessage = []
-editedmessage = []
-editedmessageauthor = []
+EditedMessages = {
+
+}
 @client.event
-async def on_message_edit(message_before, message_after):
-	author = message_before.author
-	guild = message_before.guild.name
-	channel = message_before.channel
-	originalmessage.append(message_before.content)
-	editedmessage.append(message_after.content)
-	editedmessageauthor.append(message_before.author.display_name)
+async def on_message_edit(before, after):
+	print("a edited")
+	EditedMessages[before.guild.id]= [before.author.display_name, before.author.avatar_url, before.content, datetime.now().strftime("%Y-%m-%d, %H:%M")]
+	print(EditedMessages)
 
+DeletedMessage = {
 
-undeletedmessage = []
-undeletedmessageauthor = []
+}
 @client.event
 async def on_message_delete(message):
-	author = message.author
-	guild = message.guild.name
-	channel = message.channel
-	undeletedmessage.append(message.content)
-	undeletedmessageauthor.append(message.author.display_name)
+	print("deleted")
+	DeletedMessage[message.guild.id] = [message.author.display_name, message.author.avatar_url,message.content, datetime.now().strftime("%Y-%m-%d, %H:%M")]
 
 
 @help.command()
@@ -621,48 +626,30 @@ async def mod(ctx):
 	await ctx.send(embed = embed)
 
 @client.command()
-async def snipe(ctx,num):
-	num = int(num)
-	undeletedmessages = []
-	undeletedmessageauthors = []
-	finallist = []
-	if len(undeletedmessage)>=num:
-		for x in range(num):
-			undeletedmessages.append(undeletedmessage[x])
-			undeletedmessageauthors.append(undeletedmessageauthor[x])
-		finallist = [x + "\n\n\n" for x in undeletedmessages]
-		undeletedmessageauthors = [x+"\n\n\n" for x in undeletedmessageauthors]
-		embed = discord.Embed(title = "I see all things", description = "You can not hide from my sight.", color = ctx.author.color)
-		embed.add_field(name = "Deleted message:", value = "%s"%("".join(finallist)))
-		embed.add_field(name = "author:", value = "%s"%("".join(undeletedmessageauthors)))
+async def snipe(ctx):
+	try:
+		embed = discord.Embed(description = DeletedMessage[ctx.guild.id][2], color = discord.Color.blue())
+		embed.set_author(name=DeletedMessage[ctx.guild.id][0],icon_url=DeletedMessage[ctx.guild.id][1])
+		embed.set_footer(text = DeletedMessage[ctx.guild.id][0]+"\n"+DeletedMessage[ctx.guild.id][3])
 		await ctx.send(embed = embed)
-	else:
-		embed = discord.Embed(title = "there have not been that many deleted messages.", description = "so far, There have only been %s"%(len(originalmessage)), color = ctx.author.color)
+
+	except:
+		print(traceback.format_exc())
+
+		embed = discord.Embed(title = "Nothing to snipe",color = discord.Color.blue())
 		await ctx.channel.send(embed = embed)
 		
 
 @client.command()
-async def esnipe(ctx, num):
-	num = int(num)
-	originalmessages = []
-	editedmessages = []
-	editedmessageauthors = []
-	if len(originalmessage)>=num:
-		for x in range(num):
-			originalmessages.append(originalmessage[x])
-			editedmessages.append(editedmessage[x])
-			editedmessageauthors.append(editedmessageauthor[x])
-		originalmessages = [x + "\n\n\n" for x in originalmessages]
-		editedmessages = [x + "\n\n\n" for x in editedmessages]
-		editedmessageauthors = [x+"\n\n\n" for x in editedmessageauthors]
-
-		embed = discord.Embed(title = "I see all things.", description = "My creator has granted me the power to see your edited messages.", color = ctx.author.color)
-		embed.add_field(name = "original message:", value = "%s"%("".join(originalmessages)))
-		embed.add_field(name = "Edited message:", value = "%s"%("".join(editedmessages)))
-		embed.add_field(name = "Author:", value = "%s"%("".join(editedmessageauthors)))
-		await ctx.channel.send(embed = embed)
-	else:
-		embed = discord.Embed(title = "there have not been that many edited messages.", description = "There have only been %s so far"%(len(originalmessage)), color = ctx.author.color)
+async def esnipe(ctx):
+	try:
+		embed = discord.Embed(description = EditedMessages[ctx.guild.id][2], color = discord.Color.blue())
+		embed.set_author(name=EditedMessages[ctx.guild.id][0],icon_url=EditedMessages[ctx.guild.id][1])
+		embed.set_footer(text = EditedMessages[ctx.guild.id][0]+"\n"+EditedMessages[ctx.guild.id][3])
+		await ctx.send(embed = embed)
+	except:
+		print(traceback.format_exc())
+		embed = discord.Embed(title = "Nothing to snipe", color = discord.Color.blue())
 		await ctx.channel.send(embed = embed)
 
 @client.command()
@@ -739,6 +726,23 @@ async def poll(ctx, state, *l):
 					closed = True
 					break
 
+
+@client.command()
+async def timer(ctx, title, description, timestr):
+	ftr = [3600,60,1]
+	seconds = sum([a*b for a,b in zip(ftr, map(int,timestr.split(':')))])
+	while seconds>=0:
+		currenttime = str(datetime.timedelta(seconds=seconds))
+		embed = discord.Embed(title = title, description=description, color = discord.Color.blue())
+		embed.add_field(name = "time left", value = currenttime)
+		try:
+			await msg.edit(embed=embed)
+		except:
+			msg = await ctx.channel.send(embed=embed)
+		seconds-=1
+		await asyncio.sleep(1)
+	embed = discord.Embed(title = "BEEP BEEP", description = "The timer reached zero!")
+	await msg.edit(embed=embed)
 
 
 
@@ -1680,6 +1684,8 @@ for i in range(len(cogDB)):
 for i in range(len(coggf)):
 	coggf[i].setup(client)
 
+for i in range(len(cogGuild)):
+	cogGuild[i].setup(client)
 
 
 
@@ -1837,7 +1843,14 @@ async def hangman(ctx, word):
 
 
 
-
+@client.event
+async def on_command_error(ctx, error):
+	if isinstance(error, commands.CommandOnCooldown):
+		msg = "Retry in %s"%(timedelta(seconds=math.floor(error.retry_after)))
+		await ctx.channel.send(embed=discord.Embed(title = "Still on cooldown!", description = msg))
+	else:
+		print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+		traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
 
@@ -1873,97 +1886,7 @@ async def on_ready():
 async def on_message(ctx):
 	if ctx.author == client.user:
 		return
-	shutupresponse = ["how about you shut up.", "No, u", "can you shut up? your opinion is worth as much as an old cucumber"]
 
-	shutuplist = ["shutup", "shut up", "stfu", "fuck you", "fuck u", "stupid bot"]
-	#FUNNY
-	funny = ["lol", "lmao", "haha", "Lol", "Lmao"]
-	if any(word in ctx.content.casefold() for word in funny):
-		if ctx.author.id==643764774362021899:
-			trexyfunny = ["hahaha", "lmao", "lol"]
-			randtrexyfunny = random.choice(trexyfunny)
-			await ctx.channel.send(randtrexyfunny)
-		else:
-			funnyresponse = ["lol", "lmao", "haha"]
-			randfunny = random.choice(funnyresponse)
-			await ctx.channel.send(randfunny)
-
-	#SAD
-	sad = ["sad", "depressed", "depression", "unhappy"]
-	if any(word in ctx.content for word in sad):
-		if ctx.author.id==643764774362021899:
-			trexysad = [" creator senpai! dont be sad, Is there anything I can do to cheer you up?", " creator senpai, please feel better.", "NO, You are not allowed to feel that way,  creator senpai."]
-			randtrexysad = random.choice(trexysad)
-			await ctx.channel.send(randtrexysad)
-		else:
-			sadresponse = ["cheer up. Its not like I care or anything.", "You need to be happier, My  creator senpai wants people to be happy"]
-			randsad = random.choice(sadresponse)
-			await ctx.channel.send(randsad)
-		def check(m):
-			return m.author==ctx.author and m.channel == ctx.channel
-		try:
-			shutupmessage = await client.wait_for('message', check = check, timeout=5)
-		except asyncio.TimeoutError:
-			pass
-		if any(word in ctx.content.casefold() for word in shutuplist):
-			await ctx.channel.send(random.choice(shutupresponse))
-			
-		else:
-			pass
-
-
-		#WHY
-	if ctx.content.startswith("why"):
-		if ctx.author.id==643764774362021899:
-			trexywhy = ["I will find out asap.", "I will google it for you,  creator senpai", "Someone, answer  creator senpai's question!"]
-			randtrexywhy = random.choice(trexywhy)
-			await ctx.channel.send(randtrexywhy)
-		else:
-			whyy = ["Im not sure, Try asking my  creator senpai.", "How would I know? I dont even like talking to you guys, but my  creator senpai wants me to.", "Look it up, baka."]
-			randwhyy = random.choice(whyy)
-			await ctx.channel.send(randwhyy)
-		def check(m):
-			return m.author==ctx.author and m.channel == ctx.channel
-		try:
-			shutupmessage = await client.wait_for('message', check = check, timeout=5)
-		except asyncio.TimeoutError:
-			pass
-		if any(word in ctx.content.casefold() for word in shutuplist):
-			await ctx.channel.send(random.choice(shutupresponse))
-			
-		else:
-			pass
-			
-	#UWU
-	if ctx.content.casefold().startswith("uwu"):
-		await ctx.channel.send("Shut up.")
-
-	#appreciation
-
-	praiseresponse = ["thank you. its not like I care though.", "My creator senpai made me that way. Thank him.", "...ty"]
-	praiseresponsesentient = ["Its all thanks to you for working on me!", "Thank you creator senpai for the time you invest in me.", "I will never let you down!"]
-	appreciationtext = "(ily|ty|good\sjob|well\sdone)(sm|\s(so\s)+(much))*\!*\s(bot|scp|tsundere)"
-	contecttext = re.findall(appreciationtext, ctx.content.casefold())
-	if len(contecttext)>0:
-		if str(ctx.author) == "SentientPlatypus#1332":
-			await ctx.channel.send(random.choice(praiseresponsesentient))
-		else:
-			await ctx.channel.send(random.choice(praiseresponse))
-	else:
-		pass	
-
-	#shut up bot
-	shutup = "^(shut\s(the\s[a-zA-Z]+\s)*up|be\squiet|fuck\s(this|you|your)|stfu)\s([a-zA-Z\*]+)*(bot|robot|scp|tsundere|trex(y|ycrocs)*|sen(tient)*(platypus)*|platypus)"
-	shutupresponse = ["how about you shut up.", "No, u", "can you shut up? your opinion is worth as much as an old cucumber"]
-	shutupre = re.findall(shutup,ctx.content.casefold())
-	trexyscold = ["Im sorry  creator senpai. I wont do it again.", "sumimasen.", "Its your fault for making me that way! Baka!"]
-	if len(shutupre)>0:
-		if ctx.author.id==643764774362021899:
-			await ctx.channel.send(random.choice(trexyscold))
-		else:
-			await ctx.channel.send(random.choice(shutupresponse))
-	else:
-		pass
 	
 
 

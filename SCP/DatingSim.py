@@ -1,4 +1,4 @@
-
+from discord.ext.commands.cooldowns import BucketType
 from datetime import date
 from inspect import trace
 from logging import exception
@@ -824,102 +824,109 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @commands.cooldown(1, 360, BucketType.user)
     async def netflix(self,ctx):
         global typegenrepraise
         global typeconplaint
         global typepraise
         global gftypes
-        invar = mulah.find_one({"id":ctx.author.id},{"inv"})   
-        inval = invar["inv"]     
-        ticketcheck = next((item for item in inval if item["name"] == "netflixsub"), None)   
-        if ticketcheck is not None:
-            moviesDB = IMDb()
-            gfvar = mulah.find_one({"id":ctx.author.id},{"gf"})
-            gfval = gfvar["gf"]
-            lpvar = mulah.find_one({"id":ctx.author.id},{"lp"})
-            lpval = lpvar["lp"]
-            showvar = mulah.find_one({"id":ctx.author.id},{"watchlist"})
-            showval = showvar["watchlist"]            
-            alphabet = string.ascii_lowercase
-            alphlist = list(alphabet)
-            emptydict = {}
-            count = 0
-            finalstring = ""
-            movielist = []
-            for x in showval:
-                movielist.append(str(x))
-                emptydict[alphlist[count]] = str(x)
-                finalstring+= alphlist[count] + "| " + "%s\n"%(x)
-                count+=1
+        if mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]!=0:
+            invar = mulah.find_one({"id":ctx.author.id},{"inv"})   
+            inval = invar["inv"]     
+            ticketcheck = next((item for item in inval if item["name"] == "netflixsub"), None)   
+            if ticketcheck is not None:
+                moviesDB = IMDb()
+                gfvar = mulah.find_one({"id":ctx.author.id},{"gf"})
+                gfval = gfvar["gf"]
+                lpvar = mulah.find_one({"id":ctx.author.id},{"lp"})
+                lpval = lpvar["lp"]
+                showvar = mulah.find_one({"id":ctx.author.id},{"watchlist"})
+                showval = showvar["watchlist"]            
+                alphabet = string.ascii_lowercase
+                alphlist = list(alphabet)
+                emptydict = {}
+                count = 0
+                finalstring = ""
+                movielist = []
+                for x in showval:
+                    movielist.append(str(x))
+                    emptydict[alphlist[count]] = str(x)
+                    finalstring+= alphlist[count] + "| " + "%s\n"%(x)
+                    count+=1
 
 
-            embed = discord.Embed(title = "Choose a Movie/Show!", description = finalstring, color = ctx.author.color)
-            await ctx.channel.send(embed=embed)
+                embed = discord.Embed(title = "Choose a Movie/Show!", description = finalstring, color = ctx.author.color)
+                await ctx.channel.send(embed=embed)
 
-            def check(m):
-                return m.author==ctx.author and m.channel==ctx.channel
-            
-            try:
-                msg = await self.client.wait_for('message', check=check,timeout = 30)
-                if emptydict[msg.content.lower()] in movielist:
-                    moviesearch = moviesDB.search_movie(emptydict[msg.content.lower()])
-                    id = moviesearch[0].movieID
+                def check(m):
+                    return m.author==ctx.author and m.channel==ctx.channel
+                
+                try:
+                    msg = await self.client.wait_for('message', check=check,timeout = 30)
+                    if emptydict[msg.content.lower()] in movielist:
+                        moviesearch = moviesDB.search_movie(emptydict[msg.content.lower()])
+                        id = moviesearch[0].movieID
 
-                    moviefind = moviesDB.get_movie(id)
-                    genre = moviefind["genres"]
-                    genre = [x.lower() for x in genre]
+                        moviefind = moviesDB.get_movie(id)
+                        genre = moviefind["genres"]
+                        genre = [x.lower() for x in genre]
 
-                    gfsat = 23
-                    dialogue = ""
-                    try:
-                        if moviefind["rating"] <6:
-                            dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][0]
-                        if 6<=moviefind["rating"]<8:
-                            dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][1]
-                        if 8<=moviefind["rating"]:
-                            dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][2]
-                    except:
-                        dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][2]
-                    if gfval["dislikes"] in genre:
-                        dialogue+="typeconplaint"
-                        gfsat*=85/100
-                    if gfval["favorite genre"] in genre:
+                        gfsat = 23
+                        dialogue = ""
                         try:
-                            dialogue += next(item for item in typegenrepraise if item["typename"] == gfval["type"])[gfval["favorite genre"]]
+                            if moviefind["rating"] <6:
+                                dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][0]
+                            if 6<=moviefind["rating"]<8:
+                                dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][1]
+                            if 8<=moviefind["rating"]:
+                                dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][2]
+                        except:
+                            dialogue+=next(item for item in gftypes if item["typename"] == gfval["type"])["netflixresponse"][2]
+                        if gfval["dislikes"] in genre:
+                            dialogue+="typeconplaint"
+                            gfsat*=85/100
+                        if gfval["favorite genre"] in genre:
+                            try:
+                                dialogue += next(item for item in typegenrepraise if item["typename"] == gfval["type"])[gfval["favorite genre"]]
+                            except:
+                                pass
+                            gfsat*=115/100
+                        if gfval["likes"] == "relaxing":
+                            dialogue += next(item for item in typepraise if item["typename"] == gfval["type"])["relaxing"]
+                            gfsat+=115/100
+                        embed = discord.Embed(title = "You watched %s with %s"%(emptydict[msg.content.lower()],gfval["name"]), color = ctx.author.color)
+                        embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
+                        try:
+                            embed.set_image(url = "%s"%(gfval["image"]))
                         except:
                             pass
-                        gfsat*=115/100
-                    if gfval["likes"] == "relaxing":
-                        dialogue += next(item for item in typepraise if item["typename"] == gfval["type"])["relaxing"]
-                        gfsat+=115/100
-                    embed = discord.Embed(title = "You watched %s with %s"%(emptydict[msg.content.lower()],gfval["name"]), color = ctx.author.color)
-                    embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
+                        lpval+=math.floor(gfsat)
+                        embed.set_footer(text="You gained %s Love points."%(math.floor(gfsat)))
+                        await ctx.channel.send(embed=embed)
+                        mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+
+                    else:
+                        pass
+                except asyncio.TimeoutError:
+                    await ctx.channel.send("You took too long! I guess we arent doing this.")
+                    
+
+            else:
+                gfvar = mulah.find_one({"id":ctx.author.id},{"gf"})
+                gfval = gfvar["gf"]     
+                embed = discord.Embed(title = "%s"%(gfval["name"]), description = "you need a netflix subscription, %s"%(ctx.author.display_name), color = ctx.author.color)
+                try:
+                    embed.set_image(url = gfval["dissapointed"])
+                except:
                     try:
-                        embed.set_image(url = "%s"%(gfval["image"]))
+                        embed.set_image(url = gfval["image"])
                     except:
                         pass
-                    lpval+=math.floor(gfsat)
-                    embed.set_footer(text="You gained %s Love points."%(math.floor(gfsat)))
-                    await ctx.channel.send(embed=embed)
-                    mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
-
-                else:
-                    pass
-            except asyncio.TimeoutError:
-                await ctx.channel.send("You took too long! I guess we arent doing this.")
-
+                await ctx.channel.send(embed=embed)
+                
         else:
-            gfvar = mulah.find_one({"id":ctx.author.id},{"gf"})
-            gfval = gfvar["gf"]     
-            embed = discord.Embed(title = "%s"%(gfval["name"]), description = "you need a netflix subscription, %s"%(ctx.author.display_name), color = ctx.author.color)
-            try:
-                embed.set_image(url = gfval["dissapointed"])
-            except:
-                try:
-                    embed.set_image(url = gfval["image"])
-                except:
-                    pass
-            await ctx.channel.send(embed=embed)
+            await ctx.channel.send("You dont have a gf lmao")
+            
 
 
 
@@ -941,6 +948,7 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @commands.cooldown(1, 600, BucketType.user)
     async def hug(self,ctx):
         global typegenrepraise
         global typeconplaint
@@ -969,6 +977,7 @@ class DatingSim(commands.Cog):
         except:
             await ctx.channel.send("You need a girlfriend lmao")
     @gf.command()
+    @commands.cooldown(1, 600, BucketType.user)
     async def kiss(self,ctx):
         global typegenrepraise
         global typeconplaint
@@ -1037,6 +1046,7 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @commands.cooldown(1, 3600, BucketType.user)
     async def boink(self,ctx):
         global boinkmap
         global boinkresponse        
@@ -1150,6 +1160,7 @@ class DatingSim(commands.Cog):
             await ctx.channel.send("You dont have enough love points for that. Lmao get cock blocked")
 
     @gf.command()
+    @commands.cooldown(1, 600, BucketType.user)
     async def propose(self,ctx):
         global gftypes
         gfvar = mulah.find_one({"id":ctx.author.id}, {"gf"})
