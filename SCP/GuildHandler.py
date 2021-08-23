@@ -58,7 +58,7 @@ class GuildHandler(commands.Cog):
     async def settings(self, ctx, command=None, value=None):
         settings = DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]
         if not command:
-            embed = discord.Embed(title = "Server Settings", description = "This server's settings.\n use `^settings <command> <enable|disable>`")
+            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `^settings "<command>" <enable|disable>`\n `^configuration` is to alter server settings.')
             for x in settings.keys():
                 check=""
                 if settings[x]["enabled"]==True:
@@ -112,7 +112,7 @@ class GuildHandler(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def configuration(self, ctx):
         embed= discord.Embed(title = "Edit values for server settings!")
-        embed.add_field(name = "commands", value = "`^badword`")
+        embed.add_field(name = "commands", value = "`^configuration badword`, `^configuration announcement`, `^configuration suggestion`")
         await ctx.channel.send(embed=embed)
     
     @configuration.command()
@@ -168,7 +168,7 @@ class GuildHandler(commands.Cog):
         leave = False
         if ctx.author.guild_permissions.administrator:
             while leave==False:
-                embed = discord.Embed(title = "Announcement Channels!", value = "Channels to send announcements to!.", color = ctx.author.color)
+                embed = discord.Embed(title = "Announcement Channels!", value = "Channels to send announcements to!.\n react with ➕ and type the channel id!", color = ctx.author.color)
                 words = DiscordGuild.find_one({"id":ctx.guild.id}, {"announcement channels"})
                 try:
                     embed.add_field(name = "Channels:", value = "Observe:\n"+"\n".join([str(i) for i in words["announcement channels"]]))
@@ -218,7 +218,7 @@ class GuildHandler(commands.Cog):
         leave = False
         if ctx.author.guild_permissions.administrator:
             while leave==False:
-                embed = discord.Embed(title = "Suggestion Channels!", value = "Channels to send suggestions to!.", color = ctx.author.color)
+                embed = discord.Embed(title = "Suggestion Channels!", value = "Channels to send suggestions to!.\nreact with ➕ and type the channel id!", color = ctx.author.color)
                 words = DiscordGuild.find_one({"id":ctx.guild.id}, {"suggestion channels"})
                 try:
                     embed.add_field(name = "Channels:", value = "Observe:\n"+"\n".join([str(i) for i in words["suggestion channels"]]))

@@ -744,7 +744,10 @@ class DatingSim(commands.Cog):
                                         mulah.update_one({"id":ctx.author.id}, {"$set":{"gf":gfdict}})
                                         embed = discord.Embed(title = "You have updated %s's %s"%(gfdict["name"], emotion), color = ctx.author.color)
                                         embed.set_image(url = turl)
-                                        await ctx.channel.send(embed = embed)
+                                        m = await ctx.channel.send(embed = embed)
+                                        await confirm3.delete()
+                                        await asyncio.sleep(1)
+                                        await m.delete()
                                     except:
                                         await ctx.channel.send("Get a girlfriend first")
                                 else:
@@ -1360,7 +1363,10 @@ class DatingSim(commands.Cog):
                     embed.set_footer(text = "Are you done eating? use 🚪 to leave!")  
                     await editthis.clear_reactions()
                     await editthis.delete()
-                    editthis = await ctx.channel.send(embed=embed,file = file)    
+                    try:
+                        editthis = await ctx.channel.send(embed=embed,file = file)    
+                    except:
+                        editthis = await ctx.channel.send(embed=embed)
                     await editthis.add_reaction("🚪")    
                     def check3(reaction,user):
                         return user==ctx.author and str(reaction.emoji)== "🚪" and reaction.message ==editthis
@@ -2045,14 +2051,14 @@ class DatingSim(commands.Cog):
     async def gfinteract(self, ctx, pg:int=None):
         gfinteractlist = [
             {"name": "📱text", "lpincrease": 15, "lprequired": 0, "itemrequired": "phone","category":"texting", "desc": "Text your girlfriend! you need a phone for this."},
-            {"name": "🎥watchmovie", "lpincrease": 23, "lprequired":0, "itemrequired": "movieticket","category":"gaming","desc": "watch a movie with your girlfriend!"},
-            {"name": "📺netflix", "lpincrease": 10, "lprequired":0, "itemrequired": "netflixsub","category":"relax", "desc": "watch netflix with your girlfriend"},
+            {"name": "🎥movies", "lpincrease": 23, "lprequired":0, "itemrequired": "movieticket","category":"gaming","desc": "watch a movie with your girlfriend!"},
+            {"name": "📺netflix", "lpincrease": 10, "lprequired":0, "itemrequired": "netflixsub, watchlist","category":"relax", "desc": "watch netflix with your girlfriend"},
             {"name": "🍴date", "lpincrease": 20, "lprequired":0, "itemrequired": None,"category":"relax", "desc": "go on a date with your girlfriend!"},
-            {"name": "🎮Playmc", "lpincrease": 25, "lprequired": 0, "itemrequired": "laptop","category":"gaming", "desc":"Play Minecraft With your girlfriend! You need a laptop for this."},
-            {"name": "💋Kiss", "lpincrease":40, "lprequired" : 200, "itemrequired": None,"category":None, "desc": "Kiss your girlfriend!"},
+            {"name": "🎮gaming", "lpincrease": 25, "lprequired": 0, "itemrequired": "PC","category":"gaming", "desc":"Play Minecraft With your girlfriend! You need a laptop for this."},
+            {"name": "💋kiss", "lpincrease":40, "lprequired" : 200, "itemrequired": None,"category":None, "desc": "Kiss your girlfriend!"},
             {"name": "🤗hug", "lpincrease":25, "lprequired": 150, "itemrequired": None,"category":None,"desc": "Hug your girlfriend! A great way to bond."},
             {"name": "❤️boink", "lpincrease": 100, "lprequired": 800, "itemrequired": None,"category":None, "desc":"boink your girlfriend! Late game move."},
-            {"name": "💍Propose", "lpincrease": 1000, "lprequired": 1600, "itemrequired": "ring","category":None, "desc": "Finally. You have the love of your life. Go live happily ever after."}]
+            {"name": "💍propose", "lpincrease": 1000, "lprequired": 1600, "itemrequired": "ring","category":None, "desc": "Finally. You have the love of your life. Go live happily ever after."}]
         if pg is None:
             embed = discord.Embed(title = "Interact with Your Girlfriend!", description = "Use `^gf <command>`", color = ctx.author.color)
             for x in range(len(gfinteractlist)):

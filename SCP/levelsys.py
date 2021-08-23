@@ -258,7 +258,7 @@ class levelsys(commands.Cog):
             embed = discord.Embed(title = title, description = message, color = ctx.author.color)
             embed.set_author(name = "Suggestion from %s"%(ctx.author.display_name), icon_url=ctx.author.avatar_url)
             embed.set_footer(text = datetime.now().strftime("%Y-%m-%d, %H:%M"))
-            embed.set_image(url = ctx.author.avatar_url)
+            embed.set_thumbnail(url = ctx.author.avatar_url)
             channels = DiscordGuild.find_one({"id":ctx.guild.id}, {"suggestion channels"})["suggestion channels"]
             try:
                 for x in channels:

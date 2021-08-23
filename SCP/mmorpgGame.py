@@ -1156,11 +1156,13 @@ class mmorpgGame(commands.Cog):
             []
             )
 
-        embed = discord.Embed(title = "Duel Invitation from %s"%(You.Name), color = discord.Color.red())
+        embed = discord.Embed(title = "You recieved a Duel Invitation from %s"%(You.Name), description = "Answer quickly, %s"%(PersonToDuel.mention), color = discord.Color.red())
         embed.add_field(name = "Will you accept this duel?", value = "react with ✅ to accept \n react with ❌ to decline")
         embed.set_author(name = You.Name, icon_url=You.Image)
         embed.set_footer(text = datetime.now().strftime("%Y-%m-%d, %H:%M"))
         msg = await ctx.channel.send(embed=embed)
+        for x in ["✅", "❌"]:
+            await msg.add_reaction(x)
         def check(reaction, user):
             return user==Op.Player, str(reaction.emoji) in ["✅", "❌"] and reaction.message==msg
         try:
@@ -1223,7 +1225,10 @@ class mmorpgGame(commands.Cog):
             await asyncio.sleep(2)
             await ctx.channel.send(embed=discord.Embed(title = "It is now %s' Turn."%(Op.Name))) 
             await asyncio.sleep(2)
-            for x in GetAttributeEnemy("attack", "acnologia")+GetAttributeEnemy("defense", "acnologia")+GetAttributeEnemy("support", "acnologia"):
+            for x in GetAttribute("attack", Op.Player)+GetAttributeEnemy("defense", Op.Player)+GetAttributeEnemy("support", Op.Player):
+                if x.ult:
+                    Op.Player.AddToCooldown(x)
+            for x in GetAttribute("attack", You.Player)+GetAttributeEnemy("defense", You.Player)+GetAttributeEnemy("support", You.Player):
                 if x.ult:
                     You.AddToCooldown(x)
             This1 = await FightAction(self, ctx, You, Op)

@@ -152,18 +152,23 @@ class DatabaseHandler(commands.Cog):
         if ctx.author == self.client.user:
             return
         if ctx.author.bot: return
+
         global dbcheck
-        async def dbcheck(user):
+        async def dbcheck(user:discord.Member):
             global DatabaseKeys
             for x in DatabaseKeys:
                 try:
-                    value = mulah.find_one({"id":ctx.author.id},{x["name"]})[x["name"]]
+                    value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
                 except:
-                    if x["name"]=="gf":
-                        print("the gf bug is this")
-                        mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
-                    mulah.update_one({"id":ctx.author.id}, {"$set":{x["name"]:x["value"]}})
-                    print("updated %s' %s"%(ctx.author.display_name, x["name"]))
+                    mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}})
+                    print("updated %s' %s"%(user.display_name, x["name"]))
+            if mulah.find_one({"id":user.id}) ==None:
+                for x in DatabaseKeys:
+                    try:
+                        value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
+                    except:
+                        mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}}, True)
+                        print("updated %s' %s"%(user.display_name, x["name"]))        
 
 
         async def Serverdbcheck(ctx):
@@ -202,6 +207,7 @@ class DatabaseHandler(commands.Cog):
 
         await ServerCheck(ctx)
         await Serverdbcheck(ctx)
+        await dbcheck(ctx.author)
 
 
 
@@ -323,12 +329,11 @@ class DatabaseHandler(commands.Cog):
 
     @commands.command()
     async def database(self, ctx,p1:discord.Member=None):
-        if p1 ==None:
+        if p1==None:
             p1=ctx.author
         if ctx.author.id==643764774362021899:
-            global dbcheck
-            dbcheck(p1)
-            await ctx.channel.send("I have completed the database check for %s, creator senpai!!!"%(p1.display_name))
+            await dbcheck(p1)
+            await ctx.channel.send("I have completed the database check for %s"%(p1.display_name))
 
     @commands.command()
     async def CheckDatabase(self, ctx, key:str, p1:discord.Member=None):

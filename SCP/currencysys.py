@@ -98,7 +98,6 @@ class currencysys(commands.Cog):
         global shopitems
         shopitems = [
             {"name":"phone", "value":800, "desc":"Text your Girlfriend!"},
-            {"name": "laptop", "value": 1500, "desc":"Post memes, or play a game with your girlfriend"},
             {"name": "netflixsub", "value": 29, "desc": "Netflix and chill with your gf"},
             {"name": "lotteryticket", "value": 2, "desc": "A chance to win 1 million dollars"},
             {"name": "movieticket", "value" : 16, "desc":"watch a movie with your gf"},
@@ -1030,7 +1029,7 @@ class currencysys(commands.Cog):
 
 
     @commands.command()
-    async def give(self, ctx, itemtogive, p1:discord.Member):
+    async def give(self, ctx, itemtogive, number:int, p1:discord.Member):
         invar = mulah.find_one({"id":ctx.author.id}, {"inv"})
         inval = invar["inv"]
         p1invar = mulah.find_one({"id":p1.id}, {"inv"})
@@ -1038,37 +1037,38 @@ class currencysys(commands.Cog):
         itemcheck = []
         for x in inval:
             if x["name"].casefold() ==itemtogive: 
-                print("this got here1")
                 for z in p1inval:
                     if ("name", x["name"]) in z.items():
-                        z["amount"]+=1
-                        print("noo")
-                        itemcheck.append("yes")
-                        
-                        x["amount"]-=1
-                        if x["amount"] == 0:
-                            inval.remove(x)
-        print(itemcheck)
+                        if x["amount"]>=number:
+                            z["amount"]+=number
+                            itemcheck.append("yes")
+                            
+                            x["amount"]-=number
+                            if x["amount"] == 0:
+                                inval.remove(x)
+                        else:
+                            await ctx.channel.send("You do not have that many items in your inventory!")
+                            return
                         
 
         if not itemcheck:
-            print("yes")
             for x in inval:
                 if x["name"].casefold()==itemtogive.lower():
-                    print("this got here2")
-                    x["amount"]-=1
-                    print(x)
-                    if x["amount"] == 0:
-                        inval.remove(x)
-                    pdict = x
-                    print(pdict)
-                    pdict["amount"] = 1
-                    p1inval.append(pdict)
-                    print(p1inval)
+                    if x["amount"]>=number:
+                        x["amount"]-=number
+                        if x["amount"] == 0:
+                            inval.remove(x)
+                        pdict = x
+                        pdict["amount"] = number
+                        p1inval.append(pdict)
+                    else:
+                        await ctx.channel.send("You do not have that many items in your inventory!")
+                        return
+                
 
         mulah.update_one({"id":p1.id}, {"$set":{"inv":p1inval}})
         mulah.update_one({"id":ctx.author.id}, {"$set":{"inv":inval}})
-        embed = discord.Embed(title = "You have given %s one %s"%(p1.display_name, itemtogive), color = ctx.author.color)
+        embed = discord.Embed(title = "You have given %s %s %s"%(p1.display_name,number, itemtogive), color = ctx.author.color)
         await ctx.channel.send(embed=embed)
 
 
@@ -1237,6 +1237,7 @@ class currencysys(commands.Cog):
     async def profile(self,ctx,p1:discord.Member=None):
         if p1 == None:
             p1 = ctx.author
+        print(mulah.find_one({"id":p1.id}))
         breakupval = mulah.find_one({"id":p1.id}, {"breakups"})["breakups"]
         kissval = mulah.find_one({"id":p1.id}, {"kisses"})["kisses"]
         boinkval = mulah.find_one({"id":p1.id}, {"boinks"})["boinks"]
@@ -1278,8 +1279,12 @@ class currencysys(commands.Cog):
                         embed.add_field(name ="Current balance:", value = "$%s"%(walletval))
                         embed.add_field(name = "Total gambles:", value = gambles)
                         embed.add_field(name = "Total successful gambles:", value = gamblewins)
-                        embed.add_field(name = "gambling winrate:", value = "%%%g"%((gamblewins/gambles)*100))
+                        try:
+                            embed.add_field(name = "gambling winrate:", value = "%%%g"%((gamblewins/gambles)*100))
+                        except:
+                            pass
                     except:
+                        print(traceback.format_exc())
                         embed = discord.Embed(title = "This man hasnt worked a single day in his life.", color = ctx.author.color)
                 if rawreaction == "❤️":
                     try:
@@ -1419,7 +1424,7 @@ class currencysys(commands.Cog):
                             yt = YoutubeSearch(str(movie)+" trailer", max_results=1).to_json()
                             yt_id = str(json.loads(yt)['videos'][0]['id'])
                             yt_url = 'https://www.youtube.com/watch?v='+yt_id
-                            newyt = YoutubeSearch(str(movie)+" opening", max_results=1).to_json()
+                            newyt = YoutubeSearch(str(movie)+" trailer", max_results=1).to_json()
                             newytid = str(json.loads(newyt)['videos'][0]['id'])
                             thumnail_url = "https://img.youtube.com/vi/%s/maxresdefault.jpg"%(newytid)
                             try:

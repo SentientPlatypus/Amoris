@@ -97,7 +97,7 @@ async def gf(ctx):
 @help.command()
 async def config(ctx):
 
-	embed = discord.Embed(title = "Settings!", description = "use `^settings` to view server settings. `^settings <command> <enable|disable>` to edit settings.", color = ctx.author.color)
+	embed = discord.Embed(title = "Settings!", description = 'use `^settings` to view server settings. `^settings "<command>" <enable|disable>` to edit settings. Use `^configuration` to alter settings', color = ctx.author.color)
 	embed.set_footer(text = "Settings may only be changed by admins")
 	await ctx.send(embed = embed) 
 
@@ -112,10 +112,28 @@ async def money(ctx):
 
 	embed = discord.Embed(title = "Economy!", description = "make some mulah", color = ctx.author.color)
 
-	embed.add_field(name = "commands:", value = "`^shop` `^buy` `^pc build` `^pc play` `^addram` `^pc stats`, `^work` `^balance`")
+	embed.add_field(name = "commands:", value = "`^shop` `^buy` `^pc build` `^pc play` `^addram` `^pc stats`, `^work`, `^balance`, `^use`, `^give`")
 
 	await ctx.send(embed = embed) 
 
+
+@help.command()
+async def use(ctx):
+
+	embed = discord.Embed(title = "Use!", description = "Use a consumable!", color = ctx.author.color)
+
+	embed.add_field(name = "syntax", value = "`^use <item> <number>`")
+
+	await ctx.send(embed = embed) 
+
+@help.command()
+async def give(ctx):
+
+	embed = discord.Embed(title = "give", description = "give an item to a person", color = ctx.author.color)
+
+	embed.add_field(name = "syntax", value = "`^give <item> <number> <mentionPerson>`")
+
+	await ctx.send(embed = embed) 
 @help.command()
 async def yomomma(ctx):
 
@@ -291,7 +309,7 @@ async def simplify(ctx):
 
 	embed = discord.Embed(title = "Simlify", description = "simplify a fraction", color = ctx.author.color)
 
-	embed.add_field(name = "**Syntax**", value = "`^mafs simplify <numerator> <denominator>`")
+	embed.add_field(name = "**Syntax**", value = "`^simplify <numerator> <denominator>`")
 
 	await ctx.send(embed = embed) 
 
@@ -317,7 +335,7 @@ async def herons(ctx):
 
 	embed = discord.Embed(title = "Herons", description = "Calculate the area of a triange with its side lengths", color = ctx.author.color)
 
-	embed.add_field(name = "**Syntax**", value = "`^mafs herons <sidelen1> <sidelen2> <sidelen3>`")
+	embed.add_field(name = "**Syntax**", value = "`^herons <sidelen1> <sidelen2> <sidelen3>`")
 
 	await ctx.send(embed = embed) 
 
@@ -607,7 +625,7 @@ EditedMessages = {
 @client.event
 async def on_message_edit(before, after):
 	print("a edited")
-	EditedMessages[before.guild.id]= [before.author.display_name, before.author.avatar_url, before.content, datetime.now().strftime("%Y-%m-%d, %H:%M")]
+	EditedMessages[before.guild.id]= [before.author.display_name, before.author.avatar_url, before.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
 	print(EditedMessages)
 
 DeletedMessage = {
@@ -616,13 +634,19 @@ DeletedMessage = {
 @client.event
 async def on_message_delete(message):
 	print("deleted")
-	DeletedMessage[message.guild.id] = [message.author.display_name, message.author.avatar_url,message.content, datetime.now().strftime("%Y-%m-%d, %H:%M")]
+	DeletedMessage[message.guild.id] = [message.author.display_name, message.author.avatar_url,message.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
 
 
 @help.command()
 async def mod(ctx):
 	embed = discord.Embed(title = "Moderation🚨", description = "help moderating text servers.", color = ctx.author.color)
-	embed.add_field(name = "Commands", value = "`clean`, `credit`, `poll`, `esnipe`, `snipe`")
+	embed.add_field(name = "Commands", value = "`clean`, `credit`, `poll`, `esnipe`, `snipe, `timer``")
+	await ctx.send(embed = embed)
+
+@help.command()
+async def timer(ctx):
+	embed = discord.Embed(title = "Timer!", description = "adds a timer", color = ctx.author.color)
+	embed.add_field(name = "syntax", value = "`^timer '<title>' '<description>' '<00:00:00>'")
 	await ctx.send(embed = embed)
 
 @client.command()
@@ -749,12 +773,15 @@ async def timer(ctx, title, description, timestr):
 #clean
 @client.command(name = "clean", help = "Delete messages! example: ^purge 5 (deletes 5 messages)")
 async def clean(ctx, num):
-	embed = discord.Embed(title = "I finished cleaning up.", description = "that was hard work.", color = ctx.author.color)
-	embed.add_field(name = "%s messages have been cleared!"%(int(num)), value = "im going to go back to doing bot stuff now. Dont bother me.")
-	await ctx.channel.purge(limit=int(num))
-	await ctx.channel.send(embed=embed)
-	time.sleep(3)
-	await ctx.channel.purge(limit=1)	
+	if ctx.author.guild_permissions.administrator:
+		embed = discord.Embed(title = "I finished cleaning up.", description = "that was hard work.", color = ctx.author.color)
+		embed.add_field(name = "%s messages have been cleared!"%(int(num)), value = "im going to go back to doing bot stuff now. Dont bother me.")
+		await ctx.channel.purge(limit=int(num))
+		await ctx.channel.send(embed=embed)
+		time.sleep(3)
+		await ctx.channel.purge(limit=1)	
+	else:
+		await ctx.channel.send("You dont have perms lol")
 
 #Credit
 @client.command(name = 'credit', help = "Show who contributed to the creation of SCP 16 Tsundere")
@@ -1313,7 +1340,7 @@ async def mafs(ctx):
 
 wolframalphaclient = wolframalpha.Client('7V2XW3-AY2GAUEQXT')
 
-@mafs.command()
+@client.command()
 async def hardsolve(ctx, *q):
 	equation = " ".join(q)
 	query = urllib.parse.quote_plus(f"solve {equation}")
@@ -1329,7 +1356,7 @@ async def hardsolve(ctx, *q):
 
 	data = r["queryresult"]["pods"][0]["subpods"]
 	result = data[0]["plaintext"]
-	steps = data[1]["plaintext"]
+	steps = data[0]["plaintext"]
 	z = re.findall("[A-Z]+[a-z.\d\s]+\:",steps)
 	for x in z:
 		steps = steps.replace(x,"**"+x+"**")
@@ -1342,7 +1369,7 @@ async def hardsolve(ctx, *q):
 
 
 
-@mafs.command()
+@client.command()
 async def points(ctx, *l):
 
 	l = [float(x) for x in l]
@@ -1431,7 +1458,7 @@ def Euclid(x,y):
 		x,y=y,x
 		return Euclid(x,y)
 
-@mafs.command()
+@client.command()
 async def gcf(ctx, *l):
 	l = [int(element) for element in l]
 	Euclid(l[0],l[1])
@@ -1450,7 +1477,7 @@ async def gcf(ctx, *l):
 	gcfs.clear()
 
 
-@mafs.command()
+@client.command()
 async def simplify(ctx, numerator, denominator):
 	Euclid(eval(numerator),eval(denominator))
 	finalnumerator = eval(numerator)/gcfs[0]
@@ -1462,7 +1489,7 @@ async def simplify(ctx, numerator, denominator):
 	gcfs.clear()
 
 
-@mafs.command()
+@client.command()
 async def herons(ctx, s1,s2,s3):
 	s1 = int(s1)
 	s2 = int(s2)
@@ -1846,7 +1873,7 @@ async def hangman(ctx, word):
 @client.event
 async def on_command_error(ctx, error):
 	if isinstance(error, commands.CommandOnCooldown):
-		msg = "Retry in %s"%(timedelta(seconds=math.floor(error.retry_after)))
+		msg = "Retry in %s"%(datetime.timedelta(seconds=math.floor(error.retry_after)))
 		await ctx.channel.send(embed=discord.Embed(title = "Still on cooldown!", description = msg))
 	else:
 		print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
