@@ -12,7 +12,7 @@ from discord import channel
 from discord import embeds
 from discord.embeds import Embed
 from discord.ext import commands
-from discord.ext.commands.core import command
+from discord.ext.commands.core import check, command
 from discord.member import Member
 from discord.player import PCMAudio
 from discord.utils import time_snowflake
@@ -30,6 +30,7 @@ import string
 import itertools
 from imdb import IMDb
 from pymongo.database import Database
+from pymongo.message import _do_batched_op_msg
 from youtube_search import YoutubeSearch
 import json
 import youtube_dl
@@ -125,25 +126,31 @@ class DatabaseHandler(commands.Cog):
 
 
     @commands.Cog.listener()
-    async def on_message(self, ctx):
+    async def on_command(self, ctx):
         if ctx.author == self.client.user:
             return
         if ctx.author.bot: return
 
+        global DBmsg
+        Dbmsg = False
+
         global dbcheck
         async def dbcheck(user:discord.Member):
             global DatabaseKeys
+            global Dbmsg
             for x in DatabaseKeys:
                 try:
                     value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
                 except:
+                    Dbmsg=True
                     mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}})
                     print("updated %s' %s"%(user.display_name, x["name"]))
-                try:
-                    value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
-                except:
-                    mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}}, True)
-                    print("updated %s' %s"%(user.display_name, x["name"]))        
+                    try:
+                        value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
+                    except:
+                        Dbmsg=True
+                        mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}}, True)
+                        print("updated %s' %s"%(user.display_name, x["name"]))        
 
 
         async def Serverdbcheck(ctx):
@@ -152,6 +159,7 @@ class DatabaseHandler(commands.Cog):
                 try:
                     value = DiscordGuild.find_one({"id":ctx.guild.id},{x["name"]})[x["name"]]
                 except:
+                    Dbmsg=True
                     DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{x["name"]:x["value"]}}, True)
 
         async def ServerCheck(ctx):
@@ -162,10 +170,12 @@ class DatabaseHandler(commands.Cog):
                     try:
                         z = settings[x]
                     except:
+                        Dbmsg=True
                         settings[x] = ServerSettings[x]
                         DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}}, True)
 
             except:
+                Dbmsg=True
                 print(traceback.format_exc())
                 stats = levelling.find_one({"id" : ctx.guild.id})
                 if stats == None:
@@ -183,6 +193,7 @@ class DatabaseHandler(commands.Cog):
         await ServerCheck(ctx)
         await Serverdbcheck(ctx)
         await dbcheck(ctx.author)
+
 
 
 

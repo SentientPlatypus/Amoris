@@ -197,7 +197,10 @@ class currencysys(commands.Cog):
 
                     randomword = random.choice(YourJob["words"])
                     answer = randomword
-                    finalrandword = "".join(random.shuffle(list(randomword)))     
+                    while "".join(list(randomword))==answer:
+                        random.shuffle(list(randomword))
+                    finalrandword = "".join(list(randomword))     
+                    checks = []
                     for x in range(3):
                         embed = discord.Embed(title = "fill in the blank!", description = "You have %s chances! Unscramble the word `%s`"%(3-x, finalrandword), color = discord.Color.green())
                         embed.set_footer(text = "working as %s"%(job))
@@ -214,25 +217,25 @@ class currencysys(commands.Cog):
                         wrong = True
                 if right:
                     newmoney = workk["money"] + hourlywage
-                    embed=discord.Embed(title = "Great work, %s!"%(ctx.author.display_name), description = "You did great. Here's $%s!"%(hourlywage), color = discord.Color.green())
-                    embed.set_footer(text = "working as %s\nCurrent Balance:%s"%(job, newmoney))
+                    embed=discord.Embed(title = "Great work, %s!"%(ctx.author.display_name), description = "You did great. Here's $%g!"%(hourlywage), color = discord.Color.green())
+                    embed.set_footer(text = "working as %s\nCurrent Balance:$%g"%(job, newmoney))
                     await ctx.channel.send(embed=embed)
                 elif wrong:
                     hourlywage*=0.8
                     newmoney = workk["money"] + hourlywage
-                    embed=discord.Embed(title = "Terrible job, %s!"%(ctx.author.display_name), description = "You need to do better. The answer was `%s`! Here's $%s!"%(answer,hourlywage), color = discord.Color.red())
-                    embed.set_footer(text = "working as %s\nCurrent Balance:%s"%(job, newmoney))
+                    embed=discord.Embed(title = "Terrible job, %s!"%(ctx.author.display_name), description = "You need to do better. The answer was `%s`! Here's $%g!"%(answer,hourlywage), color = discord.Color.red())
+                    embed.set_footer(text = "working as %s\nCurrent Balance:$%g"%(job, newmoney))
                     await ctx.channel.send(embed=embed)
             except TimeoutError:
                 hourlywage*=0.6
                 newmoney = workk["money"] + hourlywage
-                embed=discord.Embed(title = "Terrible job, %s!"%(ctx.author.display_name), description = "You didnt even answer! The answer was `%s`! Here's $%s!"%(answer, hourlywage), color = discord.Color.red())
-                embed.set_footer(text = "working as %s\nCurrent Balance:%s"%(job, newmoney))
+                embed=discord.Embed(title = "Terrible job, %s!"%(ctx.author.display_name), description = "You didnt even answer! The answer was `%s`! Here's $%g!"%(answer, hourlywage), color = discord.Color.red())
+                embed.set_footer(text = "working as %s\nCurrent Balance:$%g"%(job, newmoney))
                 await ctx.channel.send(embed=embed)  
         else:
             newmoney = workk["money"] + hourlywage
             mulah.update_one({"id":ctx.author.id},{"$set":{"money":newmoney}})
-            embed = discord.Embed(title = "You have made %s dollars."%(hourlywage), description = "You now have $%s"%(newmoney),color = ctx.author.color)
+            embed = discord.Embed(title = "You have made %s dollars."%(hourlywage), description = "You now have $%g"%(newmoney),color = ctx.author.color)
             await ctx.channel.send(embed = embed)
 
         mulah.update_one({"id":ctx.author.id},{"$set":{"money":newmoney}})
@@ -263,10 +266,10 @@ class currencysys(commands.Cog):
         x = next(y for y in worklists if y["name"].lower()==jobt.lower())
         if lvl>=x["req"]:
             mulah.update_one({"id":ctx.author.id}, {"$set":{"job":x["name"]}})
-            embed = discord.Embed(title = "You Got the Job!", description = "You are now working as %s!"%(x["name"]))
+            embed = discord.Embed(title = "You Got the Job!", description = "You are now working as %s!"%(x["name"]), color = discord.Color.green())
             await ctx.channel.send(embed=embed)
         else:
-            embed = discord.Embed(title = "You were rejected!", description = "You dont have enough xp to work as a %s!"%(x["name"]))
+            embed = discord.Embed(title = "You were rejected!", description = "You dont have enough xp to work as a %s!"%(x["name"]), color = discord.Color.red())
             await ctx.channel.send(embed=embed)
 
 
