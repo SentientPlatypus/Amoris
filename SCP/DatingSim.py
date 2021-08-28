@@ -2281,7 +2281,7 @@ class DatingSim(commands.Cog):
 
         if ctx.content.startswith("^"):
             return 
-        number = random.randint(1,50)
+        number = random.randint(1,500)
         try:
             gfval = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
             lpval = mulah.find_one({"id":ctx.author.id}, {"lp"})["lp"]

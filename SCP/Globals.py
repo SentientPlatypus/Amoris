@@ -156,8 +156,14 @@ def GetKeysFromDictInList(list:list):
             keys.append(z)
     return keys
 
-
-
+def GetLevel(ctx):
+    xp = levelling.find_one({"id":ctx.author.id}, {"xp"})["xp"]
+    lvl = 0
+    while True:
+        if xp < ((50*(lvl**2))+(50*(lvl))):
+            break
+        lvl+=1
+    return lvl
 
 def achievementcheck(user,achievement:str):
     try:
@@ -194,7 +200,43 @@ def ChoiceParts(choices:list, ReactionsList = ['1️⃣', '2️⃣', '3️⃣', 
     return [emptydict, finalstr, reactionlist]
 
 
+async def AchievementEmbed(ctx, EarnedAchievement):
+    achievements = [
+        {"name":"First Kiss!", "desc":"Kiss someone for the first time!", "category":"relationships"},
+        {"name":"Virginity Loss!", "desc":"Boink someone for the first time!", "category":"relationships"},
+        {"name":"Engaged!", "desc":"Propose to someone for the first time!", "category":"relationships"},
+        {"name":"Jerk", "desc":"Turns out you were the problem", "category":"relationships"},
+        {"name":"Divorcee!", "desc":"Get a life bro.", "category":"relationships"},
+        {"name":"First Date!", "desc":"First date with GF!", "category":"relationships"},
+        
 
+        {"name":"Getting By", "desc":"finally making some money! good job!", "category":"finance"},
+        {"name":"Millionaire!", "desc":"its what it sounds like", "category":"finance"},
+        
+        {"name":"Billionaire!", "desc":"Treat your workers with respect.", "category":"finance"},
+        {"name":"Employed!", "desc":"You got a job.", "category":"finance"},
+        {"name":"Gambler!", "desc":"You gambled for the first time! ", "category":"finance"},
+        {"name":"Winner!", "desc":"You won a gamble! ", "category":"finance"},
+
+
+        {"name":"Death!", "desc":"Get a life bro.", "category":"finance"},
+        {"name":"virgin", "desc":"Secret!", "category":"gaming"},
+        {"name":"FloorGang", "desc":"Secret!", "category":"gaming"},
+        {"name":"First PC!", "desc":"Create your first PC!", "category":"gaming"},
+        {"name":"Linus Tech Tips", "desc":"Create a beefy Computer with at least 12000 power!", "category":"gaming"},
+        {"name":"True Gamer", "desc":"Install 5 games on a single PC!", "category":"gaming"},
+
+        
+    ]
+    UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
+    if EarnedAchievement not in UserAchievements:
+        AchievementDict = next(x for x in achievements if x["name"]==EarnedAchievement)
+        embed = discord.Embed(title = "Congratulations! you earned the achievement %s"%(AchievementDict["name"]), description = AchievementDict["desc"], color = ctx.author.color)
+        embed.set_image(url = 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/271/trophy_1f3c6.png')
+        UserAchievements.append(EarnedAchievement)
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"achievements":UserAchievements}})
+        embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        await ctx.channel.send(embed=embed)    
 
 
 

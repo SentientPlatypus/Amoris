@@ -147,7 +147,7 @@ class levelsys(commands.Cog):
                 def check(m):
                     return m.author==ctx.author and m.channel == ctx.channel
                 try:
-                    shutupctx = await client.wait_for('ctx', check = check, timeout=5)
+                    shutupctx = await self.client.wait_for('ctx', check = check, timeout=5)
                 except asyncio.TimeoutError:
                     pass
                 if any(word in ctx.content.casefold() for word in shutuplist):

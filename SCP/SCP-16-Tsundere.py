@@ -348,12 +348,12 @@ async def question(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@help.command()			
 async def hardsolve(ctx):
 
 	embed = discord.Embed(title = "Hardsolve", description = "I will solve an equation or expression to the best of my ability.", color = ctx.author.color)
 
-	embed.add_field(name = "**Syntax**", value = "`^mafs hardsolve <equation>`")
+	embed.add_field(name = "**Syntax**", value = "`^mafs hardsolve <equation>`, **THIS COMMAND ISNT CURRENTLY WORKING**	")
 
 	await ctx.send(embed = embed) 
 
@@ -366,7 +366,7 @@ def profanitycheck(string):
 	else:
 		return False
 
-
+	
 
 
 

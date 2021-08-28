@@ -79,6 +79,9 @@ class DatabaseHandler(commands.Cog):
             {"name":"kisses", "value":0},
             {"name":"boinks", "value":0},
             {"name":"money", "value":0},
+            {"name":"job", "value":None},
+            {"name":"duelwins", "value":0},
+            {"name":"duelloses", "value":0},
             {"name":"inv", "value":[]},
             {"name":"watchlist", "value":[]},
             {"name":"achievements", "value":[]},
@@ -113,33 +116,7 @@ class DatabaseHandler(commands.Cog):
             }
         ]
 
-        global achievements
-        achievements = [
-            {"name":"First Kiss!", "desc":"Kiss someone for the first time!", "category":"relationships"},
-            {"name":"Virginity Loss!", "desc":"Boink someone for the first time!", "category":"relationships"},
-            {"name":"Engaged!", "desc":"Propose to someone for the first time!", "category":"relationships"},
-            {"name":"Jerk", "desc":"Turns out you were the problem", "category":"relationships"},
-            {"name":"Divorcee!", "desc":"Get a life bro.", "category":"relationships"},
-            {"name":"First Date!", "desc":"First date with GF!", "category":"relationships"},
-            
 
-            {"name":"Getting By", "desc":"finally making some money! good job!", "category":"finance"},
-            {"name":"Millionaire!", "desc":"its what it sounds like", "category":"finance"},
-            
-            {"name":"Billionaire!", "desc":"Treat your workers with respect.", "category":"finance"},
-            {"name":"Employed!", "desc":"You got a job.", "category":"finance"},
-            {"name":"Gambler!", "desc":"You gambled for the first time! ", "category":"finance"},
-            {"name":"Winner!", "desc":"You won a gamble! ", "category":"finance"},
-
-
-            {"name":"Death!", "desc":"Get a life bro.", "category":"finance"},
-            {"name":"virgin", "desc":"Secret!", "category":"gaming"},
-            {"name":"FloorGang", "desc":"Secret!", "category":"gaming"},
-            {"name":"First PC!", "desc":"Create your first PC!", "category":"gaming"},
-            {"name":"Linus Tech Tips", "desc":"Create a beefy Computer with at least 12000 power!", "category":"gaming"},
-            {"name":"True Gamer", "desc":"Install 5 games on a single PC!", "category":"gaming"},
-            
-        ]
 
 
 
@@ -162,13 +139,11 @@ class DatabaseHandler(commands.Cog):
                 except:
                     mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}})
                     print("updated %s' %s"%(user.display_name, x["name"]))
-            if mulah.find_one({"id":user.id}) ==None:
-                for x in DatabaseKeys:
-                    try:
-                        value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
-                    except:
-                        mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}}, True)
-                        print("updated %s' %s"%(user.display_name, x["name"]))        
+                try:
+                    value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
+                except:
+                    mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}}, True)
+                    print("updated %s' %s"%(user.display_name, x["name"]))        
 
 
         async def Serverdbcheck(ctx):
@@ -177,7 +152,7 @@ class DatabaseHandler(commands.Cog):
                 try:
                     value = DiscordGuild.find_one({"id":ctx.guild.id},{x["name"]})[x["name"]]
                 except:
-                    DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{x["name"]:x["value"]}})
+                    DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{x["name"]:x["value"]}}, True)
 
         async def ServerCheck(ctx):
             global ServerSettings
@@ -188,7 +163,7 @@ class DatabaseHandler(commands.Cog):
                         z = settings[x]
                     except:
                         settings[x] = ServerSettings[x]
-                        DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}})
+                        DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}}, True)
 
             except:
                 print(traceback.format_exc())
@@ -214,7 +189,6 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_completion(self,ctx):
-        global achievements
         try:
             gfval = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
             lpval = mulah.find_one({"id":ctx.author.id}, {"lp"})["lp"]
@@ -230,68 +204,60 @@ class DatabaseHandler(commands.Cog):
             gameskill = mulah.find_one({"id":ctx.author.id}, {"gameskill"})["gameskill"]
             gambles = mulah.find_one({"id":ctx.author.id}, {"gambles"})["gambles"]
             gamblewins = mulah.find_one({"id":ctx.author.id}, {"gamblewins"})["gamblewins"]
+            job = mulah.find_one({"id":ctx.author.id}, {"job"})["job"]
         except:
             pass
         
         UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
-
-        async def AchievementEmbed(EarnedAchievement):
-            UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
-            if EarnedAchievement not in UserAchievements:
-                global achievements
-                AchievementDict = next(x for x in achievements if x["name"]==EarnedAchievement)
-                embed = discord.Embed(title = "Congratulations! you earned the achievement %s"%(AchievementDict["name"]), description = AchievementDict["desc"], color = ctx.author.color)
-                embed.set_image(url = 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/271/trophy_1f3c6.png')
-                UserAchievements.append(EarnedAchievement)
-                mulah.update_one({"id":ctx.author.id}, {"$set":{"achievements":UserAchievements}})
-                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
-                await ctx.channel.send(embed=embed)            
+        
 
         if boinks>=1:
-            await AchievementEmbed("Virginity Loss!")
+            await Globals.AchievementEmbed(ctx, "Virginity Loss!")
         
         if breakups>=10:
-            await AchievementEmbed("Jerk")
+            await Globals.AchievementEmbed(ctx, "Jerk")
 
         if kisses>=1:
-            await AchievementEmbed("First Kiss!")
+            await Globals.AchievementEmbed(ctx, "First Kiss!")
 
         if proposes>=1:
-            await AchievementEmbed("Engaged!")
+            await Globals.AchievementEmbed(ctx, "Engaged!")
         
         if money>=15:
-            await AchievementEmbed("Getting By")
+            await Globals.AchievementEmbed(ctx, "Getting By")
 
         if money>=1000000:
-            await AchievementEmbed("Millionaire!")
+            await Globals.AchievementEmbed(ctx, "Millionaire!")
         
         if money>=1000000000:
-            await AchievementEmbed("Billionaire!")
+            await Globals.AchievementEmbed(ctx, "Billionaire!")
         
         if gameskill["Minecraft"]>=100:
-            await AchievementEmbed("FloorGang")
+            await Globals.AchievementEmbed(ctx, "FloorGang")
         
         if gameskill["League of Legends"]>100:
-            await AchievementEmbed("virgin")
+            await Globals.AchievementEmbed(ctx, "virgin")
         
         if dates>=1:
-            await AchievementEmbed("First Date!")
+            await Globals.AchievementEmbed(ctx, "First Date!")
         
         if any(x for x in inv if "parts" in x.keys()):
-            await AchievementEmbed("First PC!")
+            await Globals.AchievementEmbed(ctx, "First PC!")
         
         for x in inv:
             if "parts" in x.keys(): 
                 if len(x["games"])>=5:
-                    await AchievementEmbed("True Gamer")
+                    await Globals.AchievementEmbed(ctx, "True Gamer")
 
                 if x["parts"]["power"]>=12000:
-                    await AchievementEmbed("Linus Tech Tips")
+                    await Globals.AchievementEmbed(ctx, "Linus Tech Tips")
         if gambles>=1:
-            await AchievementEmbed("Gambler!")
+            await Globals.AchievementEmbed(ctx, "Gambler!")
 
         if gamblewins>=1:
-            await AchievementEmbed("Winner!")
+            await Globals.AchievementEmbed(ctx, "Winner!")
+        if job:
+            await Globals.AchievementEmbed(ctx, "Employed!")
 
 
 

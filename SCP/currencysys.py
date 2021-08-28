@@ -89,10 +89,10 @@ class currencysys(commands.Cog):
 
         global worklists
         worklists = [
-            {"name":"McDonalds worker", "salary":15, "req":None},
-            {"name":"Gamer", "salary":150, "req": "must have over 1000 total gameskill"},
-            {"name":"Business Man", "salary":160, "req":"must be at least level 15"},
-            {"name":"Jeff bezos", "salary":1000000000, "req":"must be Creator Senpai"},
+            {"name":"McDonalds worker", "salary":15, "req":1, "words":["bigmac", "burger", "broken"], "sentences":["sorry, the icecream machine is broken", "what can I get for you?", "welcome to mcdonalds"]},
+            {"name":"Gamer", "salary":150, "req": 5, "words":["dorito", "mechanical", "virgin"], "sentences":["i hate lag", "hes one tap", "what a sweat"]},
+            {"name":"Business Man", "salary":160, "req":20, "words":["business", "passive", "pigeon"], "sentences":["sorry thats not passive income", "it is ten times cheaper to keep a customer than to get a new one"]},
+            {"name":"Jeff bezos", "salary":1000000000, "req":100, "words":["bigmac", "burger", "broken"]},
         ]
 
         global shopitems
@@ -154,27 +154,120 @@ class currencysys(commands.Cog):
 
 
 
-
-
     @commands.command()
     @commands.cooldown(1, 60, BucketType.user)
     async def work(self, ctx):
         workk = mulah.find_one({"id" : ctx.author.id}, {"money"})
+        job = mulah.find_one({"id":ctx.author.id}, {"job"})["job"]
+        if job:
+            hourlywage = next(x for x in worklists if x["name"]==job)["salary"]
+        else:
+            hourlywage=15
 
+        if job:
+            try:
+                YourJob = next(x for x in worklists if x["name"]==job)
+                workoption = random.choice(["unscramble", "guess"])
+                right = False
+                wrong = False
+                if workoption == "guess":
+                    def check(m):
+                        return m.author==ctx.author and m.channel==ctx.channel
 
-        try:
-            hourlywage = 15
+                    ListOfWords = random.choice(YourJob["sentences"]).split()
+                    ListIndex = random.randint(0, len(ListOfWords))
+                    word = ListOfWords[ListIndex]
+                    answer = word
+                    ListOfWords[ListIndex] = "-"*len(ListOfWords[ListIndex])
+                    display = " ".join(ListOfWords)
+                    embed = discord.Embed(title = "fill in the blank!", description = display, color = discord.Color.green())
+                    embed.set_footer(text = "working as %s"%(job))
+                    await ctx.channel.send(embed=embed)
+
+                    msg = await self.client.wait_for('message', check=check, timeout=20)
+                    if msg.content.lower()==word.lower():
+                        right = True
+                    else:
+                        wrong = True
+  
+
+                if workoption == "unscramble":    
+                    def check(m):
+                        return m.author==ctx.author and m.channel==ctx.channel
+
+                    randomword = random.choice(YourJob["words"])
+                    answer = randomword
+                    finalrandword = "".join(random.shuffle(list(randomword)))     
+                    for x in range(3):
+                        embed = discord.Embed(title = "fill in the blank!", description = "You have %s chances! Unscramble the word `%s`"%(3-x, finalrandword), color = discord.Color.green())
+                        embed.set_footer(text = "working as %s"%(job))
+
+                        await ctx.channel.send(embed=embed)
+                        nmsg = await self.client.wait_for('message', check = check, timeout = 30)
+                        if nmsg.content == randomword.casefold():
+                            skillint = 10-x*2
+                            checks.append(nmsg.content)
+                            break
+                    if checks:
+                        right = True
+                    else:
+                        wrong = True
+                if right:
+                    newmoney = workk["money"] + hourlywage
+                    embed=discord.Embed(title = "Great work, %s!"%(ctx.author.display_name), description = "You did great. Here's $%s!"%(hourlywage), color = discord.Color.green())
+                    embed.set_footer(text = "working as %s\nCurrent Balance:%s"%(job, newmoney))
+                    await ctx.channel.send(embed=embed)
+                elif wrong:
+                    hourlywage*=0.8
+                    newmoney = workk["money"] + hourlywage
+                    embed=discord.Embed(title = "Terrible job, %s!"%(ctx.author.display_name), description = "You need to do better. The answer was `%s`! Here's $%s!"%(answer,hourlywage), color = discord.Color.red())
+                    embed.set_footer(text = "working as %s\nCurrent Balance:%s"%(job, newmoney))
+                    await ctx.channel.send(embed=embed)
+            except TimeoutError:
+                hourlywage*=0.6
+                newmoney = workk["money"] + hourlywage
+                embed=discord.Embed(title = "Terrible job, %s!"%(ctx.author.display_name), description = "You didnt even answer! The answer was `%s`! Here's $%s!"%(answer, hourlywage), color = discord.Color.red())
+                embed.set_footer(text = "working as %s\nCurrent Balance:%s"%(job, newmoney))
+                await ctx.channel.send(embed=embed)  
+        else:
             newmoney = workk["money"] + hourlywage
             mulah.update_one({"id":ctx.author.id},{"$set":{"money":newmoney}})
             embed = discord.Embed(title = "You have made %s dollars."%(hourlywage), description = "You now have $%s"%(newmoney),color = ctx.author.color)
             await ctx.channel.send(embed = embed)
-        except KeyError:
-            print(traceback.format_exc())
-            mulah.update_one({"id":ctx.author.id}, {"$set":{"money":0}})
-            await ctx.channel.send("Hey! I just finished making your economy profile. use `^work` to get money.")
+
+        mulah.update_one({"id":ctx.author.id},{"$set":{"money":newmoney}})
 
 
+    @commands.command()
+    async def worklist(self, ctx):
+        workk = mulah.find_one({"id" : ctx.author.id}, {"money"})["money"]
+        job = mulah.find_one({"id":ctx.author.id}, {"job"})["job"]
+        lvl = Globals.GetLevel(ctx)
 
+        embed = discord.Embed(title = "Employment options!", description = 'join the workforce! use `^apply "<job>"` to apply!', color = discord.Color.blue())
+
+        for x in worklists:
+            if lvl>= x["req"]:
+                check = "✅ "
+            else:
+                check = "❌ "
+            embed.add_field(name = check + x["name"], value = "Salary:`%s`"%(x["salary"]), inline=False)
+        await ctx.channel.send(embed=embed)
+
+    @commands.command()
+    async def apply(self, ctx, jobt):
+        workk = mulah.find_one({"id" : ctx.author.id}, {"money"})["money"]
+        job = mulah.find_one({"id":ctx.author.id}, {"job"})["job"]
+        lvl = Globals.GetLevel(ctx)
+
+        x = next(y for y in worklists if y["name"].lower()==jobt.lower())
+        if lvl>=x["req"]:
+            mulah.update_one({"id":ctx.author.id}, {"$set":{"job":x["name"]}})
+            embed = discord.Embed(title = "You Got the Job!", description = "You are now working as %s!"%(x["name"]))
+            await ctx.channel.send(embed=embed)
+        else:
+            embed = discord.Embed(title = "You were rejected!", description = "You dont have enough xp to work as a %s!"%(x["name"]))
+            await ctx.channel.send(embed=embed)
 
 
 
@@ -1247,6 +1340,7 @@ class currencysys(commands.Cog):
         gambles = mulah.find_one({"id":p1.id}, {"gambles"})["gambles"]
         gamblewins = mulah.find_one({"id":p1.id}, {"gamblewins"})["gamblewins"]
         mmorpg = mulah.find_one({"id":p1.id}, {"mmorpg"})["mmorpg"]
+        job = mulah.find_one({"id":p1.id}, {"job"})["job"]
         embed = discord.Embed(title = "%s' Profile!"%(p1.display_name), description = "Use the reactions to navigate the profile!", color = ctx.author.color)
         embed.set_image(url = p1.avatar_url)
         reactions = ["💰","❤️","🎮", "🏆","💼", "⚔️","🚪"]
@@ -1276,6 +1370,7 @@ class currencysys(commands.Cog):
                         walletval = mulah.find_one({"id":p1.id}, {"money"})["money"]
                         embed = discord.Embed(title = "%s's Financial stability!"%(p1.display_name), color = ctx.author.color)
                         embed.set_image(url = p1.avatar_url)
+                        embed.add_field(name="Job:", value = job)
                         embed.add_field(name ="Current balance:", value = "$%s"%(walletval))
                         embed.add_field(name = "Total gambles:", value = gambles)
                         embed.add_field(name = "Total successful gambles:", value = gamblewins)
