@@ -102,8 +102,50 @@ class currencysys(commands.Cog):
             {"name": "lotteryticket", "value": 2, "desc": "A chance to win 1 million dollars"},
             {"name": "movieticket", "value" : 16, "desc":"watch a movie with your gf"},
             {"name": "ring", "value" : 10000, "desc":"propose to your gf"},
+
         ]
 
+        global ToolValues
+        ToolValues = [
+            {"name": "rifle", "value" : 400, "desc":"`^hunt` to get animals!"},
+            {"name": "fishpole", "value" : 100, "desc":"`^fish` to catch fish!"},
+            {"name":"pickaxe", "durability":59, "fortune":1, "craft":{"wood":5}, "value":25, "desc":"cheap mining"},
+            {"name":"iron pickaxe", "durability":250, "fortune":2, "craft":{"wood":2, "iron":3}, "value":25, "desc":"better mining"},
+            {"name":"gold pickaxe", "durability":33, "fortune":4, "craft":{"wood":2, "gold":3}, "value":115, "desc":"fine mining"},
+            {"name":"diamond pickaxe", "durability":1562, "fortune":4, "craft":{"wood":2, "diamond":3}, "value":13010, "desc":"best mining"},
+
+            {"name":"axe", "durability":59, "fortune":1, "craft":{"wood":4}, "value":29, "desc":"Chop wood"},
+            {"name":"iron axe", "durability":250, "fortune":2, "craft":{"wood":2, "iron":3}, "value":25, "desc":"Chop more wood"},
+            {"name":"gold axe", "durability":33, "fortune":4, "craft":{"wood":2, "gold":3}, "value":115, "desc":"Chop lots of wood"},
+            {"name":"diamond axe", "durability":1562, "fortune":4, "craft":{"wood":2, "diamond":3}, "value":13010, "desc":"Chop even more wood"},
+
+            {"name":"hoe", "durability":59, "fortune":1, "craft":{"wood":2}, "value":10, "desc":"Farm stuff idk"},
+            {"name":"iron hoe", "durability":250, "fortune":2, "craft":{"wood":2, "iron":2}, "value":20, "desc":"Farm stuff idk"},
+            {"name":"gold hoe", "durability":32, "fortune":4, "craft":{"wood":2, "gold":2}, "value":80, "desc":"Farm stuff idk"},
+            {"name":"diamond hoe", "durability":1561, "fortune":4, "craft":{"wood":2, "diamond":2}, "value":8810, "desc":"Farm stuff idk"},
+        ]
+        global farmitems
+        farmitems =[
+            {"name":"uncommon fish", "value":10, "desc":"cheap fish to sell"},
+            {"name":"common fish", "value":20, "desc":"a mediocre fish"},
+            {"name":"rare fish", "value":50, "desc":"high quality fish"},
+            {"name":"legendary fish", "value":150, "desc":"very valuable fish"},
+            {"name":"mouse", "value":10, "desc":"idk why someone would even bother"},
+            {"name":"rabbit", "value":50, "desc":"tste great in stew"},
+            {"name":"deer", "value":150, "desc":"sells well"},
+            {"name":"bigfoot", "value":1000, "desc":"make some mulah"},
+            {"name":"coal", "value":1, "desc":"non renewable energy source"},
+            {"name":"iron", "value":5, "desc":"for what"},
+            {"name":"gold", "value":35, "desc":"terrible durability"},
+            {"name":"diamond", "value":4400, "desc":"sells for a lot"},
+            {"name":"ruby", "value":10000, "desc":"One of the most precious things in this world"},
+            {"name":"wheat", "value":10, "desc":"carbs"},
+            {"name":"beetroot", "value":20, "desc":"why do people eat this"},
+            {"name":"melon", "value":50, "desc":"mmm"},
+            {"name":"pumpkin", "value":150, "desc":"pumpkin pie tastes great"},
+            {"name":"wood", "value":5, "desc":"profits pile up"},
+
+        ]
 
         global pcitems
         pcitems = [
@@ -273,11 +315,245 @@ class currencysys(commands.Cog):
             await ctx.channel.send(embed=embed)
 
 
+    @commands.cooldown(1, 30, BucketType.user)
+    @commands.command()
+    async def fish(self, ctx):
+        inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+        if Globals.InvCheck(ctx.author, "fishpole"):
+            luck = random.randint(0,100)
+            if 10> luck >= 0:
+                embed = discord.Embed(title = "Fishing session", description = "You caught back nothing!", color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                await ctx.channel.send(embed=embed)
+            else:
+                if 50> luck >=10:
+                    item = "common fish"
+                if 85> luck >= 50:
+                    item = "uncommon fish"
+                if 95> luck >= 85:
+                    item = "rare fish"
+                if 101>luck >=95:
+                    item = "legendary fish"
+                HowMany = random.randint(1,3)
+                Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
+                embed = discord.Embed(titile = "Fishing session!", description = "You Caught %g `%s`!"%(HowMany, item), color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                await ctx.channel.send(embed=embed)
+        else:
+            await ctx.channel.send("you need a fishpole to fish.")
 
 
 
+    @commands.cooldown(1, 30, BucketType.user)
+    @commands.command()
+    async def hunt(self, ctx):
+        inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+        if Globals.InvCheck(ctx.author, "rifle"):
+            luck = random.randint(0,100)
+            if 10> luck >= 0:
+                embed = discord.Embed(title = "hunting session", description = "You brought back nothing!", color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                await ctx.channel.send(embed=embed)
+            else:
+                if 50> luck >=10:
+                    item = "mouse"
+                if 85> luck >= 50:
+                    item = "rabbit"
+                if 95> luck >= 85:
+                    item = "deer"
+                if 101>luck >=95:
+                    item = "bigfoot"
+                Globals.AddToInventory(ctx.author, item, farmitems)
+                embed = discord.Embed(titile = "Hunting session!", description = "You brought back a `%s`!"%(item), color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                await ctx.channel.send(embed=embed)
+        else:
+            await ctx.channel.send("you need a rifle to hunt.")
 
 
+
+    @commands.cooldown(1, 3600, BucketType.user)
+    @commands.command()
+    async def mine(self, ctx):
+        inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+        if Globals.InvCheck(ctx.author, "pickaxe") or Globals.InvCheck(ctx.author, "iron pickaxe") or Globals.InvCheck(ctx.author, "gold pickaxe") or Globals.InvCheck(ctx.author, "diamond pickaxe"):
+            luck = random.randint(0,100)
+            for z in ["pickaxe", "iron pickaxe", "gold pickaxe", "diamond pickaxe"]:
+                try:
+                    tool = next(x for x in ToolValues if x["name"].lower()==z.lower())
+                except:
+                    pass
+            for x in range(tool["fortune"]):
+                luck*=(115/100)
+            print(luck)
+            if 10> luck >= 0:
+                embed = discord.Embed(title = "Mining session", description = "You found nothing!", color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                await ctx.channel.send(embed=embed)
+            else:
+                if 50> luck >=10:
+                    item = "coal"
+                if 85> luck >= 50:
+                    item = "iron"
+                if 90> luck >= 85:
+                    item = "gold"
+                if 95>luck >=90:
+                    item = "diamond"
+                if luck >=95:
+                    item = "ruby"
+
+                
+
+
+                HowMany = random.randint(1,3)
+                Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
+                embed = discord.Embed(titile = "Hunting session!", description = "You found %g `%s`!"%(HowMany,item), color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                await ctx.channel.send(embed=embed)
+        else:
+            await ctx.channel.send("you need a pickaxe to mine.")
+
+
+
+    @commands.cooldown(1, 60, BucketType.user)
+    @commands.command()
+    async def farm(self, ctx):
+        inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+        if Globals.InvCheck(ctx.author, "hoe") or Globals.InvCheck(ctx.author, "iron hoe") or Globals.InvCheck(ctx.author, "gold hoe") or Globals.InvCheck(ctx.author, "diamond hoe"):
+            luck = random.randint(0,100)
+            for z in ["hoe", "iron hoe", "gold hoe", "diamond hoe"]:
+                try:
+                    tool = next(x for x in ToolValues if x["name"].lower()==z.lower())
+                except:
+                    pass
+            for x in range(tool["fortune"]):
+                luck*=(115/100)
+            luck = random.randint(0,100)
+            if 10> luck >= 0:
+                embed = discord.Embed(title = "Farming session", description = "You got nothing!", color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                await ctx.channel.send(embed=embed)
+            else:
+                if 50> luck >=10:
+                    item = "wheat"
+                if 85> luck >= 50:
+                    item = "beetroot"
+                if 90> luck >= 85:
+                    item = "melon"
+                if luck >=90:
+                    item = "pumpkin"
+                HowMany = random.randint(1,3)
+                Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
+                embed = discord.Embed(titile = "Farming session!", description = "You brought back %g `%s`!"%(HowMany,item), color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                await ctx.channel.send(embed=embed)
+        else:
+            await ctx.channel.send("you need a hoe to farm.")
+
+    @commands.cooldown(1, 3600, BucketType.user)
+    @commands.command()
+    async def chop(self, ctx):
+        inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+        if Globals.InvCheck(ctx.author, "axe") or Globals.InvCheck(ctx.author, "iron axe") or Globals.InvCheck(ctx.author, "gold axe") or Globals.InvCheck(ctx.author, "diamond axe"):
+            luck = random.randint(0,100)
+            for z in ["axe", "iron axe", "gold axe", "diamond axe"]:
+                try:
+                    tool = next(x for x in ToolValues if x["name"].lower()==z.lower())
+                except:
+                    pass
+            for x in range(tool["fortune"]):
+                luck*=(115/100)
+            luck = random.randint(0,100)
+            if 10> luck >= 0:
+                embed = discord.Embed(title = "Chopping session", description = "You found no trees!", color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                await ctx.channel.send(embed=embed)
+            else:
+                if 50> luck >=10:
+                    HowMany = 10
+                if 85> luck >= 50:
+                    HowMany = 20
+                if 90> luck >= 85:
+                    HowMany = 50
+                if luck >=90:
+                    HowMany = 100
+                item = "wood"
+                Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
+                embed = discord.Embed(titile = "Farming session!", description = "You brought back %g `%s`!"%(HowMany,item), color = discord.Color.blue())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                await ctx.channel.send(embed=embed)
+        else:
+            await ctx.channel.send("you need a hoe to farm.")
+
+
+    @commands.command()
+    async def sell(self, ctx, ItemToSell, number=None):
+        inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+        if Globals.InvCheck(ctx.author, ItemToSell):
+            item= next(x for x in inval if x["name"].lower()==ItemToSell.lower() and "parts" not in x.keys())
+
+            if not number:
+                number="1"
+            if number:
+                if not number.isdigit():
+                    if number.lower()=="all":
+                        number = item["amount"]
+            number=int(number)
+
+            AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues
+            ItemRef = next(x for x in AllItems if x["name"].lower()==item["name"].lower())
+            print(ItemRef)
+            SoldFor = ItemRef["value"]*number
+            money+=SoldFor
+            Globals.RemoveFromInventory(ctx.author, item["name"], number)
+            mulah.update_one({"id":ctx.author.id}, {"$set":{"money":money}})
+            embed = discord.Embed(title = "Successfull sale", description = "%s sold %s `%s` for `$%s`!"%(ctx.author.mention, number, item["name"], SoldFor), color = discord.Color.green())
+            embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+            embed.set_footer(text = "You now have `$%s`"%(money))
+            await ctx.channel.send(embed=embed)
+        else:
+            await ctx.channel.send("You dont have this item in your inventory.")
+
+    @commands.command()
+    async def craft(self, ctx, ItemToCraft=None):
+        if not ItemToCraft:
+            embed=discord.Embed(title = "Craftable items!", description = "if you have the resources, you can craft items! better items give better drops!", color = discord.Color.blue())
+            for x in ToolValues:
+                try:
+                    check = "✅"
+                    recipe = x["craft"]
+                    for z in recipe:
+                        if not Globals.InvCheck(ctx.author, z, False, recipe[z]):
+                            check="❌"
+                    string = ""
+                    for y in recipe.keys():
+                        string+="`%s %s`,"%(y, x["craft"][y])
+                    embed.add_field(name = x["name"]+" "+check, value = "Crafting recipe: %s"%(string))
+                except:
+                    pass
+            await ctx.channel.send(embed=embed)
+        else:
+            tool = next(x for x in ToolValues if x["name"].lower()==ItemToCraft.lower())
+            recipe = tool["craft"]
+            check = True
+            for x in recipe.keys():
+                if not Globals.InvCheck(ctx.author, x, False, recipe[x]):
+                    check=False
+            if check:
+                for x in recipe.keys():
+                    Globals.RemoveFromInventory(ctx.author, x, recipe[x])
+                Globals.AddToInventory(ctx.author, tool["name"], ToolValues)
+                embed =discord.Embed(title = "Successfull Craft!", description = "You have crafted a %s!"%(tool["name"]), color = discord.Color.green())
+                embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
+                await ctx.channel.send(embed=embed)
+            else:
+                await ctx.channel.send("You dont have enough resources to craft this.")
 
 
 
@@ -401,16 +677,13 @@ class currencysys(commands.Cog):
 
     @commands.group(invoke_without_command = True)
     async def shop(self,ctx):
-        embed = discord.Embed(title = "Main shop.", description = "use `^buy <item>` to buy something.`navigate with reactions`", color = ctx.author.color)
+        embed = discord.Embed(title = "SHOP INSTRUCTIONS", description = 'use `^buy "<item>"` to buy something.`navigate with reactions`', color = ctx.author.color)
         global shopitems
         global pcitems
         global gameitems
         
-        for x in range(len(shopitems)):
-            nameee = shopitems[x]
-            embed.add_field(name = "%s"%(nameee["name"]), value = "%s| %s"%(nameee["value"], nameee["desc"]), inline=False)
         shopmessage = await ctx.send(embed = embed)
-        reactionlist = ["🎮", "🖥️", "🛒", "🚪"]
+        reactionlist = ["🎮", "🖥️", "🛒","🪓","🌳","❤️", "🚪"]
         for x in reactionlist:
             await shopmessage.add_reaction(x)
         def check(reaction,user):
@@ -433,12 +706,15 @@ class currencysys(commands.Cog):
                                     finalstring+=extrastring
                         embed.add_field(name = "%s -$%s"%(x["name"], x["value"]), value = finalstring)
                     await shopmessage.edit(embed=embed)
-                if thereaction == "🛒":
-                    embed = discord.Embed(title = "Main shop", description = "use `^buy <item>` to buy something.`navigate with reactions`",color = ctx.author.color)
+                if thereaction == "❤️":
+                    embed = discord.Embed(title = "Girlfriend shop", description = "Improve your relationship!",color = ctx.author.color)
                     for x in range(len(shopitems)):
                         nameee = shopitems[x]
-                        embed.add_field(name = "%s"%(nameee["name"]), value = "%s| %s"%(nameee["value"], nameee["desc"]), inline=False)
-                    await shopmessage.edit(embed = embed)      
+                        embed.add_field(name = "%s"%(nameee["name"]), value = "`$%s`| %s"%(nameee["value"], nameee["desc"]), inline=False)
+                    await shopmessage.edit(embed = embed)    
+                if thereaction == "🛒":
+                    embed = discord.Embed(title = "SHOP INSTRUCTIONS", description = 'use `^buy "<item>"` to buy something.`navigate with reactions`',color = ctx.author.color)
+                    await shopmessage.edit(embed = embed)   
                 if thereaction == "🖥️":
                     embed = discord.Embed(title = "PC SHOP!", description = "upgrade your PC. no one wants to see you play an AAA game on a chromebook", color=ctx.author.color)
                     for x in pcitems:
@@ -449,12 +725,25 @@ class currencysys(commands.Cog):
                                 finalstring+=extrastring
                         embed.add_field(name = "%s - $%s"%(x["name"], x["value"]), value = finalstring)
                     await shopmessage.edit(embed = embed)    
+
+                if thereaction=="🪓":
+                    embed = discord.Embed(title = "Tools!", description = "use `^craft` to make new tools!",color = ctx.author.color)
+                    for x in range(len(ToolValues)):
+                        nameee = ToolValues[x]
+                        embed.add_field(name = "%s"%(nameee["name"]), value = "`$%s`| %s"%(nameee["value"], nameee["desc"]), inline=True)
+                    await shopmessage.edit(embed = embed)      
+
+                if thereaction=="🌳":
+                    embed = discord.Embed(title = "Farming rates", description = 'use `^sell "<material>"` to sell something!',color = ctx.author.color)
+                    for x in range(len(farmitems)):
+                        nameee = farmitems[x]
+                        embed.add_field(name = "%s"%(nameee["name"]), value = "`$%s`| %s"%(nameee["value"], nameee["desc"]), inline=True)
+                    await shopmessage.edit(embed = embed)   
+                
                 if thereaction == "🚪":
                     await shopmessage.edit(embed=discord.Embed(title = "You left the shop!"))   
                     break
-                await shopmessage.clear_reactions()
-                for x in reactionlist:
-                    await shopmessage.add_reaction(x)
+                await shopmessage.remove_reaction(emoji=thereaction, member=ctx.author)
 
 
 
@@ -1227,7 +1516,7 @@ class currencysys(commands.Cog):
             number = 1   
         allitems = pcitems+shopitems+gameitems
         xvalue = []
-        AllItems = pcitems+shopitems+gameitems
+        AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues
         for x in AllItems:
             if item.lower() == x["name"].casefold():
                 xvalue.append(x)
@@ -1235,9 +1524,9 @@ class currencysys(commands.Cog):
                 itemdesc = x["desc"]
                 walletvar = mulah.find_one({"id":ctx.author.id}, {"money"})
                 walletval = walletvar["money"]
-                print(walletval, walletvar)
+                inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
                 if itemvalue<=walletval*number:
-                    Globals.AddToInventory(ctx.author, item=item, ReferenceList=AllItems, AmountToAdd=number)    
+                    Globals.AddToInventory(ctx.author, item=item, ReferenceList=AllItems, AmountToAdd=number) 
                     embed=discord.Embed(title = "Purchase successfull!", description = "You have purchased %s %s!"%(number, item), color = ctx.author.color)
                     await ctx.channel.send(embed=embed)
                 else:
@@ -1259,16 +1548,13 @@ class currencysys(commands.Cog):
         invariable = mulah.find_one({"id": ctx.author.id}, {"inv"})
         invariable = invariable["inv"]
         if p1 is None:
-            embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
-            print(invariable)
-            for entry in invariable:
-                embed.add_field(name = "%s  (%s)"%(entry["name"], entry["amount"]), value = "%s"%(entry["desc"]), inline = False)
-        elif p1 is not None:
-            embed.set_author(name = p1.display_name, icon_url=p1.avatar_url)
-            invar = mulah.find_one({"id":p1.id}, {"inv"})
-            inval = invar["inv"]
-            for entry in inval:
-                embed.add_field(name = "%s  (%s)"%(entry["name"], entry["amount"]), value = "%s"%(entry["desc"]), inline = False)
+            p1 = ctx.author
+
+        embed.set_author(name = p1.display_name, icon_url=p1.avatar_url)
+        invar = mulah.find_one({"id":p1.id}, {"inv"})
+        inval = invar["inv"]
+        for entry in inval:
+            embed.add_field(name = "%s  (%s)"%(entry["name"], entry["amount"]), value = "%s"%(entry["desc"]), inline = False)
         await ctx.channel.send(embed = embed)
 
             

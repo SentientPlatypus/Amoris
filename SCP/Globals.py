@@ -97,17 +97,17 @@ def AddToInventory(user, item, ReferenceList:list, AmountToAdd:int=None):
     mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
 
 
-def InvCheck(user, item, Id=False) -> bool:
+def InvCheck(user, item:str, Id=False, amount:int=1) -> bool:
     if Id==False:
         inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
-        check = next((x for x in inv if x["name"].lower()==item.lower()), None)
+        check = next((x for x in inv if x["name"].lower()==item.lower() and x["amount"]>=amount), None)
         if check == None:
             return False
         else:
             return True
     else:
         inv = mulah.find_one({"id":user}, {"inv"})["inv"]
-        check = next((x for x in inv if x["name"].lower()==item.lower()), None)
+        check = next((x for x in inv if x["name"].lower()==item.lower() and x["amount"]>=amount), None)
         if check == None:
             return False
         else:

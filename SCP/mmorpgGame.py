@@ -801,7 +801,7 @@ class mmorpgGame(commands.Cog):
             loadout = mmorpg["loadout"]
             stats = mmorpg["stats"]
             inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
-            SpecificItem = next(x for x in itemdict if x["name"].lower() == item.lower())
+            SpecificItem = next(x for x in itemdict if x["name"].lower() == item.lower() and "parts" not in x.keys())
             if SpecificItem["type"] in loadout.keys():
                 if loadout[SpecificItem["type"]]!=None:
                     print(SpecificItem)
