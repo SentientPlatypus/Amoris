@@ -1,5 +1,8 @@
 
 from functools import update_wrapper
+
+from discord.colour import Color
+from mcstatus import MinecraftServer
 import discord
 import os
 import json
@@ -1176,6 +1179,7 @@ async def drop(ctx, column:int):
 
 
 
+
 @client.group(invoke_without_command = True)
 async def guess(ctx):
 	embed = discord.Embed(title = "Guess", description = "Guess something for a game with `^guess <game> <guess>`")
@@ -1663,8 +1667,28 @@ async def dog(ctx):
    await ctx.send(embed=embed)
 
 
-
-
+@client.command()
+async def mcstatus(ctx, ip):
+	server = MinecraftServer.lookup(ip)
+	status = server.status()
+	query = server.query()
+	latency = server.ping()
+	embed = discord.Embed(title = ip, color = discord.Color.blue())
+	if latency:
+		embed.add_field(name = "Status", value = "Online")
+		embed.add_field(name = "Latency:", value = "%sms"%(latency))
+	else:
+		embed.add_field(name = "Status", value = "Offline")
+		embed.color = discord.Color.red()
+	if query.players.names:
+		listt = query.players.names
+		if len(query.players.names)>10:
+			listt = listt[0:10]
+			listt.append("`... %g more`"%(len(query.players.names)-10))
+		embed.add_field(name = "Players:", value = "%s"%("\n".join(listt)))
+	else:
+		embed.add_field(name = "Players:", value = "None")
+	await ctx.channel.send(embed=embed)
 
 
 

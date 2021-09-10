@@ -44,6 +44,7 @@ import requests
 import Globals
 cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 mulah = cluster["discord"]["mulah"]
+levelling = cluster["discord"]["levelling"]
 
 
 
@@ -104,6 +105,13 @@ class currencysys(commands.Cog):
             {"name": "ring", "value" : 10000, "desc":"propose to your gf"},
 
         ]
+
+
+        global BattleShop
+        BattleShop = [
+            {"name":"UpgradePoint", "value":2000, "desc":"`^upgrade` one of your stats!"},
+        ]
+
 
         global ToolValues
         ToolValues = [
@@ -197,7 +205,7 @@ class currencysys(commands.Cog):
 
 
     @commands.command()
-    @commands.cooldown(1, 60, BucketType.user)
+    @commands.cooldown(1, 3600, BucketType.user)
     async def work(self, ctx):
         workk = mulah.find_one({"id" : ctx.author.id}, {"money"})
         job = mulah.find_one({"id":ctx.author.id}, {"job"})["job"]
@@ -205,19 +213,23 @@ class currencysys(commands.Cog):
             hourlywage = next(x for x in worklists if x["name"]==job)["salary"]
         else:
             hourlywage=15
-
+        print("check1")
         if job:
+            print("check2")
             try:
                 YourJob = next(x for x in worklists if x["name"]==job)
                 workoption = random.choice(["unscramble", "guess"])
                 right = False
                 wrong = False
+                print("check3")
+                print(workoption)
                 if workoption == "guess":
                     def check(m):
                         return m.author==ctx.author and m.channel==ctx.channel
 
                     ListOfWords = random.choice(YourJob["sentences"]).split()
-                    ListIndex = random.randint(0, len(ListOfWords))
+                    print(ListOfWords)
+                    ListIndex = random.randint(0, len(ListOfWords)-1)
                     word = ListOfWords[ListIndex]
                     answer = word
                     ListOfWords[ListIndex] = "-"*len(ListOfWords[ListIndex])
@@ -238,15 +250,21 @@ class currencysys(commands.Cog):
                         return m.author==ctx.author and m.channel==ctx.channel
 
                     randomword = random.choice(YourJob["words"])
+                    print(randomword)
                     answer = randomword
-                    while "".join(list(randomword))==answer:
-                        random.shuffle(list(randomword))
-                    finalrandword = "".join(list(randomword))     
+                    ll = list(randomword)
+                    random.shuffle(ll)
+
+                    while "".join(ll)==answer:
+                        random.shuffle(ll)
+                        print("".join(ll))
+                    finalrandword = "".join(ll)     
+                    print(finalrandword)
+                    print("sdjfklsdjklf")
                     checks = []
                     for x in range(3):
                         embed = discord.Embed(title = "fill in the blank!", description = "You have %s chances! Unscramble the word `%s`"%(3-x, finalrandword), color = discord.Color.green())
                         embed.set_footer(text = "working as %s"%(job))
-
                         await ctx.channel.send(embed=embed)
                         nmsg = await self.client.wait_for('message', check = check, timeout = 30)
                         if nmsg.content == randomword.casefold():
@@ -274,6 +292,8 @@ class currencysys(commands.Cog):
                 embed=discord.Embed(title = "Terrible job, %s!"%(ctx.author.display_name), description = "You didnt even answer! The answer was `%s`! Here's $%g!"%(answer, hourlywage), color = discord.Color.red())
                 embed.set_footer(text = "working as %s\nCurrent Balance:$%g"%(job, newmoney))
                 await ctx.channel.send(embed=embed)  
+            except:
+                print(traceback.format_exc())
         else:
             newmoney = workk["money"] + hourlywage
             mulah.update_one({"id":ctx.author.id},{"$set":{"money":newmoney}})
@@ -287,7 +307,7 @@ class currencysys(commands.Cog):
     async def worklist(self, ctx):
         workk = mulah.find_one({"id" : ctx.author.id}, {"money"})["money"]
         job = mulah.find_one({"id":ctx.author.id}, {"job"})["job"]
-        lvl = Globals.GetLevel(ctx)
+        lvl = Globals.GetLevel(ctx.author.id)
 
         embed = discord.Embed(title = "Employment options!", description = 'join the workforce! use `^apply "<job>"` to apply!', color = discord.Color.blue())
 
@@ -303,7 +323,7 @@ class currencysys(commands.Cog):
     async def apply(self, ctx, jobt):
         workk = mulah.find_one({"id" : ctx.author.id}, {"money"})["money"]
         job = mulah.find_one({"id":ctx.author.id}, {"job"})["job"]
-        lvl = Globals.GetLevel(ctx)
+        lvl = Globals.GetLevel(ctx.author.id)
 
         x = next(y for y in worklists if y["name"].lower()==jobt.lower())
         if lvl>=x["req"]:
@@ -399,9 +419,9 @@ class currencysys(commands.Cog):
                     item = "iron"
                 if 90> luck >= 85:
                     item = "gold"
-                if 95>luck >=90:
+                if 97>luck >=90:
                     item = "diamond"
-                if luck >=95:
+                if luck >=97:
                     item = "ruby"
 
                 
@@ -488,7 +508,7 @@ class currencysys(commands.Cog):
                 embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
                 await ctx.channel.send(embed=embed)
         else:
-            await ctx.channel.send("you need a hoe to farm.")
+            await ctx.channel.send("you need an axe to farm.")
 
 
     @commands.command()
@@ -506,7 +526,7 @@ class currencysys(commands.Cog):
                         number = item["amount"]
             number=int(number)
 
-            AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues
+            AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues+BattleShop
             ItemRef = next(x for x in AllItems if x["name"].lower()==item["name"].lower())
             print(ItemRef)
             SoldFor = ItemRef["value"]*number
@@ -556,11 +576,38 @@ class currencysys(commands.Cog):
                 await ctx.channel.send("You dont have enough resources to craft this.")
 
 
+    @commands.command()
+    async def UpgradePoint(self, ctx):
+        XpRank = levelling.find()
+        MulahRank = mulah.find()
+        for x in XpRank:
+            print(x)
+            DbId = x["id"]
+            CurrentLevel = Globals.GetLevel(DbId)
+            temp = ctx.guild.get_member(int(DbId))
+            try:
+                Globals.AddToInventory(temp, "UpgradePoint", BattleShop, CurrentLevel)
+            except:
+                pass
 
         
+    @commands.command()
+    async def send(self, ctx, p1:discord.Member, amount:int):
+        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+        money1 = mulah.find_one({"id":p1.id}, {"money"})["money"]
+        if money>=amount:
+            money-=amount
+            money1+=amount
 
+            mulah.update_one({"id":ctx.author.id},{"$set":{"money":money}})
+            mulah.update_one({"id":p1.id},{"$set":{"money":money1}})
 
-
+            embed = discord.Embed(title = "Successfull transaction!", description  = "%s has sent `$%s` to %s!"%(ctx.author.mention, amount, p1.mention), color = discord.Color.green())
+            await ctx.channel.send(embed=embed)
+        else:
+            embed = discord.Embed(title = "Failed transaction!", description  = "%s doesnt ahve enough money"%(ctx.author.mention), color = discord.Color.red())
+            await ctx.channel.send(embed=embed)
+        
 
 
 
@@ -683,7 +730,7 @@ class currencysys(commands.Cog):
         global gameitems
         
         shopmessage = await ctx.send(embed = embed)
-        reactionlist = ["🎮", "🖥️", "🛒","🪓","🌳","❤️", "🚪"]
+        reactionlist = ["🎮", "🖥️", "🛒","🪓","🌳","❤️","⚔️", "🚪"]
         for x in reactionlist:
             await shopmessage.add_reaction(x)
         def check(reaction,user):
@@ -696,7 +743,7 @@ class currencysys(commands.Cog):
                 thereaction = str(confirm[0])
 
                 if thereaction == "🎮":
-                    embed = discord.Embed(title = "Game Shop!", description = "Buy games to play with your girlfriend!", color = ctx.author.color)
+                    embed = discord.Embed(title = "Game Shop!", description = "Buy games to play on your pc!", color = ctx.author.color)
                     for x in gameitems:
                         finalstring = ""
                         for z in x.keys():
@@ -715,6 +762,13 @@ class currencysys(commands.Cog):
                 if thereaction == "🛒":
                     embed = discord.Embed(title = "SHOP INSTRUCTIONS", description = 'use `^buy "<item>"` to buy something.`navigate with reactions`',color = ctx.author.color)
                     await shopmessage.edit(embed = embed)   
+                if thereaction == "⚔️":
+                    embed = discord.Embed(title = "MMORPG shop", description = "Battle gear!",color = ctx.author.color)
+                    for x in range(len(BattleShop)):
+                        nameee = BattleShop[x]
+                        embed.add_field(name = "%s"%(nameee["name"]), value = "`$%s`| %s"%(nameee["value"], nameee["desc"]), inline=False)
+                    await shopmessage.edit(embed = embed)    
+
                 if thereaction == "🖥️":
                     embed = discord.Embed(title = "PC SHOP!", description = "upgrade your PC. no one wants to see you play an AAA game on a chromebook", color=ctx.author.color)
                     for x in pcitems:
@@ -1516,7 +1570,7 @@ class currencysys(commands.Cog):
             number = 1   
         allitems = pcitems+shopitems+gameitems
         xvalue = []
-        AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues
+        AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues+BattleShop
         for x in AllItems:
             if item.lower() == x["name"].casefold():
                 xvalue.append(x)
@@ -1630,9 +1684,12 @@ class currencysys(commands.Cog):
         gamblewins = mulah.find_one({"id":p1.id}, {"gamblewins"})["gamblewins"]
         mmorpg = mulah.find_one({"id":p1.id}, {"mmorpg"})["mmorpg"]
         job = mulah.find_one({"id":p1.id}, {"job"})["job"]
-        embed = discord.Embed(title = "%s' Profile!"%(p1.display_name), description = "Use the reactions to navigate the profile!", color = ctx.author.color)
+        YouWins =mulah.find_one({"id":ctx.author.id}, {"duelwins"})["duelwins"] 
+        Youloss =mulah.find_one({"id":ctx.author.id}, {"duelloses"})["duelloses"] 
+
+        embed = discord.Embed(title = "%s' Profile!"%(p1.display_name), description = "Use the reactions to navigate the profile!", color = discord.Color.blue())
         embed.set_image(url = p1.avatar_url)
-        reactions = ["💰","❤️","🎮", "🏆","💼", "⚔️","🚪"]
+        reactions = ["💰","❤️","🎮", "🏆","💼", "⚔️","⭐","🚪"]
         profilembed = await ctx.channel.send(embed=embed)
         for x in reactions:
             await profilembed.add_reaction(x)
@@ -1644,20 +1701,23 @@ class currencysys(commands.Cog):
             if confirm:
                 rawreaction = str(confirm[0])
                 if rawreaction =="⚔️":
-                    embed = discord.Embed(title = "MMORPG stats!", color = ctx.author.color)
+                    embed = discord.Embed(title = "MMORPG stats!", color = discord.Color.blurple())
                     for x in mmorpg.keys():
                         if x == "loadout":
                             finalstring=""
                             for x in mmorpg["loadout"].keys():
                                 finalstring+="%s: %s\n"%(x, mmorpg["loadout"][x])
                             embed.add_field(name = "Loadout:", value = finalstring, inline=False)
+                            embed.add_field(name = "duel wins:", value = YouWins, inline=False)
+                            embed.add_field(name = "duel loss:", value = Youloss, inline=False)
+
                         else:
                             embed.add_field(name = "%s"%(x), value = "%s"%(mmorpg[x]), inline = False)
 
                 if rawreaction == "💰":
                     try:
                         walletval = mulah.find_one({"id":p1.id}, {"money"})["money"]
-                        embed = discord.Embed(title = "%s's Financial stability!"%(p1.display_name), color = ctx.author.color)
+                        embed = discord.Embed(title = "%s's Financial stability!"%(p1.display_name), color = discord.Color.blue())
                         embed.set_image(url = p1.avatar_url)
                         embed.add_field(name="Job:", value = job)
                         embed.add_field(name ="Current balance:", value = "$%s"%(walletval))
@@ -1669,7 +1729,7 @@ class currencysys(commands.Cog):
                             pass
                     except:
                         print(traceback.format_exc())
-                        embed = discord.Embed(title = "This man hasnt worked a single day in his life.", color = ctx.author.color)
+                        embed = discord.Embed(title = "This man hasnt worked a single day in his life.", color = discord.Color.blue())
                 if rawreaction == "❤️":
                     try:
                         gfvar = mulah.find_one({"id":p1.id}, {"gf"})
@@ -1696,10 +1756,10 @@ class currencysys(commands.Cog):
                                     
                         except:
                             print(traceback.format_exc())
-                            embed = discord.Embed(title = "get a gf", color = ctx.author.color)
+                            embed = discord.Embed(title = "get a gf", color = discord.Color.blue())
                             
                     except:
-                        embed = discord.Embed(title = "Single af. rip.", color = ctx.author.color) 
+                        embed = discord.Embed(title = "Single af. rip.", color = discord.Color.blue()) 
                     embed.add_field(name = "%s's total boinks "%(p1.display_name), value = boinkval, inline=False)
                     embed.add_field(name = "%s's total kisses "%(p1.display_name),value = kissval, inline=False)
                     embed.add_field(name = "%s's total breakups "%(p1.display_name), value = breakupval, inline=False)          
@@ -1710,19 +1770,19 @@ class currencysys(commands.Cog):
                     try:
                         gamvar = mulah.find_one({"id":p1.id}, {"gameskill"})
                         gameval = gamvar["gameskill"]
-                        embed = discord.Embed(title = "Your game stats", color = ctx.author.color)
+                        embed = discord.Embed(title = "Your game stats", color = discord.Color.blue())
                         for x in gameval.keys():
                             embed.add_field(name = "%s"%(x), value = "Skill:%s"%(gameval[x]))
 
 
                     except:
                         print(traceback.format_exc())
-                        embed = discord.Embed(title = "You dont have any stats!", color = ctx.author.color)    
+                        embed = discord.Embed(title = "You dont have any stats!", color = discord.Color.blue())    
                 if rawreaction == "🏆": 
                     global achievements
                     try:
                         achievementval = mulah.find_one({"id":p1.id}, {"achievements"})["achievements"]
-                        embed = discord.Embed(title = "%s's achievements!"%(p1.display_name), description = "use ^achievements for a more detailed view!", color = ctx.author.color)
+                        embed = discord.Embed(title = "%s's achievements!"%(p1.display_name), description = "use ^achievements for a more detailed view!", color = discord.Color.blue())
                         for y in achievementval:
                             achievementdict = next(x for x in achievements if x["name"] ==y)
                             embed.add_field(name = y+" "+Globals.achievementcheck(p1,y), value = achievementdict["desc"], inline = False)
@@ -1730,21 +1790,47 @@ class currencysys(commands.Cog):
 
                     except:
                         mulah.update_one({"id":p1.id}, {"$set":{"achievements":[]}})     
-                        embed = discord.Embed(title = "He has no achievements. Rip", color = ctx.author.color)
+                        embed = discord.Embed(title = "He has no achievements. Rip", color = discord.Color.blue())
                 if rawreaction=="🚪":
                     embed = discord.Embed(title = "You have left the profile!", color =ctx.author.color)
                     await profilembed.edit(embed=embed)
                     leave = True
                 
                 if rawreaction=="💼":
-                    embed = discord.Embed(title = "%s's inventory"%(p1.display_name), color = ctx.author.color)
-                    invariable = mulah.find_one({"id": ctx.author.id}, {"inv"})
+                    embed = discord.Embed(title = "%s's inventory"%(p1.display_name), color = discord.Color.blue())
+                    invariable = mulah.find_one({"id": p1.id}, {"inv"})
                     invariable = invariable["inv"]
                     embed.set_author(name = p1.display_name, icon_url=p1.avatar_url)
                     invar = mulah.find_one({"id":p1.id}, {"inv"})
                     inval = invar["inv"]
                     for entry in inval:
                         embed.add_field(name = "%s  (%s)"%(entry["name"], entry["amount"]), value = "%s"%(entry["desc"]), inline = False)
+
+                if rawreaction=="⭐":
+                    stats = levelling.find_one({"id": p1.id})
+                    if stats is None:
+                        embed = discord.Embed(title = "You havnt sent any ctxs yet.")
+                        await ctx.channel.send(embed=embed)
+                    else:
+                        xp = stats["xp"]
+                        lvl = 0
+                        rank = 0
+                        while True:
+                            if xp < ((50*(lvl**2))+(50*(lvl))):
+                                break
+                            lvl+=1
+                        xp-=((50*((lvl-1)**2))+(50*(lvl-1)))
+                        boxes = int((xp/(200*((1/2)*lvl)))*20)     
+                        rankings = levelling.find().sort("xp",-1)
+                        for x in rankings:
+                            rank+=1
+                            if stats["id"] == x["id"]:
+                                break
+                        embed = discord.Embed(title = "Level %g"%(Globals.GetLevel(p1.id)))
+                        embed.add_field(name = "Name", value = p1.mention, inline = True)
+                        embed.add_field(name = "xp", value =f"{xp}/{int(200*((1/2)*lvl))}", inline = True)   
+                        embed.add_field(name = "progress bar", value = boxes*":blue_square:" + (20-boxes) *":white_large_square:", inline = False)  
+                        embed.set_thumbnail(url = p1.avatar_url)    
 
                 await profilembed.edit(embed=embed)
                 await profilembed.remove_reaction(emoji = rawreaction,member =ctx.author)                    

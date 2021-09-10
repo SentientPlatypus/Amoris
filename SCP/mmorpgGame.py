@@ -12,6 +12,7 @@ from discord import channel
 from discord import embeds
 from discord import player
 from discord import file
+from discord import reaction
 from discord.embeds import Embed
 from discord.ext.commands.cooldowns import BucketType
 from discord.ext import commands
@@ -495,12 +496,13 @@ class mmorpgGame(commands.Cog):
                         You.AddEffect(x)
                     else:
                         Op.AddEffect(x)
-            if Defense.effects:
-                for x in Defense.effects:
-                    if x.AffectsSender==True:
-                        Op.AddEffect(x)
-                    else:
-                        You.AddEffect(x)
+            if Defense:
+                if Defense.effects:
+                    for x in Defense.effects:
+                        if x.AffectsSender==True:
+                            Op.AddEffect(x)
+                        else:
+                            You.AddEffect(x)
 
             if WeaponOrAbility.special:
                 em = WeaponOrAbility.special(You, Op, WeaponOrAbility, embed)
@@ -515,7 +517,7 @@ class mmorpgGame(commands.Cog):
                         You.EffectCooldown()
                         Op.EffectCooldown()
 
-                        AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
+                        AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/15))
                         AmountOfDamage-=Defense.defends
                         if AmountOfDamage<0:
                             AmountOfDamage=0
@@ -533,7 +535,7 @@ class mmorpgGame(commands.Cog):
                     You.EffectCooldown()
                     Op.EffectCooldown()
 
-                    AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
+                    AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/15))
                     TotalDamage = AmountOfDamage-Op.Defense
                     if TotalDamage<0:
                         TotalDamage=0
@@ -544,7 +546,7 @@ class mmorpgGame(commands.Cog):
                 You.EffectCooldown()
                 Op.EffectCooldown()
 
-                AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/150))
+                AmountOfDamage = int(WeaponOrAbility.damage+(You.Strength/15))
                 TotalDamage = AmountOfDamage-Op.Defense
                 if TotalDamage<0:
                     TotalDamage=0
@@ -739,7 +741,7 @@ class mmorpgGame(commands.Cog):
             
             embed = discord.Embed(title = "%s is Using %s!"%(You.Name, WeaponOrAbility.name), description = "%s' health:\n"%(Op.Name) + bar+ "%s/%s"%(Op.CurrentHealth, Op.TotalHealth), color = ctx.author.color)
             
-            ChoiceList = Globals.ChoiceParts([x.name for x in Op.Defenses if x not in Globals.GetKeysFromDictInList(Op.OnCooldown)])
+            ChoiceList = Globals.ChoiceParts([x.name for x in Op.Defenses if x.mana<=Op.Mana and x not in Globals.GetKeysFromDictInList(Op.OnCooldown)])
             if Op.OnCooldown:
                 finlstr = ""
                 finlstrr=""
@@ -763,9 +765,14 @@ class mmorpgGame(commands.Cog):
             ChoiceDict = ChoiceList[0]
             ChoiceString = ChoiceList[1]
             ReactionList = ChoiceList[2]
-            if not ChoiceDict:
-                return "Error"
-            embed.add_field(name="%s can Defend!"%(Op.Name), value = "Make sure To defend In time!\n%s"%(ChoiceString))
+
+            if ChoiceString:
+                embed.add_field(name="%s can Defend!"%(Op.Name), value = "Make sure To defend In time!\n%s"%(ChoiceString))
+            else:
+                embed.add_field(name="%s cant Defend!"%(Op.Name), value = "You dont have any defense abilities!")
+                await ctx.channel.send(embed=embed)
+                return None
+          
             embed.set_footer(text = "%s \n %s \n %s/%s"%(You.Name, Yourbar, You.CurrentHealth, You.TotalHealth))
             CreateBattlefield(You, Op)
             file = discord.File("FightScene.png")
@@ -1037,11 +1044,13 @@ class mmorpgGame(commands.Cog):
             Effects=[]
 
             )
+        YouWins =mulah.find_one({"id":ctx.author.id}, {"duelwins"})["duelwins"] 
+        Youloss =mulah.find_one({"id":ctx.author.id}, {"duelloses"})["duelloses"] 
 
         for x in GetAttribute("attack", ctx.author)+GetAttribute("defense", ctx.author)+GetAttribute("support", ctx.author):
             if x.ult:
                 You.AddToCooldown(x)
-    
+        print(You.Defenses)
         GameOver=False
         while GameOver==False:
             You.CooldownCheck()
@@ -1071,9 +1080,15 @@ class mmorpgGame(commands.Cog):
             elif This1[1]=="Retreat":
                 break
 
+            if You.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
+                Youloss+=1
+                break
 
-            if You.IsDead() or Op.IsDead():
-                break    
+            if Op.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+                YouWins+=1
+                break       
 
             Op.CooldownCheck()
             await asyncio.sleep(2)
@@ -1104,8 +1119,17 @@ class mmorpgGame(commands.Cog):
             elif This1[1]=="Retreat":
                 break
 
-            if You.IsDead() or Op.IsDead():
-                break    
+            if You.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
+                OpWins+=1
+                Youloss+=1
+                beak
+
+            if Op.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+                YouWins+=1
+                Oploss+=1
+                break     
 
 
 
@@ -1113,6 +1137,11 @@ class mmorpgGame(commands.Cog):
     async def duel(self, ctx, PersonToDuel:discord.Member):
         global abilitydict
         global Enemies
+        print(str(ctx.author))
+        YouWins =mulah.find_one({"id":ctx.author.id}, {"duelwins"})["duelwins"] 
+        Youloss =mulah.find_one({"id":ctx.author.id}, {"duelloses"})["duelloses"] 
+        OpWins =mulah.find_one({"id":PersonToDuel.id}, {"duelwins"})["duelwins"] 
+        Oploss =mulah.find_one({"id":PersonToDuel.id}, {"duelloses"})["duelloses"] 
         global GetAttribute
         You = Opponent(
             ctx.author.display_name, 
@@ -1155,7 +1184,7 @@ class mmorpgGame(commands.Cog):
             PersonToDuel,
             []
             )
-
+        print(Op.Name)
         embed = discord.Embed(title = "You recieved a Duel Invitation from %s"%(You.Name), description = "Answer quickly, %s"%(PersonToDuel.mention), color = discord.Color.red())
         embed.add_field(name = "Will you accept this duel?", value = "react with ✅ to accept \n react with ❌ to decline")
         embed.set_author(name = You.Name, icon_url=You.Image)
@@ -1164,11 +1193,12 @@ class mmorpgGame(commands.Cog):
         for x in ["✅", "❌"]:
             await msg.add_reaction(x)
         def check(reaction, user):
-            return user==Op.Player, str(reaction.emoji) in ["✅", "❌"] and reaction.message==msg
+            return user==Op.Player and str(reaction.emoji) in ["✅", "❌"] and reaction.message==msg
         try:
             confirm = await self.client.wait_for('reaction_add', check=check, timeout=60)
             if confirm:
                 rawreaction = str(confirm[0])
+                print(rawreaction)
                 if rawreaction == "❌":
                     await ctx.channel.send("%s declined the duel request"%(Op.Name))
                     return
@@ -1183,7 +1213,10 @@ class mmorpgGame(commands.Cog):
                 You.AddToCooldown(x)
         for x in GetAttribute("attack", PersonToDuel)+GetAttribute("defense", PersonToDuel)+GetAttribute("support", PersonToDuel):
             if x.ult:
-                You.AddToCooldown(x)
+                Op.AddToCooldown(x)
+
+
+
         GameOver=False
         while GameOver==False:
             You.CooldownCheck()
@@ -1214,21 +1247,26 @@ class mmorpgGame(commands.Cog):
                 break
 
 
-            if You.IsDead() or Op.IsDead():
-                if You.IsDead:
-                    await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
-                else:
-                    await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+            if You.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
+                OpWins+=1
+                Youloss+=1
+                break
+
+            if Op.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+                YouWins+=1
+                Oploss+=1
                 break    
 
             Op.CooldownCheck()
             await asyncio.sleep(2)
             await ctx.channel.send(embed=discord.Embed(title = "It is now %s' Turn."%(Op.Name))) 
             await asyncio.sleep(2)
-            for x in GetAttribute("attack", Op.Player)+GetAttributeEnemy("defense", Op.Player)+GetAttributeEnemy("support", Op.Player):
+            for x in GetAttribute("attack", Op.Player)+GetAttribute("defense", Op.Player)+GetAttribute("support", Op.Player):
                 if x.ult:
                     Op.Player.AddToCooldown(x)
-            for x in GetAttribute("attack", You.Player)+GetAttributeEnemy("defense", You.Player)+GetAttributeEnemy("support", You.Player):
+            for x in GetAttribute("attack", You.Player)+GetAttribute("defense", You.Player)+GetAttribute("support", You.Player):
                 if x.ult:
                     You.AddToCooldown(x)
             This1 = await FightAction(self, ctx, You, Op)
@@ -1253,15 +1291,22 @@ class mmorpgGame(commands.Cog):
             elif This1[1]=="Retreat":
                 break
 
-            if You.IsDead() or Op.IsDead():
-                if You.IsDead:
-                    await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
-                else:
-                    await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+
+            if You.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
+                OpWins+=1
+                Youloss+=1
+                break
+
+            if Op.CurrentHealth<=0:
+                await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+                YouWins+=1
+                Oploss+=1
                 break    
-
-
-
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"duelwins":YouWins}})
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"duelloses":Youloss}})
+        mulah.update_one({"id":PersonToDuel.id}, {"$set":{"duelwins":OpWins}})
+        mulah.update_one({"id":PersonToDuel.id}, {"$set":{"duelloses":Oploss}})
 
 
     @mmorpg.command()
@@ -1281,6 +1326,58 @@ class mmorpgGame(commands.Cog):
                 await ctx.channel.send("You dont have this item in your inventory.")
 
 
+    @commands.command()
+    async def upgrade(self, ctx):
+        first = True
+        leave = False
+        while leave ==False:
+            mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]
+            stats = mmorpg["stats"]
+            Points = Globals.InvCheckWithItem(ctx.author, "UpgradePoint", False)
+            print(Points)
+
+            embed = discord.Embed(title = "Upgrade station- You have %g Upgrade Points!"%(Points["amount"]), desription = "Use `UpgradePoint`'s to upgrade your stats! an upgrade point can add either `3 strength`, `3 defense`, `3 intelligence` or `3 health`", color = discord.Color.blue())
+            for x in stats:
+                embed.add_field(name = x, value = stats[x], inline=False)
+            try:
+                await msg.edit(embed=embed)
+            except:
+                msg = await ctx.channel.send(embed=embed)
+            if Points["amount"]>0:
+                choices = ["⚔️", "❤️", "🧪", "🛡️", "🚪"]
+                if first:
+                    for x in choices:
+                        await msg.add_reaction(x)
+                else:
+                    await msg.remove_reaction(reaction, ctx.author)
+                
+                ReactionDict = {"⚔️":"strength", "❤️":"health","🧪":"intelligence","🛡️":"defense"}
+                def check(reaction, user):
+                    return user==ctx.author and str(reaction.emoji) in choices and reaction.message == msg
+                try:
+                    confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
+                except TimeoutError:
+                    break
+                if confirm:
+                    reaction = str(confirm[0])
+                print(reaction)
+                if reaction == "Timeout" or reaction=="🚪":
+                    print("it is")
+                    break
+                else:
+                    stats[ReactionDict[reaction]]+=3
+                    mmorpg["stats"]=stats
+                    Globals.RemoveFromInventory(ctx.author, "UpgradePoint", 1)
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"mmorpg":mmorpg}})
+                    first = False
+            else:
+                print("no upgrade points")
+                break
+        embed =discord.Embed(title = "you left!")
+        
+        await ctx.channel.send(embed=embed)
+
+                
 
 
     @mmorpg.command()

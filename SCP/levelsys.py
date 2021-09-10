@@ -49,6 +49,7 @@ from discord import Color
 cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
+mulah = cluster["discord"]["mulah"]
 class levelsys(commands.Cog):
     def __init__(self,client):
         self.client = client
@@ -187,6 +188,13 @@ class levelsys(commands.Cog):
             else:
                 pass
 
+
+
+
+
+
+
+
         stats = levelling.find_one({"id" : ctx.author.id})
         if not ctx.author.bot:
             if stats is None:
@@ -202,9 +210,15 @@ class levelsys(commands.Cog):
                     lvl+=1
                 xp-=((50*((lvl-1)**2))+(50*(lvl-1)))
                 if xp ==0:
-                    embed = discord.Embed(title = "You have leveled up to level %s"%(lvl))
+                    embed = discord.Embed(title = "You have leveled up to level %s"%(lvl), description = "You have gained 3 `UpgradePoints` and `$%g`!"%(int(200*((1/2)*lvl))), color = discord.Color.green())
                     embed.set_thumbnail(url = ctx.author.avatar_url)
                     await ctx.channel.send(embed=embed)
+                    money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+                    money+=int(200*((1/2)*lvl))
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"money":money}})
+                    point = [{"name":"UpgradePoint", "value":2000, "desc":"`^upgrade` one of your stats!"},]
+                    Globals.AddToInventory(ctx.author, "UpgradePoint", point, 3)
+                    
 
 
     @commands.command()
@@ -269,8 +283,10 @@ class levelsys(commands.Cog):
         else:
             await ctx.channel.send("You dont have the permissions.")
     @commands.command()
-    async def rank(self, ctx):
-        stats = levelling.find_one({"id": ctx.author.id})
+    async def rank(self, ctx, p1:discord.Member=None):
+        if not p1:
+            p1=ctx.author
+        stats = levelling.find_one({"id": p1.id})
         if stats is None:
             embed = discord.Embed(title = "You havnt sent any ctxs yet.")
             await ctx.channel.send(embed=embed)
@@ -289,11 +305,11 @@ class levelsys(commands.Cog):
                 rank+=1
                 if stats["id"] == x["id"]:
                     break
-            embed = discord.Embed(title = "%s level stats"%(ctx.author.name))
-            embed.add_field(name = "Name", value = ctx.author.mention, inline = True)
+            embed = discord.Embed(title = "Level %g"%(Globals.GetLevel(p1.id)))
+            embed.add_field(name = "Name", value = p1.mention, inline = True)
             embed.add_field(name = "xp", value =f"{xp}/{int(200*((1/2)*lvl))}", inline = True)   
             embed.add_field(name = "progress bar", value = boxes*":blue_square:" + (20-boxes) *":white_large_square:", inline = False)  
-            embed.set_thumbnail(url = ctx.author.avatar_url)    
+            embed.set_thumbnail(url = p1.avatar_url)    
             await ctx.channel.send(embed = embed)
 
     

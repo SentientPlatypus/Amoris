@@ -114,7 +114,15 @@ def InvCheck(user, item:str, Id=False, amount:int=1) -> bool:
             return True
 
 
-
+def InvCheckWithItem(user, item:str, Id=False, amount:int=1):
+    if Id==False:
+        user = user.id
+    inv = mulah.find_one({"id":user}, {"inv"})["inv"]
+    check = next((x for x in inv if x["name"].lower()==item.lower() and x["amount"]>=amount and "parts" not in x.keys()), None)
+    if check == None:
+        return False
+    else:
+        return check
 
 
 
@@ -156,8 +164,8 @@ def GetKeysFromDictInList(list:list):
             keys.append(z)
     return keys
 
-def GetLevel(ctx):
-    xp = levelling.find_one({"id":ctx.author.id}, {"xp"})["xp"]
+def GetLevel(id):
+    xp = levelling.find_one({"id":id}, {"xp"})["xp"]
     lvl = 0
     while True:
         if xp < ((50*(lvl**2))+(50*(lvl))):

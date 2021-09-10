@@ -91,6 +91,7 @@ class DatabaseHandler(commands.Cog):
             {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
             {"name":"gambles", "value":0},
             {"name":"gamblewins","value":0},
+            {"name":"upgradepoints","value":0},
             {"name":"gameskill","value":{}},
             {"name":"mmorpg",
             "value":{
@@ -126,7 +127,7 @@ class DatabaseHandler(commands.Cog):
 
 
     @commands.Cog.listener()
-    async def on_command(self, ctx):
+    async def on_message(self, ctx):
         if ctx.author == self.client.user:
             return
         if ctx.author.bot: return
@@ -302,6 +303,8 @@ class DatabaseHandler(commands.Cog):
             mulah.update_one({"id":p1.id}, {"$set":{x["name"]:x["value"]}})
             await ctx.channel.send("ok creator senpai! i did it.")
 
+
+            
 
 
     @commands.command()
