@@ -67,7 +67,7 @@ class mmorpgGame(commands.Cog):
         global Effect 
         class Effect(object):
             def __init__(self, name, type,Category, AffectsSender:bool, Value, length, ValSet=False):
-                self.name=name
+                self.name=name  
                 self.type=type
                 self.Category=Category
                 self.AffectsSender=AffectsSender

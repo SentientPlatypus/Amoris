@@ -102,7 +102,7 @@ class DatabaseHandler(commands.Cog):
                     "intelligence":100, 
                     "defense":1, 
                     "health":100,
-                    "sense":1}, 
+                    }, 
                 "abilities":{"Punch":1},
                 
                 "loadout":{

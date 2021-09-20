@@ -836,7 +836,7 @@ class DatingSim(commands.Cog):
         if mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]!=0:
             invar = mulah.find_one({"id":ctx.author.id},{"inv"})   
             inval = invar["inv"]     
-            ticketcheck = next((item for item in inval if item["name"] == "netflixsub"), None)   
+            ticketcheck = next((item for item in inval if item["name"] == "netflixsub" and "parts" not in item.keys()), None)   
             if ticketcheck is not None:
                 moviesDB = IMDb()
                 gfvar = mulah.find_one({"id":ctx.author.id},{"gf"})
@@ -1173,7 +1173,7 @@ class DatingSim(commands.Cog):
         invar = mulah.find_one({"id":ctx.author.id}, {"inv"})
         inval = invar["inv"]
         if lpval>=1600:
-            if next((x for x in inval if x["name"] == "ring"), None) is not None:
+            if next((x for x in inval if x["name"] == "ring" and "parts" not in x.keys()), None) is not None:
                 if gfval["tier"] !=4:
                     response = next(x for x in gftypes if x["typename"] == gfval["type"])["proposeresponse"].format(ctx.author.display_name)
                     embed = discord.Embed(title = "You proposed to %s!"%(gfval["name"]), color = ctx.author.color)
@@ -1432,7 +1432,7 @@ class DatingSim(commands.Cog):
         global gftypes
         invar = mulah.find_one({"id":ctx.author.id},{"inv"})   
         inval = invar["inv"]     
-        ticketcheck = next((item for item in inval if item["name"] == "movieticket"), None)
+        ticketcheck = next((item for item in inval if item["name"] == "movieticket" and "parts" not in item.keys()), None)
         if ticketcheck is not None:
             moviesDB = IMDb()
             gfvar = mulah.find_one({"id":ctx.author.id},{"gf"})
