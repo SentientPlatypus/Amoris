@@ -2,6 +2,7 @@
 from functools import update_wrapper
 
 from discord.colour import Color
+from discord.ext.commands.converter import EmojiConverter
 from mcstatus import MinecraftServer
 import discord
 import os
@@ -46,6 +47,8 @@ import GuildHandler
 import sys	
 from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
 import datetime
+from english_words import english_words_set
+
 cogGuild = [GuildHandler]
 cogsmulah = [currencysys]
 cogs = [levelsys]
@@ -628,7 +631,7 @@ EditedMessages = {
 @client.event
 async def on_message_edit(before, after):
 	print("a edited")
-	EditedMessages[before.guild.id]= [before.author.display_name, before.author.avatar_url, before.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
+	EditedMessages[before.channel.id]= [before.author.display_name, before.author.avatar_url, before.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
 	print(EditedMessages)
 
 DeletedMessage = {
@@ -637,7 +640,7 @@ DeletedMessage = {
 @client.event
 async def on_message_delete(message):
 	print("deleted")
-	DeletedMessage[message.guild.id] = [message.author.display_name, message.author.avatar_url,message.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
+	DeletedMessage[message.channel.id] = [message.author.display_name, message.author.avatar_url,message.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
 
 
 @help.command()
@@ -655,9 +658,9 @@ async def timer(ctx):
 @client.command()
 async def snipe(ctx):
 	try:
-		embed = discord.Embed(description = DeletedMessage[ctx.guild.id][2], color = discord.Color.blue())
-		embed.set_author(name=DeletedMessage[ctx.guild.id][0],icon_url=DeletedMessage[ctx.guild.id][1])
-		embed.set_footer(text = DeletedMessage[ctx.guild.id][0]+"\n"+DeletedMessage[ctx.guild.id][3])
+		embed = discord.Embed(description = DeletedMessage[ctx.channel.id][2], color = discord.Color.blue())
+		embed.set_author(name=DeletedMessage[ctx.channel.id][0],icon_url=DeletedMessage[ctx.channel.id][1])
+		embed.set_footer(text = DeletedMessage[ctx.channel.id][0]+"\n"+DeletedMessage[ctx.channel.id][3])
 		await ctx.send(embed = embed)
 
 	except:
@@ -670,9 +673,9 @@ async def snipe(ctx):
 @client.command()
 async def esnipe(ctx):
 	try:
-		embed = discord.Embed(description = EditedMessages[ctx.guild.id][2], color = discord.Color.blue())
-		embed.set_author(name=EditedMessages[ctx.guild.id][0],icon_url=EditedMessages[ctx.guild.id][1])
-		embed.set_footer(text = EditedMessages[ctx.guild.id][0]+"\n"+EditedMessages[ctx.guild.id][3])
+		embed = discord.Embed(description = EditedMessages[ctx.channel.id][2], color = discord.Color.blue())
+		embed.set_author(name=EditedMessages[ctx.channel.id][0],icon_url=EditedMessages[ctx.channel.id][1])
+		embed.set_footer(text = EditedMessages[ctx.channel.id][0]+"\n"+EditedMessages[ctx.channel.id][3])
 		await ctx.send(embed = embed)
 	except:
 		print(traceback.format_exc())
@@ -1636,20 +1639,21 @@ async def sub(ctx, subr):
 	async for submission in subreddit.top(limit = 100):
 		allsub.append(submission)
 	random_sub = random.choice(allsub)
-	formats = ["image", "rich:video"]
-	while random_sub.post_hint not in formats:
-		print(random_sub.post_hint)
-		random_sub = random.choice(allsub)
-	print(random_sub.post_hint)
+	await random_sub.load()
 
 	name = random_sub.title
 	url = random_sub.url
+	text = random_sub.selftext
 
-	embed = discord.Embed(title = name, color = ctx.author.color)
-	if random_sub.post_hint == "rich:video":
-		embed.video(url=url)
-	else:
+	embed = discord.Embed(title = name, url=random_sub.url,color = ctx.author.color)
+	try:
+		embed.description = text
+	except:
+		pass
+	try:
 		embed.set_image(url = url)
+	except:
+		pass
 	await ctx.send(embed = embed)
 
 @client.command()
@@ -1665,7 +1669,7 @@ async def dog(ctx):
    embed.set_image(url=dogjson['link'])
    embed.set_footer(text=factjson['fact'])
    await ctx.send(embed=embed)
-
+	
 
 @client.command()
 async def mcstatus(ctx, ip):
@@ -1844,34 +1848,10 @@ async def scramble(ctx, wordz):
 
 @solve.command()
 async def hangman(ctx, word):
-	if len(re.findall("-", word)) == 0:
-		embed = discord.Embed(title = "Hangman solver", description = "I can solve hangman for you.", color = ctx.author.color)
-		embed.add_field(name = "Im not doing that.", value = "This should only be used if you have less than 4 -'s left.")
-		await ctx.channel.send(embed = embed)	
-	d = enchant.Dict("en_US")
-	alphabet = list(string.ascii_lowercase)	
-	indexes = []
 	possibilities = []
-	final = []
-	strings = list(word)
-	for x in range(len(strings)):
-		if strings[x] =="-":
-			indexes.append(x)
-	count = int(word.count("-"))
-	perm = [p for p in itertools.product(alphabet, repeat = count)]
-	perm = ["".join(element) for element in perm]
-	for y in perm:
-		for x in range(count):
-			strings[indexes[x]] =y[x]
-			if d.check("".join(strings)) == True:
-				possibilities.append("".join(strings))
-	for element in possibilities:
-		if element not in final:
-			if len(re.findall("-",element)) == 0:
-				final.append(element)
-	final = [x for x in final if x not in badwords]
-	final = [x + "\n" for x in final]
-	final = "".join(final)
+	word = re.sub("-", ".", word) + "$"
+	possibilities = [x for x in english_words_set if re.match(word, x)]
+	final = "\n".join(possibilities)
 	embed = discord.Embed(title = "Hangman solver", description = "I can solve hangman for you.", color = ctx.author.color)
 	embed.add_field(name = "The possible hangman answers to %s are"%(word), value = ".\n%s"%(final))
 	await ctx.channel.send(embed = embed)
@@ -1906,11 +1886,10 @@ async def on_command_error(ctx, error):
 
 
 
-status = cycle(['with Ooferbot', 'Eating ice cream', 'visiting an art museum with Creator Senpai', 'uno with Creator Senpai'])
 
 @client.event
 async def on_ready():
-	await client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help. \nProviding Girlfriends to %s lonely servers"%(len(client.guilds)+1)))
+	await client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help.\n Life with %s lonely servers"%(len(client.guilds)+1)))
 
 #
 
