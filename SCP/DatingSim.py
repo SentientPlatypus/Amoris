@@ -1315,7 +1315,7 @@ class DatingSim(commands.Cog):
                     except:
                         try:
                             embed.set_image(url = gfval["image"])
-                        except:
+                        except: 
                             pass                        
                     await editthis.clear_reactions()
                     await editthis.delete()
@@ -1332,7 +1332,7 @@ class DatingSim(commands.Cog):
                         def check2(reaction,user):
                             return user==ctx.author and str(reaction.emoji) in reactions and reaction.message==editthis
                         confirm2 = await self.client.wait_for('reaction_add', check=check2)
-                        if confirm2:
+                        if confirm2:  
                             if str(confirm2[0])=="🚪":
                                 leave=True
                                 break

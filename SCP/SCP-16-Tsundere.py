@@ -479,7 +479,7 @@ async def wisdom(ctx):
 	quotess = ["no truer words have been spoken.", "That was very inspiring.", "Be thankful for this invaluable knowledge"]
 	embed = discord.Embed(title = "Wisdom machine", description = "I will grant you a small fraction of my creator senpai's wisdom.")
 	embed.add_field(name = "%s"%(quote), value = "-%s\n\n%s"%(json_data[0]['a'],random.choice(quotess)))
-	await ctx.send(embed =embed)
+	await ctx.send(embed =embed)   	
 
 
 
@@ -1624,21 +1624,30 @@ async def red(ctx):
 	embed = discord.Embed(title = "Reddit", description = "`^red <command>`", color = ctx.author.color)
 
 	embed.add_field(name = "Commands", value = "`sub`")
+	embed.add_field(name = "reddit", value = '[here](https://www.reddit.com)',)
 
 	await ctx.send(embed = embed) 
 
 reddit = asyncpraw.Reddit(client_id='1EW-V9PtpmIDTw',
 					 client_secret='Ji2j7k2SkrkYDcBfQdLTZW_ar0XFjQ',
 					 user_agent = 'SCPTsundere')
-
+subChannel = {}
 @red.command()
 async def sub(ctx, subr):
 	subr = str(subr)
 	subreddit = await reddit.subreddit(subr, fetch = True)
 	allsub = []
-	async for submission in subreddit.top(limit = 100):
-		allsub.append(submission)
-	random_sub = random.choice(allsub)
+	try:
+		subChannel[ctx.author.id]+=1
+		limit=subChannel[ctx.author.id]
+	except:
+		limit = 1
+		subChannel[ctx.author.id]=1
+	count = 0
+	async for submission in subreddit.top(limit = limit):
+		count+=1
+		if count==limit:
+			random_sub= submission
 	await random_sub.load()
 
 	name = random_sub.title
@@ -1654,7 +1663,18 @@ async def sub(ctx, subr):
 		embed.set_image(url = url)
 	except:
 		pass
+	embed.set_footer(text = "Requested by %s (%g index)"%(ctx.author.display_name, subChannel[ctx.author.id]))
 	await ctx.send(embed = embed)
+
+@red.command()
+async def reset(ctx):
+	subChannel[ctx.author.id]=1
+	await ctx.channel.send("reset. %s's reddit index"%(ctx.author.display_name))
+
+@red.command()
+async def set(ctx, num:int):
+	subChannel[ctx.author.id]=num
+	await ctx.channel.send("set %s's reddit index to %g"%(ctx.author.display_name, num))
 
 @client.command()
 async def dog(ctx):
