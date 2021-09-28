@@ -617,6 +617,11 @@ class mmorpgGame(commands.Cog):
                     embed.add_field(name = "Abilities Still On Cooldown:", value = finlstring)
                 if HasUlt==True:
                     embed.add_field(name="Ultimate Status:",value= finlstri)
+                else:
+                    for x in You.Attacks+You.Defenses+You.support:
+                        if x.ult:
+                            embed.add_field(name = "Ultimate Status:", value = "Your ultimate, %s is ready!"%(x.name))
+
 
 
             CreateBattlefield(You, Op)
@@ -643,10 +648,7 @@ class mmorpgGame(commands.Cog):
 
                     elif Choices =="⚔️":
                         if You.Attacks:
-                            print(Globals.GetKeysFromDictInList(You.OnCooldown))
-                            print(You.Attacks)
                             CoolDownLIst = [x.name for x in Globals.GetKeysFromDictInList(You.OnCooldown)]
-                            print(CoolDownLIst)
                             ActionChoice = [x.name for x in You.Attacks if You.Mana>=x.mana and x.name not in CoolDownLIst]
                             ReturnedChoice = await Globals.ChoiceEmbed(self, ctx, ActionChoice, "Attack!", p=You.Player)
                             You.Mana-=next(z for z in abilitydict if z["name"]==ReturnedChoice[0])["mana"]

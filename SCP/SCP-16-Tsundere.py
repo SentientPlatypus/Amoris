@@ -48,7 +48,10 @@ import sys
 from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
 import datetime
 from english_words import english_words_set
+import Images
 
+
+cogImage = [Images]
 cogGuild = [GuildHandler]
 cogsmulah = [currencysys]
 cogs = [levelsys]
@@ -1360,7 +1363,7 @@ async def hardsolve(ctx, *q):
 				f"&output=json"
 
 	r = requests.get(query_url).json()
-
+	print(r)
 	data = r["queryresult"]["pods"][0]["subpods"]
 	result = data[0]["plaintext"]
 	steps = data[0]["plaintext"]
@@ -1532,18 +1535,7 @@ async def image(ctx):
 
 	await ctx.send(embed = embed) 
 
-@client.command()
-async def wanted(ctx,user:discord.Member = None):
-	if user == None:
-		user = ctx.author
-	wanted = Image.open("wantedjpg.jpg")
-	asset = user.avatar_url_as(size=128)
-	data = BytesIO(await asset.read())
-	pfp = Image.open(data)
-	pfp = pfp.resize((279,279))
-	wanted.paste(pfp,(97,194))
-	wanted.save("profile.jpg")
-	await ctx.channel.send(file = discord.File("profile.jpg"))
+
 
 @client.command()
 async def abouttocry(ctx,user:discord.Member = None):
@@ -1676,19 +1668,6 @@ async def set(ctx, num:int):
 	subChannel[ctx.author.id]=num
 	await ctx.channel.send("set %s's reddit index to %g"%(ctx.author.display_name, num))
 
-@client.command()
-async def dog(ctx):
-   async with aiohttp.ClientSession() as session:
-      request = await session.get('https://some-random-api.ml/img/dog')
-      dogjson = await request.json()
-      # This time we'll get the fact request as well!
-      request2 = await session.get('https://some-random-api.ml/facts/dog')
-      factjson = await request2.json()
-
-   embed = discord.Embed(title="Doggo!", color=discord.Color.purple())
-   embed.set_image(url=dogjson['link'])
-   embed.set_footer(text=factjson['fact'])
-   await ctx.send(embed=embed)
 	
 
 @client.command()
@@ -1761,6 +1740,8 @@ for i in range(len(coggf)):
 
 for i in range(len(cogGuild)):
 	cogGuild[i].setup(client)
+for i in range(len(cogImage)):
+	cogImage[i].setup(client)
 
 
 
