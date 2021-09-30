@@ -2,6 +2,7 @@
 from functools import update_wrapper
 
 from discord.colour import Color
+from discord.ext.commands import bot
 from discord.ext.commands.converter import EmojiConverter
 from mcstatus import MinecraftServer
 import discord
@@ -49,8 +50,12 @@ from discord_components import DiscordComponents, Button, ButtonStyle, Interacti
 import datetime
 from english_words import english_words_set
 import Images
-
-
+import games
+import extras
+import ssl
+import pymongo
+cogExtras = [extras]
+cogGame = [games]
 cogImage = [Images]
 cogGuild = [GuildHandler]
 cogsmulah = [currencysys]
@@ -59,7 +64,10 @@ cogsmmorpg = [mmorpgGame]
 cogDB = [DatabaseHandler]
 coggf = [DatingSim]
 d = enchant.Dict("en_US")
-cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
+cluster = MongoClient(uri,
+                     tls=True,
+                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
 DiscordGuild = cluster["discord"]["guilds"]
 
 
@@ -68,14 +76,13 @@ tagre = "\#\d{4}$"
 
 
 client = commands.Bot(command_prefix="^", intents =discord.Intents.all(), status=discord.Status.online)
-client.remove_command("help")
 
 
 
 
 ##---------------------------------------HELP COMMANDS------------------------------------------------------------
 @client.group(invoke_without_command=True)
-async def help(ctx):
+async def helpp(ctx):
 	embed = discord.Embed(title = "Help", description = "Use ^help <command> for extended information on a command.",color = ctx.author.color)
 	embed.add_field(name = "Moderation🚨", value = "`^help mod`")
 	embed.add_field(name = "Fun😃", value = "`^help fun`")
@@ -88,13 +95,13 @@ async def help(ctx):
 	embed.add_field(name = "currency💰", value = "`^help money`")
 	embed.add_field(name = "DatingSim❤️", value = "`^help gf`")
 	embed.add_field(name = "Images📷", value = "`^help image`")
-	embed.add_field(name = "MMORPG ⚔️", value = "`^help mmorpg`")
+	embed.add_field(name = "duels ⚔️", value = "`^help duels`")
 	embed.add_field(name = "Settings ⚙️", value = "`^help config`")
 	
 
 	await ctx.send(embed = embed)
 
-@help.command()
+@helpp.command()
 async def gf(ctx):
 
 	embed = discord.Embed(title = "Gf", description = "for your single ass", color = ctx.author.color)
@@ -103,20 +110,20 @@ async def gf(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def config(ctx):
 
 	embed = discord.Embed(title = "Settings!", description = 'use `^settings` to view server settings. `^settings "<command>" <enable|disable>` to edit settings. Use `^configuration` to alter settings', color = ctx.author.color)
 	embed.set_footer(text = "Settings may only be changed by admins")
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def mmorpg(ctx):
 	embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
 	embed.add_field(name = "Setup commands", value = "`begin`")
 	await ctx.channel.send(embed=embed)
 
-@help.command()
+@helpp.command()
 async def money(ctx):
 
 	embed = discord.Embed(title = "Economy!", description = "make some mulah", color = ctx.author.color)
@@ -126,7 +133,7 @@ async def money(ctx):
 	await ctx.send(embed = embed) 
 
 
-@help.command()
+@helpp.command()
 async def use(ctx):
 
 	embed = discord.Embed(title = "Use!", description = "Use a consumable!", color = ctx.author.color)
@@ -135,7 +142,7 @@ async def use(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def give(ctx):
 
 	embed = discord.Embed(title = "give", description = "give an item to a person", color = ctx.author.color)
@@ -143,7 +150,7 @@ async def give(ctx):
 	embed.add_field(name = "syntax", value = "`^give <item> <number> <mentionPerson>`")
 
 	await ctx.send(embed = embed) 
-@help.command()
+@helpp.command()
 async def yomomma(ctx):
 
 	embed = discord.Embed(title = "Yomomma machine!", description = "get some jokes", color = ctx.author.color)
@@ -151,7 +158,7 @@ async def yomomma(ctx):
 	embed.add_field(name = "syntax:", value = "`^yomomma`")
 
 	await ctx.send(embed = embed) 
-@help.command()
+@helpp.command()
 async def wanted(ctx):
 
 	embed = discord.Embed(title = "wanted", description = "wanted image", color = ctx.author.color)
@@ -161,7 +168,7 @@ async def wanted(ctx):
 	await ctx.send(embed = embed) 
 
 
-@help.command()
+@helpp.command()
 async def abouttocry(ctx):
 
 	embed = discord.Embed(title = "abouttocry!", description = "komi-saaan", color = ctx.author.color)
@@ -169,7 +176,7 @@ async def abouttocry(ctx):
 	embed.add_field(name = "syntax:", value = "`^abouttocry`")
 
 	await ctx.send(embed = embed) 
-@help.command()
+@helpp.command()
 async def clean(ctx):
 
 	embed = discord.Embed(title = "clean", description = "Deletes messages", color = ctx.author.color)
@@ -178,7 +185,7 @@ async def clean(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def currency(ctx):
 
 	embed = discord.Embed(title = "Economy!", description = "make some mulah", color = ctx.author.color)
@@ -187,7 +194,7 @@ async def currency(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def credit(ctx):
 
 	embed = discord.Embed(title = "credit", description = "Shows who contributed to my creation.", color = ctx.author.color)
@@ -195,46 +202,46 @@ async def credit(ctx):
 	await ctx.send(embed = embed) 
 
 
-@help.command()
+@helpp.command()
 async def hello(ctx):
 
 	embed = discord.Embed(title = "hello", description = "Say hello to me!", color = ctx.author.color)
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def howru(ctx):
 
 	embed = discord.Embed(title = "howru", description = "Ask me how im doing!", color = ctx.author.color)
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def pp(ctx):
 
 	embed = discord.Embed(title = "pp", description = "get an accurate pp measure", color = ctx.author.color)
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def rickroll(ctx):
 	embed = discord.Embed(title = "Rickroll", description = "rickroll a voice channel", color = ctx.author.color)
 	embed.add_field(name = "syntax:", value = "`^rickroll <vcname>` make sure to use the correct capitalization.")
 	await ctx.send(embed = embed)
 
-@help.command()
+@helpp.command()
 async def voice(ctx):
 	embed = discord.Embed(title = "Voice chat 🎵", description = "basic VC commands.", color = ctx.author.color)
 	embed.add_field(name = "syntax:", value = "`^p <url> <vcname>`, `^pause`, `^resume`, `^stop`, `^leave`")
 	await ctx.send(embed = embed)
 
-@help.command()
+@helpp.command()
 async def stats(ctx):
 
 	em = discord.Embed(title = "stats", description = "get an accurate stats report", color = ctx.author.color)
 
 	await ctx.send(embed = em) 
 
-@help.command()
+@helpp.command()
 async def roll(ctx):
 
 	embed = discord.Embed(title = "roll", description = "Simulate rolling a dice.", color = ctx.author.color)
@@ -243,7 +250,7 @@ async def roll(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def unscramble(ctx):
 
 	embed = discord.Embed(title = "unscramble", description = "unscramble a word", color = ctx.author.color)
@@ -252,7 +259,7 @@ async def unscramble(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def gcf(ctx):
 
 	embed = discord.Embed(title = "GCF", description = "find the GCF of two integers.", color = ctx.author.color)
@@ -261,14 +268,14 @@ async def gcf(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def poll(ctx):
 	embed = discord.Embed(title = "Polls!", description = "Get the voice of the people with polls. Not like I care though.", color = ctx.author.color)
 	embed.add_field(name = "Syntax:", value = '`^poll "<question>" "<option1>" "<option2>" "<option3>"...` (can handle up to ten options)')
 	await ctx.send(embed = embed)
 
 
-@help.command()
+@helpp.command()
 async def hangman(ctx):
 	embed = discord.Embed(title = "Hangman!", description = "Play a game of hangman.", color = ctx.author.color)
 	embed.add_field(name = "Syntax:", value = '`^play hangman` to start playing.\n `^guess hangman <guess>`')
@@ -277,7 +284,7 @@ async def hangman(ctx):
 
 
 
-@help.command()
+@helpp.command()
 async def points(ctx):
 
 	embed = discord.Embed(title = "Coordinate plane information", description = "Get information regarding inputted points", color = ctx.author.color)
@@ -286,7 +293,7 @@ async def points(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def esnipe(ctx):
 
 	embed = discord.Embed(title = "esnipe", description = "Get messages before they were edited", color = ctx.author.color)
@@ -295,7 +302,7 @@ async def esnipe(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def snipe(ctx):
 
 	embed = discord.Embed(title = "snipe", description = "Get messages before they were deleted", color = ctx.author.color)
@@ -304,7 +311,7 @@ async def snipe(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def sub(ctx):
 
 	embed = discord.Embed(title = "sub", description = "get submissions from subreddit", color = ctx.author.color)
@@ -313,7 +320,7 @@ async def sub(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def simplify(ctx):
 
 	embed = discord.Embed(title = "Simlify", description = "simplify a fraction", color = ctx.author.color)
@@ -322,7 +329,7 @@ async def simplify(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def rank(ctx):
 
 	embed = discord.Embed(title = "rank", description = "Get your level information", color = ctx.author.color)
@@ -331,7 +338,7 @@ async def rank(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def leaderboard(ctx):
 
 	embed = discord.Embed(title = "Leaderboard", description = "Get leaderboard information", color = ctx.author.color)
@@ -339,7 +346,7 @@ async def leaderboard(ctx):
 	embed.add_field(name = "**Syntax**", value = "`^leaderboard`")
 
 	await ctx.send(embed = embed) 
-@help.command()
+@helpp.command()
 async def herons(ctx):
 
 	embed = discord.Embed(title = "Herons", description = "Calculate the area of a triange with its side lengths", color = ctx.author.color)
@@ -348,7 +355,7 @@ async def herons(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()
+@helpp.command()
 async def question(ctx):
 
 	embed = discord.Embed(title = "Question", description = "Ask me a question, and I will answer according to my ability.", color = ctx.author.color)
@@ -357,7 +364,7 @@ async def question(ctx):
 
 	await ctx.send(embed = embed) 
 
-@help.command()			
+@helpp.command()			
 async def hardsolve(ctx):
 
 	embed = discord.Embed(title = "Hardsolve", description = "I will solve an equation or expression to the best of my ability.", color = ctx.author.color)
@@ -397,7 +404,7 @@ def profanitycheck(string):
 
 
 ##-------------------------------------------FUN-----------------------------------------
-@help.command()
+@helpp.command()
 async def fun(ctx):
 
 	embed = discord.Embed(title = "FUN😃", description = "fun things to do!", color = ctx.author.color)
@@ -405,7 +412,7 @@ async def fun(ctx):
 	embed.add_field(name = "commands:", value = "`pp`,`roll`,`stats`,`wisdom`, `rickroll`, `yomomma`")
 
 	await ctx.send(embed = embed) 
-@help.command()
+@helpp.command()
 async def guess(ctx):
 	embed = discord.Embed(title = "Guess", description = "Guess something for a game with `^guess <game> <guess>`")
 	choose_message = await ctx.send(embed = embed)
@@ -646,13 +653,13 @@ async def on_message_delete(message):
 	DeletedMessage[message.channel.id] = [message.author.display_name, message.author.avatar_url,message.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
 
 
-@help.command()
+@helpp.command()
 async def mod(ctx):
 	embed = discord.Embed(title = "Moderation🚨", description = "help moderating text servers.", color = ctx.author.color)
 	embed.add_field(name = "Commands", value = "`clean`, `credit`, `poll`, `esnipe`, `snipe, `timer``")
 	await ctx.send(embed = embed)
 
-@help.command()
+@helpp.command()
 async def timer(ctx):
 	embed = discord.Embed(title = "Timer!", description = "adds a timer", color = ctx.author.color)
 	embed.add_field(name = "syntax", value = "`^timer '<title>' '<description>' '<00:00:00>'")
@@ -813,7 +820,7 @@ async def credit(ctx):
 
 ##---------------------------------------------------UTILIY------------------------------------------------
 
-@help.command()
+@helpp.command()
 async def utility(ctx):
 	embed = discord.Embed(title = "utility", description = "Tools that can be used for multiple purposes.", color = ctx.author.color)
 	embed.add_field(name = "commands", value = "`roll`")
@@ -864,7 +871,7 @@ async def avatar(ctx, p1:discord.Member=None):
 
 ##---------------------------------------------------TALK---------------------------------------------------
 
-@help.command()
+@helpp.command()
 async def talk(ctx):
 	embed = discord.Embed(title = "Talk.", description = "basic conversation.", color = ctx.author.color)
 	embed.add_field(name = "commands", value = "`hello`, `howru`, `praise`, `scold`, `laughat`, `talk`")
@@ -972,7 +979,7 @@ async def praise(ctx):
 
 ##-------------------------------------GAMES/PLAY---------------------------------------------
 
-@help.command()
+@helpp.command()
 async def games(ctx):
 	embed = discord.Embed(title = "Games 🎮", description = "Play a game! with `^play`.")
 	embed.add_field(name = "commands", value = "`tictactoe`, `hangman`")
@@ -1172,13 +1179,6 @@ async def connect4(ctx, p1:discord.Member, p2:discord.Member):
 	else:
 		await ctx.send("A game is already in progress! Finish it before starting a new one.")
 
-@client.command()
-async def drop(ctx, column:int):
-	global player1connect4
-	global player2connect4
-	global turnconnect4
-	global gameOverconnect4
-	global boardconnect4	
 
 
 
@@ -1332,7 +1332,7 @@ async def hangman(ctx, g):
 
 
 ##---------------------------------MATH---------------------------------------------------
-@help.command()
+@helpp.command()
 async def mafs(ctx):
 
 	embed = discord.Embed(title = "Math📚📐📏", description = "use `^mafs <command>` for information on your input", color = ctx.author.color)
@@ -1526,7 +1526,7 @@ async def herons(ctx, s1,s2,s3):
 
 
 ##_------------------------------------------IMAGES------------------------------------
-@help.command()
+@helpp.command()
 async def image(ctx):
 
 	embed = discord.Embed(title = "image", description = "image commands", color = ctx.author.color)
@@ -1566,7 +1566,7 @@ async def abouttocry(ctx,user:discord.Member = None):
 
 
 ##-------------------------------------------------web-------------------------------------------------------
-@help.command()
+@helpp.command()
 async def web(ctx):
 
 	embed = discord.Embed(title = "Web", description = "commands involving the internet	", color = ctx.author.color)
@@ -1576,7 +1576,7 @@ async def web(ctx):
 	await ctx.send(embed = embed) 
 
 
-@help.command()
+@helpp.command()
 async def fact(ctx):
 
 	embed = discord.Embed(title = "animal facts", description = "`^<command>`", color = ctx.author.color)
@@ -1586,7 +1586,7 @@ async def fact(ctx):
 	await ctx.send(embed = embed) 
 
 
-@help.command()
+@helpp.command()
 async def red(ctx):
 
 	embed = discord.Embed(title = "Reddit", description = "helpful reddit commands", color = ctx.author.color)
@@ -1714,7 +1714,7 @@ async def mcstatus(ctx, ip):
 
 
 ##--------------------------------Levels---------------------------------------------------
-@help.command()
+@helpp.command()
 async def levels(ctx):
 
 	embed = discord.Embed(title = "Levels", description = "Commands involving the leveling system.", color = ctx.author.color)
@@ -1743,9 +1743,10 @@ for i in range(len(cogGuild)):
 for i in range(len(cogImage)):
 	cogImage[i].setup(client)
 
-
-
-
+for i in range(len(cogGame)):
+	cogGame[i].setup(client)
+for i in range(len(cogExtras)):
+	cogExtras[i].setup(client)
 ##------------------------------------------sim--------------------------------------------
 
 
@@ -1791,7 +1792,7 @@ for i in range(len(cogImage)):
 ##--------------------------------SOLVE--------------------------------------------------
 
 
-@help.command()
+@helpp.command()
 async def solve(ctx):
 
 	embed = discord.Embed(title = "Solve🤔", description = "use `^solve <command>` to solve stuff for games", color = ctx.author.color)

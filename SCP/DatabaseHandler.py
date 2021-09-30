@@ -42,7 +42,13 @@ from PIL import Image
 from io import BytesIO
 import requests
 import Globals
-cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+import pymongo
+import ssl
+
+uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
+cluster = MongoClient(uri,
+                     tls=True,
+                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]

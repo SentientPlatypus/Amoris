@@ -49,7 +49,13 @@ import requests
 import Globals
 from discord import Color
 from datetime import date, datetime, timedelta
-cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+import pymongo
+import ssl
+
+uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
+cluster = MongoClient(uri,
+                     tls=True,
+                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
 mulah = cluster["discord"]["mulah"]
 
 
@@ -225,6 +231,11 @@ class mmorpgGame(commands.Cog):
             
             def AddEffect(self, effect:Effect):
                 self.Effects.append({effect:effect.length})
+            
+            def RemoveEffect(self, effect:Effect):
+                for x in self.Effects:
+                    if x.name == effect.name:
+                        self.Effects.remove(x)
 
 
             def CallEffect(self):
@@ -296,9 +307,15 @@ class mmorpgGame(commands.Cog):
 
  
         def Deflect(Attacker:Opponent, Defender:Opponent,attack:Attack, embed:discord.Embed):
-            Attacker.CallEffect()
-            Defender.CallEffect()
+
             Attacker.CurrentHealth-=attack.damage
+            for i in attack.effects:
+                if not i.AffectsSender:
+                    Attacker.AddEffect(i)
+                    Defender.RemoveEffect(i)
+            Defender.CallEffect()
+            Attacker.CallEffect()
+
             embed.add_field(name = "%s used %s, but it was Deflected!"%(Attacker.Name, attack.name), value = "%s was hit with his own attack, and recieved %s points of damage"%(Attacker.Name, attack.damage))
             TotalDamage=0
             return [embed, TotalDamage]
@@ -817,7 +834,6 @@ class mmorpgGame(commands.Cog):
                     CurrentItem = next(x for x in itemdict if x["name"] == loadout[SpecificItem["type"]])
                     print(CurrentItem)
                     Globals.AddToInventory(user, SpecificItem["name"], itemdict, 1)
-                    Globals.RemoveFromInventory(user, CurrentItem["name"], 1)
 
                     if "attribute" in CurrentItem.keys():
                         for x in CurrentItem["attribute"].keys():
@@ -829,6 +845,7 @@ class mmorpgGame(commands.Cog):
                             except:
                                 pass
                 loadout[SpecificItem["type"]] = SpecificItem["name"]
+                Globals.RemoveFromInventory(user, CurrentItem["name"], 1)
 
                 if "attribute" in SpecificItem.keys():
                     for x in SpecificItem["attribute"].keys():
@@ -843,41 +860,11 @@ class mmorpgGame(commands.Cog):
 
 
         global classdict
-        classdict = [
-            {"class":"warrior", 
-            "desc":"Warrior class. Great all around class.", 
-            "stats":{"strength":50, "defense":50, "intelligence":30, "sense":20, "health":100, "CurrentHealth":100}, 
-            "ability":"Rage", 
-            "abilitydesc":"Increase attack damage by 50%"},
-
-            {"class":"assassin", 
-            "desc":"Assassin class. deadly damage output, low defense.", 
-            "stats":{"strength":110, "defense":15, "intelligence":30, "sense":50, "health":80, "CurrentHealth":100}, 
-            "ability":"stealth", 
-            "abilitydesc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat."},
-
-            {"class":"Mage", 
-            "desc":"Mage class. Uses movie science", 
-            "stats":{"strength":40, "defense":30, "intelligence":100, "sense":60, "health":100, "CurrentHealth":100}, 
-            "ability":"Fire ball", 
-            "abilitydesc":"Send a fire ball at your enemies!"},
-
-            {"class":"Healer", 
-            "desc":"Healer class. Can heal. A lot.", 
-            "stats":{"strength":40, "defense":50, "intelligence":80, "sense":30, "health":150, "CurrentHealth":150}, 
-            "ability":"Heal!", 
-            "abilitydesc":"Recover 70%% of your HP!"}
-
-        ]
+        classdict = Globals.getClassDict()
 
 
         global effectdict
-        effectdict = [
-            {"name":"Bleed","type":"Physical", "category":["health"], "AffectsSender":False, "value":95, "length":4, "ValSet":False},
-            {"name":"Defenseless","type":"Physical", "category":["defense"], "AffectsSender":False, "value":10, "length":3, "ValSet":True},
-            {"name":"Regeneration","type":"Physical", "category":["health"], "AffectsSender":False, "value":115, "length":4, "ValSet":True},
-
-        ]
+        effectdict = Globals.getEffectDict()
 
 
         global abilitydict
@@ -896,7 +883,8 @@ class mmorpgGame(commands.Cog):
             ##defend
             {"name":"Deflect","category":"defense", "type":"Physical", "WorksAgainst":"Magic","defends":1500, "desc":"Returns all magic damage to its sender!","cooldown":0,"ult":False, "special":Deflect, "mana":10, "effect":["Defenseless"]},
             {"name":"Absorb","category":"defense", "type":"Magic", "WorksAgainst":"All","defends":1500, "desc":"Absorbs!", "special":None, "cooldown":0,"ult":False, "mana":10, "effect":None},
-        
+            {"name":"Susanoo", "category":"attack", "type":"Magic", "damage":100, "desc":"The Perfect Defense","cooldown":4,"ult":True, "special":None, "mana":70, "effect":["Susanoo"]},
+
         
         
         
@@ -906,6 +894,7 @@ class mmorpgGame(commands.Cog):
             {"name":"Fire Ball", "category":"attack", "type":"Magic", "damage":50, "desc":"A basic skill from mages", "special":None,"cooldown":0,"ult":False, "mana":10, "effect":None},
             {"name":"Punch", "category":"attack","type":"Physical", "damage":10, "desc":"A basic attack anyone can do.", "special":None,"cooldown":0,"ult":False, "mana":10, "effect":None},
             {"name":"Black Divider", "category":"attack", "type":"Physical", "damage":2000, "desc":"A devastating attack from the Demon Destroyer","cooldown":4,"ult":True, "special":None, "mana":10, "effect":["Bleed"]},
+            {"name":"Amaterasu", "category":"attack", "type":"Magic", "damage":100, "desc":"Burns infinitely","cooldown":4,"ult":True, "special":None, "mana":70, "effect":["Amaterasu"]},
 
         ]
 
@@ -915,58 +904,10 @@ class mmorpgGame(commands.Cog):
 
 
         global itemdict
-        itemdict = [
-            {"name":"Necromancer", 
-            "type":"Runestone", 
-            "desc":"grants the ability of Necromancer", 
-            "rarity":"Legendary"},
-
-            {"name":"Vaccine", 
-            "type":"Heal",
-            "desc":"grants the ability of Necromancer", 
-            "rarity":"Legendary",
-            "abilities":{"vaccine":1}},
-
-            {"name":"Saitamas Dish Gloves", 
-            "type":"hands", 
-            "desc":"The Most powerful item in the game.",
-            "rarity":"illegal", 
-            "attribute":{"strength":1000000}},
-
-            {"name":"Demon Destroyer", 
-            "type":"primary", 
-            "desc":"Can deflect spells completely!", 
-            "rarity":"Legendary", 
-            "abilities":{"Black Slash":1, "Deflect":1, "Black Divider":1}
-            },
-            {"name":"Black Divider", 
-            "type":"primary", 
-            "desc":"Can deflect spells completely!", 
-            "rarity":"Legendary", 
-            "abilities":{"Black Slash":1, "Deflect":1, "Black Divider":1}
-            },
-
-            {"name":"Doma's Flames", 
-            "type":"Runestone", 
-            "desc":"Incinerate your enemies until one of you wins. Damage is slow, but undefendable.", 
-            "rarity":"Epic"},
-
-        ]
+        itemdict = Globals.getBattleItems()
 
         global Enemies
-        Enemies = [
-            {"name":"Acnologia", 
-            "health":5000, 
-            "strength":800, 
-            "defense":400, 
-            "intelligence":1000,
-            "mana":1000,
-            "image":"https://static.wikia.nocookie.net/vsbattles/images/7/71/New_Human_Acnologia_Render.png/revision/latest/scale-to-width-down/400?cb=20200704092623", 
-            "size":((160, 199)), 
-            "paste":((468,125)),
-            "abilities":{"Fire Ball":1,"Absorb":1,"vaccine":1}
-            }
-        ]
+        Enemies = Globals.getEnemyList()
 
 
 
@@ -990,15 +931,9 @@ class mmorpgGame(commands.Cog):
 
 
 
-    @commands.group(invoke_without_command=True)
-    async def mmorpg(self, ctx):
-        embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
-        embed.add_field(name = "Setup commands", value = "`begin`")
-        await ctx.channel.send(embed=embed)
 
 
-
-    @mmorpg.command()
+    @commands.command()
     async def Test(self, ctx, person, IsPlayer=None):
         global abilitydict
         global Enemies
@@ -1135,7 +1070,7 @@ class mmorpgGame(commands.Cog):
 
 
 
-    @mmorpg.command()
+    @commands.command()
     async def duel(self, ctx, PersonToDuel:discord.Member):
         global abilitydict
         global Enemies
@@ -1265,12 +1200,6 @@ class mmorpgGame(commands.Cog):
             await asyncio.sleep(2)
             await ctx.channel.send(embed=discord.Embed(title = "It is now %s' Turn."%(Op.Name))) 
             await asyncio.sleep(2)
-            for x in GetAttribute("attack", Op.Player)+GetAttribute("defense", Op.Player)+GetAttribute("support", Op.Player):
-                if x.ult:
-                    Op.Player.AddToCooldown(x)
-            for x in GetAttribute("attack", You.Player)+GetAttribute("defense", You.Player)+GetAttribute("support", You.Player):
-                if x.ult:
-                    You.AddToCooldown(x)
             This1 = await FightAction(self, ctx, You, Op)
             if This1[1]=="Attack":
                 ThisAttack = This1[0]
@@ -1311,7 +1240,7 @@ class mmorpgGame(commands.Cog):
         mulah.update_one({"id":PersonToDuel.id}, {"$set":{"duelloses":Oploss}})
 
 
-    @mmorpg.command()
+    @commands.command()
     async def equip(self, ctx, items:str):
         global EquipItem
         global itemdict
@@ -1382,7 +1311,7 @@ class mmorpgGame(commands.Cog):
                 
 
 
-    @mmorpg.command()
+    @commands.command()
     async def begin(self, ctx):
         global StoryEmbed
         mmorpg = mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]

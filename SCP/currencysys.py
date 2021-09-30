@@ -42,7 +42,13 @@ from PIL import Image
 from io import BytesIO
 import requests
 import Globals
-cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+import pymongo
+import ssl
+
+uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
+cluster = MongoClient(uri,
+                     tls=True,
+                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
 
@@ -57,150 +63,32 @@ class currencysys(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         global emotionlist
-        emotionlist = ["embarrassed", "horny","surprised","climax", "image", "bed", "angry", "fear", "sad", "dissapointed"]
-
+        emotionlist = Globals.getEmotionList()
         global achievements
-        achievements = [
-            {"name":"First Kiss!", "desc":"Kiss someone for the first time!", "category":"relationships"},
-            {"name":"Virginity Loss!", "desc":"Boink someone for the first time!", "category":"relationships"},
-            {"name":"Engaged!", "desc":"Propose to someone for the first time!", "category":"relationships"},
-            {"name":"Jerk", "desc":"Turns out you were the problem", "category":"relationships"},
-            {"name":"Divorcee!", "desc":"Get a life bro.", "category":"relationships"},
-            {"name":"First Date!", "desc":"First date with GF!", "category":"relationships"},
-            
-
-            {"name":"Getting By", "desc":"finally making some money! good job!", "category":"finance"},
-            {"name":"Millionaire!", "desc":"its what it sounds like", "category":"finance"},
-            
-            {"name":"Billionaire!", "desc":"Treat your workers with respect.", "category":"finance"},
-            {"name":"Employed!", "desc":"You got a job.", "category":"finance"},
-            {"name":"Gambler!", "desc":"You gambled for the first time! ", "category":"finance"},
-            {"name":"Winner!", "desc":"You won a gamble! ", "category":"finance"},
-
-
-            {"name":"Death!", "desc":"Get a life bro.", "category":"finance"},
-            {"name":"virgin", "desc":"Secret!", "category":"gaming"},
-            {"name":"FloorGang", "desc":"Secret!", "category":"gaming"},
-            {"name":"First PC!", "desc":"Create your first PC!", "category":"gaming"},
-            {"name":"Linus Tech Tips", "desc":"Create a beefy Computer with at least 12000 power!", "category":"gaming"},
-            {"name":"True Gamer", "desc":"Install 5 games on a single PC!", "category":"gaming"},
-            
-        ]
-
+        achievements = Globals.getAchievementList()
+    
 
         global worklists
-        worklists = [
-            {"name":"McDonalds worker", "salary":15, "req":1, "words":["bigmac", "burger", "broken"], "sentences":["sorry, the icecream machine is broken", "what can I get for you?", "welcome to mcdonalds"]},
-            {"name":"Gamer", "salary":150, "req": 5, "words":["dorito", "mechanical", "virgin"], "sentences":["i hate lag", "hes one tap", "what a sweat"]},
-            {"name":"Business Man", "salary":160, "req":20, "words":["business", "passive", "pigeon"], "sentences":["sorry thats not passive income", "it is ten times cheaper to keep a customer than to get a new one"]},
-            {"name":"Jeff bezos", "salary":1000000000, "req":100, "words":["bigmac", "burger", "broken"]},
-        ]
+        worklists = Globals.getWorkLists()
 
         global shopitems
-        shopitems = [
-            {"name":"phone", "value":800, "desc":"Text your Girlfriend!"},
-            {"name": "netflixsub", "value": 29, "desc": "Netflix and chill with your gf"},
-            {"name": "lotteryticket", "value": 2, "desc": "A chance to win 1 million dollars"},
-            {"name": "movieticket", "value" : 16, "desc":"watch a movie with your gf"},
-            {"name": "ring", "value" : 10000, "desc":"propose to your gf"},
-
-        ]
+        shopitems = Globals.getShopItems()
 
 
         global BattleShop
-        BattleShop = [
-            {"name":"UpgradePoint", "value":2000, "desc":"`^upgrade` one of your stats!"},
-        ]
+        BattleShop = Globals.getBattleItems()
 
 
         global ToolValues
-        ToolValues = [
-            {"name": "rifle", "value" : 400, "desc":"`^hunt` to get animals!"},
-            {"name": "fishpole", "value" : 100, "desc":"`^fish` to catch fish!"},
-            {"name":"pickaxe", "durability":59, "fortune":1, "craft":{"wood":5}, "value":25, "desc":"cheap mining"},
-            {"name":"iron pickaxe", "durability":250, "fortune":2, "craft":{"wood":2, "iron":3}, "value":25, "desc":"better mining"},
-            {"name":"gold pickaxe", "durability":33, "fortune":4, "craft":{"wood":2, "gold":3}, "value":115, "desc":"fine mining"},
-            {"name":"diamond pickaxe", "durability":1562, "fortune":4, "craft":{"wood":2, "diamond":3}, "value":13010, "desc":"best mining"},
-
-            {"name":"axe", "durability":59, "fortune":1, "craft":{"wood":4}, "value":29, "desc":"Chop wood"},
-            {"name":"iron axe", "durability":250, "fortune":2, "craft":{"wood":2, "iron":3}, "value":25, "desc":"Chop more wood"},
-            {"name":"gold axe", "durability":33, "fortune":4, "craft":{"wood":2, "gold":3}, "value":115, "desc":"Chop lots of wood"},
-            {"name":"diamond axe", "durability":1562, "fortune":4, "craft":{"wood":2, "diamond":3}, "value":13010, "desc":"Chop even more wood"},
-
-            {"name":"hoe", "durability":59, "fortune":1, "craft":{"wood":2}, "value":10, "desc":"Farm stuff idk"},
-            {"name":"iron hoe", "durability":250, "fortune":2, "craft":{"wood":2, "iron":2}, "value":20, "desc":"Farm stuff idk"},
-            {"name":"gold hoe", "durability":32, "fortune":4, "craft":{"wood":2, "gold":2}, "value":80, "desc":"Farm stuff idk"},
-            {"name":"diamond hoe", "durability":1561, "fortune":4, "craft":{"wood":2, "diamond":2}, "value":8810, "desc":"Farm stuff idk"},
-        ]
+        ToolValues = Globals.getToolValues()
         global farmitems
-        farmitems =[
-            {"name":"uncommon fish", "value":10, "desc":"cheap fish to sell"},
-            {"name":"common fish", "value":20, "desc":"a mediocre fish"},
-            {"name":"rare fish", "value":50, "desc":"high quality fish"},
-            {"name":"legendary fish", "value":150, "desc":"very valuable fish"},
-            {"name":"mouse", "value":10, "desc":"idk why someone would even bother"},
-            {"name":"rabbit", "value":50, "desc":"tste great in stew"},
-            {"name":"deer", "value":150, "desc":"sells well"},
-            {"name":"bigfoot", "value":1000, "desc":"make some mulah"},
-            {"name":"coal", "value":1, "desc":"non renewable energy source"},
-            {"name":"iron", "value":5, "desc":"for what"},
-            {"name":"gold", "value":35, "desc":"terrible durability"},
-            {"name":"diamond", "value":4400, "desc":"sells for a lot"},
-            {"name":"ruby", "value":10000, "desc":"One of the most precious things in this world"},
-            {"name":"wheat", "value":10, "desc":"carbs"},
-            {"name":"beetroot", "value":20, "desc":"why do people eat this"},
-            {"name":"melon", "value":50, "desc":"mmm"},
-            {"name":"pumpkin", "value":150, "desc":"pumpkin pie tastes great"},
-            {"name":"wood", "value":5, "desc":"profits pile up"},
-
-        ]
-
+        farmitems =Globals.getFarmItems()
         global pcitems
-        pcitems = [
-            {"name":"4gbRam", "type":"ram", "value": 20,"desc":"Use this for your PC!","power":0,"space":0, "rspace": 4000, "synthesis":0, "consumption":10},
-            {"name":"8gbRam", "type":"ram", "value": 50, "desc":"Reasonable upgrade!","power":0,"space":0, "rspace": 8000, "synthesis":0, "consumption":10},
-            {"name":"16gbRam", "type":"ram", "value": 100, "desc":"Do you really need this?","power":0,"space":0, "rspace": 16000, "synthesis":0, "consumption":10},
-            {"name":"32gbRam", "type":"ram", "value": 200, "desc":"Thats overkill man, but you do you ig.","space":0,"power":0, "rspace": 32000, "synthesis":0, "consumption":10},
-            {"name":"i5","type":"cpu", "value": 160, "desc":"A perfect cpu- if you are on a budget","space":0,"rspace":0, "power":1500 , "synthesis":0, "consumption":250},
-            {"name":"i7","type":"cpu", "value": 250, "desc":"Great for upper middle range machines!","space":0, "power":2000,"rspace":0, "synthesis":0, "consumption":250 },
-            {"name":"i9","type":"cpu", "value": 370, "desc":"A great gaming cpu overall.","space":0, "power":2500,"rspace":0, "synthesis":0, "consumption":250 },
-            {"name":"threadripper","type":"cpu", "value": 3000, "desc":"An excellent cpu that will never know pain.","space":0, "power":4000,"rspace":0, "synthesis":0, "consumption":280 },
-            {"name":"xeon","type":"cpu", "value": 10000, "desc":"For NASA computers", "power":10000,"space":0,"rspace":0, "synthesis":0, "consumption":350},
-            {"name":"512SSD","type":"storage", "value": 70, "desc":"Great storage for a decent machine!","rspace":0,"power":0, "synthesis":0, "space": 512000, "consumption":10},
-            {"name":"1TBSSD","type":"storage", "value": 100, "desc":"This should be enough for most people","rspace":0,"power":0, "synthesis":0, "space": 1000000, "consumption":10 },
-            {"name":"4TBSSD","type":"storage", "value": 500, "desc":"enough storage for your homework folder","rspace":0,"power":0, "synthesis":0, "space": 4000000, "consumption":10 },
-            {"name":"1660ti","type":"gpu", "value": 280, "desc":"entry level gpu","space":0, "power":1500,"rspace":0, "synthesis":0,"consumption":120  },
-            {"name":"1080ti","type":"gpu", "value": 1074, "desc":"Good for mid range machines","space":0, "power":2000,"rspace":0, "synthesis":0, "consumption":250 },
-            {"name":"2080ti","type":"gpu", "value": 1376, "desc":"imagine using a 20 series","space":0, "power":2500,"rspace":0, "synthesis":0, "consumption":275 },
-            {"name":"3080ti","type":"gpu", "value": 3000, "desc":"Scalper price!", "space":0, "power":6000,"rspace":0, "synthesis":0, "consumption":350 },
-            {"name":"650watt","type":"psu", "value": 5000, "desc":"scalper price!","space":0,"power":0, "synthesis":650,"rspace":0, "consumption":0  },
-            {"name":"750watt","type":"psu", "value": 5000, "desc":"scalper price!","space":0,"power":0, "synthesis":750,"rspace":0, "consumption":0  },
-            {"name":"850watt","type":"psu", "value": 5000, "desc":"scalper price!","space":0,"power":0, "synthesis":850,"rspace":0, "consumption":0  },
-            {"name":"900watt","type":"psu", "value": 5000, "desc":"scalper price!","space":0,"power":0, "synthesis":900,"rspace":0, "consumption":0  },
-            {"name":"motherboard","type":"board", "value": 100, "desc":"build a pc.","space":0,"power":0, "synthesis":0,"rspace":0, "consumption":0  }
-
-
-        ]  
+        pcitems = Globals.getPcItems()
         global gameitems
-        gameitems = [
-            {"name":"Minecraft", "genre":["adventure", "creativity"],"space":1500, "value":26, "desc": "anything can run Minecraft!", "lpincrease":30, "recommendedspecs":{"totalram":8000, "power":1500}},
-            {"name":"Fortnite", "genre":["fps"],"space":49000, "value":0, "desc": "How much lp were you expecting for fortnite?", "lpincrease":5, "recommendedspecs":{"totalram":8000, "power":2500}},
-            {"name":"Valorant", "genre":["fps"],"space":14400, "value":0, "desc": "spend 80% of the game spectating.", "lpincrease":25, "recommendedspecs":{"totalram":8000, "power":3000}},
-            {"name":"Terraria", "genre":["adventure", "creativity"],"space":100, "value":5, "desc": "A great friend of Mc", "lpincrease":20, "recommendedspecs":{"totalram":8000, "power":1500}},
-            {"name":"Microsoft Flight simulator", "genre":["creativity"],"space":150000, "value":60, "desc": "You probably cant run this.", "lpincrease":40, "recommendedspecs":{"totalram":16000, "power":5000}},
-            {"name":"Crysis 3", "genre":["adventure"],"space":17000, "value":5, "desc": "Your pc simply cant run this.", "lpincrease":50, "recommendedspecs":{"totalram":32000, "power":7800}},
-            {"name":"League of Legends", "genre":["strategy"],"space":22000, "value":0, "desc": "Dont do it.", "lpincrease":-50, "recommendedspecs":{"totalram":8000, "power":2800}}
-        ]
+        gameitems = Globals.getGameItems()
         global gamewords
-        gamewords = [
-            {"name": "Minecraft", "words":["block", "redstone", "blockhit", "endcrystal"]},
-            {"name": "Fortnite", "words":["build", "ninja", "virgin", "clap"]},
-            {"name": "Valorant", "words":["hipfire", "slow", "spectator", "Operator"]},
-            {"name": "Terraria", "words":["Terraria", "cheap", "fun", "pewdiepie"]},
-            {"name": "Microsoft Flight Simulator", "words":["plane", "aviation", "pilot", "graphics"]},
-            {"name": "Crysis 3", "words":["Block", "redstone", "blockhit", "endcrystal"]},
-            {"name": "League of Legends", "words":["virgin", "discordmod", "glasses", "asian"]},
-        ]
+        gamewords = Globals.getGameWords()
 
 
 

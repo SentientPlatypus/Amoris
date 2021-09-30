@@ -43,10 +43,16 @@ from removebg import RemoveBg
 import os
 from PIL import Image
 from io import BytesIO
+import pymongo
 import requests
 import Globals
 from discord import Color
-cluster = MongoClient('mongodb+srv://SCPT:Geneavianina@scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+import ssl
+
+uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
+cluster = MongoClient(uri,
+                     tls=True,
+                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
 mulah = cluster["discord"]["mulah"]
@@ -109,53 +115,7 @@ class levelsys(commands.Cog):
                     randfunny = random.choice(funnyresponse)
                     await ctx.channel.send(randfunny)
 
-        #SAD
-        if DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]["sad on message"]["enabled"]==True:
-            sad = ["sad", "depressed", "depression", "unhappy"]
-            if any(word in ctx.content for word in sad):
-                if ctx.author.id==643764774362021899:
-                    trexysad = [" creator senpai! dont be sad, Is there anything I can do to cheer you up?", " creator senpai, please feel better.", "NO, You are not allowed to feel that way,  creator senpai."]
-                    randtrexysad = random.choice(trexysad)
-                    await ctx.channel.send(randtrexysad)
-                else:
-                    sadresponse = ["cheer up. Its not like I care or anything.", "You need to be happier, My  creator senpai wants people to be happy"]
-                    randsad = random.choice(sadresponse)
-                    await ctx.channel.send(randsad)
-                def check(m):
-                    return m.author==ctx.author and m.channel == ctx.channel
-                try:
-                    shutupctx = await client.wait_for('ctx', check = check, timeout=5)
-                except asyncio.TimeoutError:
-                    pass
-                if any(word in ctx.content.casefold() for word in shutuplist):
-                    await ctx.channel.send(random.choice(shutupresponse))
-                    
-                else:
-                    pass
 
-
-            #WHY
-        if DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]["on message"]["enabled"]==True:
-            if ctx.content.startswith("why"):
-                if ctx.author.id==643764774362021899:
-                    trexywhy = ["I will find out asap.", "I will google it for you,  creator senpai", "Someone, answer  creator senpai's question!"]
-                    randtrexywhy = random.choice(trexywhy)
-                    await ctx.channel.send(randtrexywhy)
-                else:
-                    whyy = ["Im not sure, Try asking my  creator senpai.", "How would I know? I dont even like talking to you guys, but my  creator senpai wants me to.", "Look it up, baka."]
-                    randwhyy = random.choice(whyy)
-                    await ctx.channel.send(randwhyy)
-                def check(m):
-                    return m.author==ctx.author and m.channel == ctx.channel
-                try:
-                    shutupctx = await self.client.wait_for('ctx', check = check, timeout=5)
-                except asyncio.TimeoutError:
-                    pass
-                if any(word in ctx.content.casefold() for word in shutuplist):
-                    await ctx.channel.send(random.choice(shutupresponse))
-                    
-                else:
-                    pass
                     
             #UWU
             if ctx.content.casefold().startswith("uwu"):

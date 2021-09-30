@@ -300,12 +300,12 @@ class Images(commands.Cog):
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def tweet(self, ctx, username: str, *, text: str):
+    async def tweet(self, ctx, username: discord.Member, *, text: str):
         """Tweet as someone."""
         await ctx.trigger_typing()
         async with self.session.get("https://nekobot.xyz/api/imagegen?type=tweet"
                           "&username=%s"
-                          "&text=%s" % (username, text,)) as r:
+                          "&text=%s" % (username.display_name, text,)) as r:
             res = await r.json()
 
         await ctx.send(embed=self.__embed_json(res))
