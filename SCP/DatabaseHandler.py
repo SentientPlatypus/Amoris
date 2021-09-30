@@ -45,10 +45,7 @@ import Globals
 import pymongo
 import ssl
 
-uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
-cluster = MongoClient(uri,
-                     tls=True,
-                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
+cluster = Globals.getMongo()
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
@@ -63,13 +60,12 @@ class DatabaseHandler(commands.Cog):
         ServerSettings = {
             "Profanity Filter":{"desc":"Censors Profanity.", "enabled":True},
             "lol on message":{"desc":"sends a lol message when someone laughs", "enabled":True},
-            "sad on message":{"desc":"sends a comforting message when someone cries", "enabled":True},
-            "on message":{"desc":"sends meaningless messages", "enabled":True},
             "announce":{"desc":"settings for `^announce`", "enabled":True},
             "suggest":{"desc":"settings for `^suggest`", "enabled":True},
         }
         global ServerConfig
         ServerConfig = [
+            {"name":"prefix", "value":"^"},
             {"name":"badwords", "value":[]},
             {"name":"announcement channels", "value":[]},
             {"name":"suggestion channels", "value":[]},

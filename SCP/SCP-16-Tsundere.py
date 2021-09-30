@@ -53,7 +53,12 @@ import Images
 import games
 import extras
 import ssl
+import Globals
 import pymongo
+from typing import Optional
+
+import HelpCommand
+cogHelp = [HelpCommand]
 cogExtras = [extras]
 cogGame = [games]
 cogImage = [Images]
@@ -64,18 +69,21 @@ cogsmmorpg = [mmorpgGame]
 cogDB = [DatabaseHandler]
 coggf = [DatingSim]
 d = enchant.Dict("en_US")
-uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
-cluster = MongoClient(uri,
-                     tls=True,
-                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
+cluster = Globals.getMongo()
 DiscordGuild = cluster["discord"]["guilds"]
 
 
 tagre = "\#\d{4}$"
 
 
-
-client = commands.Bot(command_prefix="^", intents =discord.Intents.all(), status=discord.Status.online)
+async def determine_prefix(bot, message):
+	guild = message.guild
+	if guild:
+		prefix = DiscordGuild.find_one({"id":guild.id}, {"prefix"})["prefix"]
+		return prefix
+	else:
+		return "^"
+client = commands.Bot(command_prefix=determine_prefix, intents =discord.Intents.all(), status=discord.Status.online)
 
 
 
@@ -1747,6 +1755,9 @@ for i in range(len(cogGame)):
 	cogGame[i].setup(client)
 for i in range(len(cogExtras)):
 	cogExtras[i].setup(client)
+
+for i in range(len(cogHelp)):
+	cogHelp[i].setup(client)
 ##------------------------------------------sim--------------------------------------------
 
 

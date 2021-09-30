@@ -50,10 +50,7 @@ import pymongo
 import ssl
 
 
-uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
-cluster = MongoClient(uri,
-                     tls=True,
-                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
+cluster = Globals.getMongo()
 DiscordGuild = cluster["discord"]["guilds"]
 
 class GuildHandler(commands.Cog):
@@ -64,7 +61,7 @@ class GuildHandler(commands.Cog):
     async def settings(self, ctx, command=None, value=None):
         settings = DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]
         if not command:
-            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `^settings "<command>" <enable|disable>`\n `^configuration` is to alter server settings.')
+            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `^settings "<command>" <enable|disable>`\n `^configuration` is to alter server settings, eg. `^configuration setprefix <prefix>`.')
             for x in settings.keys():
                 check=""
                 if settings[x]["enabled"]==True:
@@ -121,6 +118,14 @@ class GuildHandler(commands.Cog):
         embed.add_field(name = "commands", value = "`^configuration badword`, `^configuration announcement`, `^configuration suggestion`")
         await ctx.channel.send(embed=embed)
     
+
+    @configuration.command()
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def setprefix(self, ctx, prefix):
+        DiscordGuild.update_one({"id":ctx.author.guild.id}, {"$set":{"prefix":prefix}})
+        await ctx.channel.send("Guild prefix has been updated to %s"%(prefix))
+
     @configuration.command()
     async def badword(self, ctx):
         leave = False

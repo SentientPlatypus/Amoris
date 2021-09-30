@@ -44,10 +44,11 @@ import Globals
 import pymongo
 import ssl
 
-uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
-cluster = MongoClient(uri,
-                     tls=True,
-                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
+def getMongo():
+    return MongoClient("mongodb+srv://SCP:Geneavianina@scp16cluseter.foubt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
+
+
+cluster = getMongo()
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
 achievements = [
@@ -77,6 +78,9 @@ achievements = [
 
     
 ]
+
+
+
 def gamble(odds:int, times:int):
     count = 0
     wins = 0
@@ -245,7 +249,7 @@ async def AchievementEmbed(ctx, EarnedAchievement):
     UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
     if EarnedAchievement not in UserAchievements:
         AchievementDict = next(x for x in achievements if x["name"]==EarnedAchievement)
-        embed = discord.Embed(title = "Congratulations! you earned the achievement %s"%(AchievementDict["name"]), description = AchievementDict["desc"], color = ctx.author.color)
+        embed = discord.Embed(title = "Congratulations! you earned the achievement %s"%(AchievementDict["name"]), description = AchievementDict["desc"], color = discord.Color.gold())
         embed.set_image(url = 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/271/trophy_1f3c6.png')
         UserAchievements.append(EarnedAchievement)
         mulah.update_one({"id":ctx.author.id}, {"$set":{"achievements":UserAchievements}})

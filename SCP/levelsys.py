@@ -49,10 +49,7 @@ import Globals
 from discord import Color
 import ssl
 
-uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
-cluster = MongoClient(uri,
-                     tls=True,
-                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
+cluster = Globals.getMongo()
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
 mulah = cluster["discord"]["mulah"]

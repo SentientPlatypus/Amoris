@@ -52,10 +52,7 @@ from datetime import date, datetime, timedelta
 import pymongo
 import ssl
 
-uri = "mongodb+srv://scptsunderedatabase.fp8en.mongodb.net/myFirstDatabase?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
-cluster = MongoClient(uri,
-                     tls=True,
-                     tlsCertificateKeyFile=r'C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\SCP\cert.pem')
+cluster = Globals.getMongo()
 mulah = cluster["discord"]["mulah"]
 
 
@@ -1067,6 +1064,237 @@ class mmorpgGame(commands.Cog):
                 YouWins+=1
                 Oploss+=1
                 break     
+
+
+
+
+    @commands.command()
+    async def duel(self, ctx, PersonToRob:discord.Member):
+        global abilitydict
+        global Enemies
+        print(str(ctx.author))
+        YouWins =mulah.find_one({"id":ctx.author.id}, {"duelwins"})["duelwins"] 
+        Youloss =mulah.find_one({"id":ctx.author.id}, {"duelloses"})["duelloses"] 
+        OpWins =mulah.find_one({"id":PersonToRob.id}, {"duelwins"})["duelwins"] 
+        Oploss =mulah.find_one({"id":PersonToRob.id}, {"duelloses"})["duelloses"] 
+        global GetAttribute
+        You = Opponent(
+            ctx.author.display_name, 
+            ctx.author.avatar_url, 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["health"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["health"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["defense"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["defense"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["strength"], 
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["strength"],
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["intelligence"],
+            mulah.find_one({"id":ctx.author.id}, {"mmorpg"})["mmorpg"]["stats"]["intelligence"],
+            ((123,123)),
+            ((20,199)),
+            GetAttribute("attack", ctx.author),
+            GetAttribute("defense", ctx.author),
+            GetAttribute("support", ctx.author),
+            [],
+            ctx.author,
+            []
+            )
+
+        Op = Opponent(
+            PersonToRob.display_name, 
+            PersonToRob.avatar_url, 
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["health"], 
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["health"], 
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["defense"], 
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["defense"], 
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["strength"], 
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["strength"],
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["intelligence"],
+            mulah.find_one({"id":PersonToRob.id}, {"mmorpg"})["mmorpg"]["stats"]["intelligence"],
+            ((123,123)),
+            ((468,125)),
+            GetAttribute("attack", PersonToRob),
+            GetAttribute("defense", PersonToRob),
+            GetAttribute("support", PersonToRob),
+            [],
+            PersonToRob,
+            []
+            )
+        print(Op.Name)
+        embed = discord.Embed(title = "You are being robbed by %s"%(You.Name), description = "Think You can defend your hard earned coins?, %s"%(PersonToRob.mention), color = discord.Color.red())
+        embed.add_field(name = "Will you accept this duel?", value = "react with ✅ to accept \n react with ❌ to decline")
+        embed.set_author(name = You.Name, icon_url=You.Image)
+        embed.set_footer(text = datetime.now().strftime("%Y-%m-%d, %H:%M"))
+        msg = await ctx.channel.send(embed=embed)
+        for x in ["✅", "❌"]:
+            await msg.add_reaction(x)
+        def check(reaction, user):
+            return user==Op.Player and str(reaction.emoji) in ["✅", "❌"] and reaction.message==msg
+        try:
+            confirm = await self.client.wait_for('reaction_add', check=check, timeout=10)
+            if confirm:
+                rawreaction = str(confirm[0])
+                print(rawreaction)
+                if rawreaction == "❌":
+                    await ctx.channel.send("%s declined the duel request"%(Op.Name))
+                    return
+                else:
+                    await ctx.channel.send("%s accepted. the duel will begin shortly."%(Op.Name))
+        except TimeoutError:
+            embed = discord.Embed(title = "Robbery", description = "Victim: %s"%(PersonToRob.display_name), color = discord.Color.green())
+            embed.set_thumbnail(url=PersonToRob.avatar_url)
+            embed.set_author(icon_url=ctx.author_url, name=ctx.author.display_name)
+            embed.add_field(name="Status",value="`unnoticed`")
+            
+            wallet = mulah.find_one({"id":Op.Player.id}, {"money"})["money"]
+            steal = wallet*0.05
+            embed.set_footer(text="You have stolen $%g"%(steal))
+            await ctx.channel.send(embed=embed)
+            mulah.update_one({"id":You.Player.id}, {"$inc":{"money":steal}})
+            mulah.update_one({"id":Op.Player.id}, {"$inc":{"money":steal*(-1)}})
+
+            return
+
+        for x in GetAttribute("attack", ctx.author)+GetAttribute("defense", ctx.author)+GetAttribute("support", ctx.author):
+            if x.ult:
+                You.AddToCooldown(x)
+        for x in GetAttribute("attack", PersonToRob)+GetAttribute("defense", PersonToRob)+GetAttribute("support", PersonToRob):
+            if x.ult:
+                Op.AddToCooldown(x)
+
+
+
+        GameOver=False
+        while GameOver==False:
+            You.CooldownCheck()
+            await asyncio.sleep(2)
+            await ctx.channel.send(embed=discord.Embed(title = "It is now %s' Turn."%(You.Name)))
+            await asyncio.sleep(2)
+
+            This1 = await FightAction(self, ctx, Op, You)
+            if This1[1]=="Attack":
+                ThisAttack = This1[0]
+                You.AddToCooldown(ThisAttack)
+                Thee = await Defend(self, ctx, You, Op, ThisAttack)
+                await asyncio.sleep(2)
+                if Thee == "Error":
+                    This = await FinalDamage(self, ctx, ThisAttack, Op, You)
+                else:
+                    This = await FinalDamage(self, ctx, ThisAttack, Op, You, Defense = Thee)
+                await ctx.channel.send(embed=This[0], file=This[1])
+            
+            elif This1[1]=="Support":
+                await asyncio.sleep(2)
+                ThisSupport = This1[0]
+                You.AddToCooldown(ThisSupport)
+                This = await SupportOpponent(self, ctx, You, Op, ThisSupport)
+                await ctx.channel.send(embed=This[0], file=This[1])  
+
+            elif This1[1]=="Retreat":
+                break
+
+
+            if You.CurrentHealth<=0:
+                winner = Op
+                await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
+                OpWins+=1
+                Youloss+=1
+                break
+
+            if Op.CurrentHealth<=0:
+                winner = You
+
+                await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+                YouWins+=1
+                Oploss+=1
+                break    
+
+            Op.CooldownCheck()
+            await asyncio.sleep(2)
+            await ctx.channel.send(embed=discord.Embed(title = "It is now %s' Turn."%(Op.Name))) 
+            await asyncio.sleep(2)
+            This1 = await FightAction(self, ctx, You, Op)
+            if This1[1]=="Attack":
+                ThisAttack = This1[0]
+                Op.AddToCooldown(ThisAttack)
+                Thee = await Defend(self, ctx, Op, You, ThisAttack)
+                await asyncio.sleep(2)
+                if Thee == "Error":
+                    This = await FinalDamage(self, ctx, ThisAttack, You, Op)
+                else:
+                    This = await FinalDamage(self, ctx, ThisAttack, You, Op, Defense = Thee)
+                await ctx.channel.send(embed=This[0], file=This[1])
+            
+            elif This1[1]=="Support":
+                await asyncio.sleep(2)
+                ThisSupport = This1[0]
+                Op.AddToCooldown(ThisSupport)
+                This = await SupportOpponent(self, ctx, Op, You, ThisSupport)
+                await ctx.channel.send(embed=This[0], file=This[1])  
+
+            elif This1[1]=="Retreat":
+                break
+
+
+            if You.CurrentHealth<=0:
+                winner = Op
+                await ctx.channel.send("%s has perished. %s is victorious!"%(You.Name, Op.Name))
+                OpWins+=1
+                Youloss+=1
+                break
+
+            if Op.CurrentHealth<=0:
+                winner = You
+                await ctx.channel.send("%s has perished. %s is victorious!"%(Op.Name, You.Name))
+                YouWins+=1
+                Oploss+=1
+                break    
+        try:
+            if winner ==You:
+                embed = discord.Embed(title = "Robbery", description = "Victim: %s"%(PersonToRob.display_name), color = discord.Color.green())
+                embed.set_thumbnail(url=PersonToRob.avatar_url)
+                embed.set_author(icon_url=ctx.author_url, name=ctx.author.display_name)
+                embed.add_field(name="Status",value="`victorious`")
+                
+                wallet = mulah.find_one({"id":Op.Player.id}, {"money"})["money"]
+                steal = wallet*0.08
+                embed.set_footer(text="You have stolen $%g"%(steal))
+                await ctx.channel.send(embed=embed)
+                mulah.update_one({"id":You.Player.id}, {"$inc":{"money":steal}})
+                mulah.update_one({"id":Op.Player.id}, {"$inc":{"money":steal*(-1)}})
+                return
+            else:
+                embed = discord.Embed(title = "Robbery", description = "Victim: %s"%(PersonToRob.display_name), color = discord.Color.green())
+                embed.set_thumbnail(url=PersonToRob.avatar_url)
+                embed.set_author(icon_url=ctx.author_url, name=ctx.author.display_name)
+                embed.add_field(name="Status",value="`defeated`")
+                
+                wallet = mulah.find_one({"id":Op.Player.id}, {"money"})["money"]
+                steal = wallet*0.05
+                embed.set_footer(text="You have lost $%g"%(steal))
+                mulah.update_one({"id":Op.Player.id}, {"$inc":{"money":steal}})
+                mulah.update_one({"id":You.Player.id}, {"$inc":{"money":steal*(-1)}})
+
+
+
+
+        except:
+            pass
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"duelwins":YouWins}})
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"duelloses":Youloss}})
+        mulah.update_one({"id":PersonToRob.id}, {"$set":{"duelwins":OpWins}})
+        mulah.update_one({"id":PersonToRob.id}, {"$set":{"duelloses":Oploss}})
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
