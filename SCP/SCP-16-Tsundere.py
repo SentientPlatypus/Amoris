@@ -291,7 +291,6 @@ async def hangman(ctx):
 
 
 
-
 @helpp.command()
 async def points(ctx):
 
@@ -648,16 +647,13 @@ EditedMessages = {
 }
 @client.event
 async def on_message_edit(before, after):
-	print("a edited")
 	EditedMessages[before.channel.id]= [before.author.display_name, before.author.avatar_url, before.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
-	print(EditedMessages)
 
 DeletedMessage = {
 
 }
 @client.event
 async def on_message_delete(message):
-	print("deleted")
 	DeletedMessage[message.channel.id] = [message.author.display_name, message.author.avatar_url,message.content, datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")]
 
 
@@ -890,7 +886,7 @@ async def hello(ctx):
 	if ctx.author.id==643764774362021899:
 		await ctx.send("Hello  creator senpai!, Is there anything I can do for you today?, Make sure to stay hydrated when you update me!")
 	else:
-		await ctx.send("hello there, i am Sentient's bot. talk to me if you need something from the real me. My  creator senpai is very busy.")
+		await ctx.send("yo")
 
 #TALK
 def conversationstart(self):
@@ -1759,7 +1755,20 @@ for i in range(len(cogExtras)):
 for i in range(len(cogHelp)):
 	cogHelp[i].setup(client)
 ##------------------------------------------sim--------------------------------------------
+@client.command()
+async def testcog(ctx):
+	cog_list=[]
+	for c in client.cogs:
+		if c is None:
+			continue
+		else:
+			cog_list.append(c)
+	cog_list = sorted(cog_list)
+	for cog_name in cog_list:
+		print(cog_name.title())
 
+	for i in client.get_cog("Images").walk_commands():
+		await ctx.channel.send(i)
 
 
 

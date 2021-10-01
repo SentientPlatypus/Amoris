@@ -93,118 +93,13 @@ class DatingSim(commands.Cog):
         gftypes = Globals.getGfTypes()
         
         global typeconplaint  
-        typeconplaint = [
-            {"typename": "Tsundere", 
-            "strategy": "I dont really like strategy. but I guess its fine."},
-
-            {"typename": "Yandere", 
-            "strategy": "strategy isnt my forte. It isnt necessary either. I know everything about you already <3"},
-
-            {"typename": "Dandere", 
-            "strategy": "...I would prefer another genre.."},
-
-            {"typename": "Kuudere", 
-            "strategy": "strategy isnt fun."},
-
-            {"typename": "Sweet", 
-            "strategy": "I really appreciate the thought, but I think we could do another genre?"},
-
-            {"typename": "Sadodere", 
-            "strategy": "i dont like strategy. Its gross."},
-
-            {"typename": "Kamidere", 
-            "strategy": "I dont enjoy strategy games. They create an uptight atmosphere, that isnt ideal for our relationship."},
-
-        ]
+        typeconplaint = Globals.getTypeComplaint()
         global typegenrepraise
-        typegenrepraise = [
-            {"typename": "Tsundere", 
-            "strategy": "I really like strategy!",
-            "horror":"That wasnt scary at all!", 
-            "fps":"I love FPS games!", 
-            "creativity":"I think Creativity games are the best!",
-            "adventure":"I think Adventure games are the best!", 
-            "animation":"The animation was great! I think the creators did an amazing job dont you think?", 
-            "action":"Action is great!!"},
-
-            {"typename": "Yandere", 
-            "strategy": "I love this uptight atmosphere.",
-            "horror":"That wasnt scary at all!", 
-            "fps":"I love FPS games!", 
-            "creativity":"I think Creativity games are the best!",
-            "adventure":"I think Adventure games are the best!", 
-            "animation":"The animation was great! I think the creators did an amazing job dont you think?", 
-            "action":"Action is great!!"},
-
-            {"typename": "Dandere", 
-            "strategy": "...I like this genre!",
-            "horror":"That wasnt scary at all!", 
-            "fps":"I love FPS games!", 
-            "creativity":"I think Creativity games are the best!",
-            "adventure":"I think Adventure games are the best!", 
-            "animation":"The animation was great! I think the creators did an amazing job dont you think?", 
-            "action":"Action is great!!"},
-
-            {"typename": "Kuudere", 
-            "strategy": "strategy is fun.",
-            "horror":"That wasnt scary at all!", 
-            "fps":"I love FPS games!", 
-            "creativity":"I think Creativity games are the best!",
-            "adventure":"I think Adventure games are the best!", 
-            "animation":"The animation was great! I think the creators did an amazing job dont you think?", 
-            "action":"Action is great!!"},
-
-            {"typename": "Sweet", 
-            "strategy": "woow! this is really fun! strategy is really fun!!",
-            "horror":"That wasnt scary at all!", 
-            "fps":"I love FPS games!", 
-            "creativity":"I think Creativity games are the best!",
-            "adventure":"I think Adventure games are the best!", 
-            "animation":"The animation was great! I think the creators did an amazing job dont you think?", 
-            "action":"Action is great!!"},
-
-            {"typename": "Sadodere",
-            "strategy": "strategy. That sounds so much like you!",
-            "horror":"That wasnt scary at all!",
-            "fps":"I love FPS games!",
-            "creativity":"I think Creativity games are the best!",
-            "adventure":"I think Adventure games are the best!",
-            "animation":"The animation was great! I think the creators did an amazing job dont you think?", 
-            "action":"Action is great!!"},
-
-            {"typename": "Kamidere", 
-            "strategy": "I enjoy strategy. I think its incredibly vital to act logically in a relationship.",
-            "horror":"That wasnt scary at all!", 
-            "fps":"I love FPS games!", 
-            "creativity":"I think Creativity games are the best!",
-            "adventure":"I think Adventure games are the best!", 
-            "animation":"The animation was great! I think the creators did an amazing job dont you think?", 
-            "action":"Action is great!!"},
-
-        ]
-
+        typegenrepraise = Globals.getTypeGenrePraise()
         global gfgamingresponse
-        gfgamingresponse = [
-            {"typename":"Tsundere", "poor":"That wasnt really fun.", "medium": "I had a good time i guess, but thats to be expected! its a game after all.", "good":"Again! Lets play again! That was really nice!"},
-            {"typename":"Yandere", "poor":"I will try to do better next time.", "medium": "That was mediocre at best. Developers are terrible!", "good":"That was amazing. please get more love points so you can do me <3."},
-            {"typename":"Dandere", "poor":"I.. think we should try again?", "medium": "that was fine!", "good":"I... really enjoyed that! Lets do it again soon?"},
-            {"typename":"Kuudere", "poor":"You are really bad! Its alright though.", "medium": "That was ok i guess, You arent really the best at this game are you?", "good":"You are pretty good actually."},
-            {"typename":"Sweet", "poor":"You are really bad! Its alright though.", "medium": "That was ok i guess, You arent really the best at this game are you?", "good":"You are pretty good actually."},
-            {"typename":"Sadodere", "poor":"You are really bad! Its alright though.", "medium": "That was ok i guess, You arent really the best at this game are you?", "good":"You are pretty good actually."},
-            {"typename":"Kamidere", "poor":"You are really bad! Its alright though.", "medium": "That was ok i guess, You arent really the best at this game are you?", "good":"You are pretty good actually."},
-
-        ]
+        gfgamingresponse = Globals.getGfGamingResponse()
         global typepraise
-        typepraise = [
-            {"typename": "Tsundere", "text": "we should text more often.. I care about you a lot.", "gaming":"I really like playing games!", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
-            {"typename": "Yandere", "text": "Lets text more! I want to know everything about you<3", "gaming":"Gaming is incredibly fun with you. We should do this more often.", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
-            {"typename": "Dandere", "text": "...lets do this more often?", "gaming":"I.. really enjoyed that!! maybe we could play more often?", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
-            {"typename": "Kuudere", "text": "Text me more often.", "gaming":"That was fun. We will play more often from now on.", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
-            {"typename": "Sweet", "text": "I love the text! Thank you for keeping me in touch!", "gaming":"wooW! Im so happy we could play games together! Im glad you remembered that I like gaming!", "movies":"I love movies. I love you so much!! ", "relaxing":"I love this quality time with you!"},
-            {"typename": "Sadodere", "text": "I found that satisfactory! dont get any weird ideas, though!", "gaming":"I wonder how you knew I like gaming? Pervert!!", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
-            {"typename": "Kamidere", "text": "I found that enjoyable. Texting is in fact, the most practical form of communication. I appreciate you.", "gaming":"I found that enjoyable. Thank you for this. We should play more often.<3", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
-
-        ]              
+        typepraise = Globals.getTypePraise()
 
 
 
@@ -613,6 +508,7 @@ class DatingSim(commands.Cog):
 
     @gf.command()
     @commands.cooldown(1, 3600, BucketType.user)
+    @commands.is_nsfw()
     async def boink(self,ctx):
         global boinkmap
         global boinkresponse        
@@ -1461,6 +1357,7 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @commands.is_nsfw()
     async def talk(self, ctx):
         global backgrounds
         alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']

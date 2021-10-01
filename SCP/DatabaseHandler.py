@@ -134,6 +134,9 @@ class DatabaseHandler(commands.Cog):
             return
         if ctx.author.bot: return
 
+        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"money":math.ceil(money)}})
+
         global DBmsg
         Dbmsg = False
 
@@ -224,55 +227,56 @@ class DatabaseHandler(commands.Cog):
         
         UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
         
+        try:
+            if boinks>=1:
+                await Globals.AchievementEmbed(ctx, "Virginity Loss!")
+            
+            if breakups>=10:
+                await Globals.AchievementEmbed(ctx, "Jerk")
 
-        if boinks>=1:
-            await Globals.AchievementEmbed(ctx, "Virginity Loss!")
-        
-        if breakups>=10:
-            await Globals.AchievementEmbed(ctx, "Jerk")
+            if kisses>=1:
+                await Globals.AchievementEmbed(ctx, "First Kiss!")
 
-        if kisses>=1:
-            await Globals.AchievementEmbed(ctx, "First Kiss!")
+            if proposes>=1:
+                await Globals.AchievementEmbed(ctx, "Engaged!")
+            
+            if money>=15:
+                await Globals.AchievementEmbed(ctx, "Getting By")
 
-        if proposes>=1:
-            await Globals.AchievementEmbed(ctx, "Engaged!")
-        
-        if money>=15:
-            await Globals.AchievementEmbed(ctx, "Getting By")
+            if money>=1000000:
+                await Globals.AchievementEmbed(ctx, "Millionaire!")
+            
+            if money>=1000000000:
+                await Globals.AchievementEmbed(ctx, "Billionaire!")
+            
+            if gameskill["Minecraft"]>=100:
+                await Globals.AchievementEmbed(ctx, "FloorGang")
+            
+            if gameskill["League of Legends"]>100:
+                await Globals.AchievementEmbed(ctx, "virgin")
+            
+            if dates>=1:
+                await Globals.AchievementEmbed(ctx, "First Date!")
+            
+            if any(x for x in inv if "parts" in x.keys()):
+                await Globals.AchievementEmbed(ctx, "First PC!")
+            
+            for x in inv:
+                if "parts" in x.keys(): 
+                    if len(x["games"])>=5:
+                        await Globals.AchievementEmbed(ctx, "True Gamer")
 
-        if money>=1000000:
-            await Globals.AchievementEmbed(ctx, "Millionaire!")
-        
-        if money>=1000000000:
-            await Globals.AchievementEmbed(ctx, "Billionaire!")
-        
-        if gameskill["Minecraft"]>=100:
-            await Globals.AchievementEmbed(ctx, "FloorGang")
-        
-        if gameskill["League of Legends"]>100:
-            await Globals.AchievementEmbed(ctx, "virgin")
-        
-        if dates>=1:
-            await Globals.AchievementEmbed(ctx, "First Date!")
-        
-        if any(x for x in inv if "parts" in x.keys()):
-            await Globals.AchievementEmbed(ctx, "First PC!")
-        
-        for x in inv:
-            if "parts" in x.keys(): 
-                if len(x["games"])>=5:
-                    await Globals.AchievementEmbed(ctx, "True Gamer")
+                    if x["parts"]["power"]>=12000:
+                        await Globals.AchievementEmbed(ctx, "Linus Tech Tips")
+            if gambles>=1:
+                await Globals.AchievementEmbed(ctx, "Gambler!")
 
-                if x["parts"]["power"]>=12000:
-                    await Globals.AchievementEmbed(ctx, "Linus Tech Tips")
-        if gambles>=1:
-            await Globals.AchievementEmbed(ctx, "Gambler!")
-
-        if gamblewins>=1:
-            await Globals.AchievementEmbed(ctx, "Winner!")
-        if job:
-            await Globals.AchievementEmbed(ctx, "Employed!")
-
+            if gamblewins>=1:
+                await Globals.AchievementEmbed(ctx, "Winner!")
+            if job:
+                await Globals.AchievementEmbed(ctx, "Employed!")
+        except:
+            pass
 
 
 

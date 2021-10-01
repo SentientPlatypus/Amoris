@@ -413,6 +413,56 @@ class mmorpgGame(commands.Cog):
 
             return ReturnList
                     
+        global classdict
+        classdict = Globals.getClassDict()
+
+
+        global effectdict
+        effectdict = Globals.getEffectDict()
+
+
+        global abilitydict
+        abilitydict = [
+
+            #suppor
+            {"name":"Rage","category":"support","SupportUser":True , "percentage":True, "type":"Magic","desc":"Increase attack damage", "value":150,"cooldown":0,"ult":False,"attributeToSupport":"strength", "special":None, "mana":10, "effect":None},
+            {"name":"Heal!","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Recover your HP", "value":150,"cooldown":0,"ult":False, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
+            {"name":"stealth","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat.", "value":100,"cooldown":0, "attributeToSupport":"strength", "mana":10, "effect":["Defenseless"]},
+            {"name":"vaccine","category":"support","SupportUser":True, "percentage":True, "type":"Magic", "desc":"Heal!", "value":100,"cooldown":0,"ult":False, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
+            
+            
+            
+            
+            
+            ##defend
+            {"name":"Deflect","category":"defense", "type":"Physical", "WorksAgainst":"Magic","defends":1500, "desc":"Returns all magic damage to its sender!","cooldown":0,"ult":False, "special":Deflect, "mana":10, "effect":["Defenseless"]},
+            {"name":"Absorb","category":"defense", "type":"Magic", "WorksAgainst":"All","defends":1500, "desc":"Absorbs!", "special":None, "cooldown":0,"ult":False, "mana":10, "effect":None},
+            {"name":"Susanoo", "category":"attack", "type":"Magic", "damage":100, "desc":"The Perfect Defense","cooldown":4,"ult":True, "special":None, "mana":70, "effect":["Susanoo"]},
+
+        
+        
+        
+            #attacks
+            {"name":"Necromancer", "category":"attack", "type":"Magic", "damage":0,"desc":"Turn your defeated enemies into your pawns!","cooldown":0,"ult":False, "special":None, "mana":10},
+            {"name":"Black Slash", "category":"attack", "type":"Physical", "damage":1800, "desc":"A strong attack from the Demon Destroyer","cooldown":3,"ult":False, "special":None, "mana":10, "effect":["Bleed"]},
+            {"name":"Fire Ball", "category":"attack", "type":"Magic", "damage":50, "desc":"A basic skill from mages", "special":None,"cooldown":0,"ult":False, "mana":10, "effect":None},
+            {"name":"Punch", "category":"attack","type":"Physical", "damage":10, "desc":"A basic attack anyone can do.", "special":None,"cooldown":0,"ult":False, "mana":10, "effect":None},
+            {"name":"Black Divider", "category":"attack", "type":"Physical", "damage":2000, "desc":"A devastating attack from the Demon Destroyer","cooldown":4,"ult":True, "special":None, "mana":10, "effect":["Bleed"]},
+            {"name":"Amaterasu", "category":"attack", "type":"Magic", "damage":100, "desc":"Burns infinitely","cooldown":4,"ult":True, "special":None, "mana":70, "effect":["Amaterasu"]},
+
+        ]
+
+
+
+
+
+
+        global itemdict
+        itemdict = Globals.getBattleItems()
+
+        global Enemies
+        Enemies = Globals.getEnemyList()
+
 
 
         global GetAttributeEnemy
@@ -842,7 +892,7 @@ class mmorpgGame(commands.Cog):
                             except:
                                 pass
                 loadout[SpecificItem["type"]] = SpecificItem["name"]
-                Globals.RemoveFromInventory(user, CurrentItem["name"], 1)
+                Globals.RemoveFromInventory(user, SpecificItem["name"], 1)
 
                 if "attribute" in SpecificItem.keys():
                     for x in SpecificItem["attribute"].keys():
@@ -852,59 +902,11 @@ class mmorpgGame(commands.Cog):
                         mmorpg["abilities"][x] = 1
                 mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
                 mulah.update_one({"id":user.id}, {"$set":{"inv":inv}})
+            else:
+                print("failure")
             
 
 
-
-        global classdict
-        classdict = Globals.getClassDict()
-
-
-        global effectdict
-        effectdict = Globals.getEffectDict()
-
-
-        global abilitydict
-        abilitydict = [
-
-            #suppor
-            {"name":"Rage","category":"support","SupportUser":True , "percentage":True, "type":"Magic","desc":"Increase attack damage", "value":150,"cooldown":0,"ult":False,"attributeToSupport":"strength", "special":None, "mana":10, "effect":None},
-            {"name":"Heal!","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Recover your HP", "value":150,"cooldown":0,"ult":False, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
-            {"name":"stealth","category":"support","SupportUser":True, "percentage":True, "type":"Magic","desc":"Become invisible! All attacks will deal full damage, ignoring opponents' defense stat.", "value":100,"cooldown":0, "attributeToSupport":"strength", "mana":10, "effect":["Defenseless"]},
-            {"name":"vaccine","category":"support","SupportUser":True, "percentage":True, "type":"Magic", "desc":"Heal!", "value":100,"cooldown":0,"ult":False, "attributeToSupport":"health", "special":None, "mana":10, "effect":None},
-            
-            
-            
-            
-            
-            ##defend
-            {"name":"Deflect","category":"defense", "type":"Physical", "WorksAgainst":"Magic","defends":1500, "desc":"Returns all magic damage to its sender!","cooldown":0,"ult":False, "special":Deflect, "mana":10, "effect":["Defenseless"]},
-            {"name":"Absorb","category":"defense", "type":"Magic", "WorksAgainst":"All","defends":1500, "desc":"Absorbs!", "special":None, "cooldown":0,"ult":False, "mana":10, "effect":None},
-            {"name":"Susanoo", "category":"attack", "type":"Magic", "damage":100, "desc":"The Perfect Defense","cooldown":4,"ult":True, "special":None, "mana":70, "effect":["Susanoo"]},
-
-        
-        
-        
-            #attacks
-            {"name":"Necromancer", "category":"attack", "type":"Magic", "damage":0,"desc":"Turn your defeated enemies into your pawns!","cooldown":0,"ult":False, "special":None, "mana":10},
-            {"name":"Black Slash", "category":"attack", "type":"Physical", "damage":1800, "desc":"A strong attack from the Demon Destroyer","cooldown":3,"ult":False, "special":None, "mana":10, "effect":["Bleed"]},
-            {"name":"Fire Ball", "category":"attack", "type":"Magic", "damage":50, "desc":"A basic skill from mages", "special":None,"cooldown":0,"ult":False, "mana":10, "effect":None},
-            {"name":"Punch", "category":"attack","type":"Physical", "damage":10, "desc":"A basic attack anyone can do.", "special":None,"cooldown":0,"ult":False, "mana":10, "effect":None},
-            {"name":"Black Divider", "category":"attack", "type":"Physical", "damage":2000, "desc":"A devastating attack from the Demon Destroyer","cooldown":4,"ult":True, "special":None, "mana":10, "effect":["Bleed"]},
-            {"name":"Amaterasu", "category":"attack", "type":"Magic", "damage":100, "desc":"Burns infinitely","cooldown":4,"ult":True, "special":None, "mana":70, "effect":["Amaterasu"]},
-
-        ]
-
-
-
-
-
-
-        global itemdict
-        itemdict = Globals.getBattleItems()
-
-        global Enemies
-        Enemies = Globals.getEnemyList()
 
 
 
@@ -1069,7 +1071,7 @@ class mmorpgGame(commands.Cog):
 
 
     @commands.command()
-    async def duel(self, ctx, PersonToRob:discord.Member):
+    async def rob(self, ctx, PersonToRob:discord.Member):
         global abilitydict
         global Enemies
         print(str(ctx.author))
@@ -1121,7 +1123,7 @@ class mmorpgGame(commands.Cog):
             )
         print(Op.Name)
         embed = discord.Embed(title = "You are being robbed by %s"%(You.Name), description = "Think You can defend your hard earned coins?, %s"%(PersonToRob.mention), color = discord.Color.red())
-        embed.add_field(name = "Will you accept this duel?", value = "react with ✅ to accept \n react with ❌ to decline")
+        embed.add_field(name = "Will you defend your cash?", value = "react with ✅ to accept \n react with ❌ to decline")
         embed.set_author(name = You.Name, icon_url=You.Image)
         embed.set_footer(text = datetime.now().strftime("%Y-%m-%d, %H:%M"))
         msg = await ctx.channel.send(embed=embed)
@@ -1135,14 +1137,14 @@ class mmorpgGame(commands.Cog):
                 rawreaction = str(confirm[0])
                 print(rawreaction)
                 if rawreaction == "❌":
-                    await ctx.channel.send("%s declined the duel request"%(Op.Name))
+                    await ctx.channel.send("%s refuses to defend himself, what a coward"%(Op.Name))
                     return
                 else:
-                    await ctx.channel.send("%s accepted. the duel will begin shortly."%(Op.Name))
-        except TimeoutError:
+                    await ctx.channel.send("%s has caught you. Square tf up"%(Op.Name))
+        except asyncio.TimeoutError:
             embed = discord.Embed(title = "Robbery", description = "Victim: %s"%(PersonToRob.display_name), color = discord.Color.green())
             embed.set_thumbnail(url=PersonToRob.avatar_url)
-            embed.set_author(icon_url=ctx.author_url, name=ctx.author.display_name)
+            embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
             embed.add_field(name="Status",value="`unnoticed`")
             
             wallet = mulah.find_one({"id":Op.Player.id}, {"money"})["money"]
@@ -1190,6 +1192,7 @@ class mmorpgGame(commands.Cog):
                 await ctx.channel.send(embed=This[0], file=This[1])  
 
             elif This1[1]=="Retreat":
+                winner="rob retreat"
                 break
 
 
@@ -1232,6 +1235,7 @@ class mmorpgGame(commands.Cog):
                 await ctx.channel.send(embed=This[0], file=This[1])  
 
             elif This1[1]=="Retreat":
+                winner = You
                 break
 
 
@@ -1252,7 +1256,7 @@ class mmorpgGame(commands.Cog):
             if winner ==You:
                 embed = discord.Embed(title = "Robbery", description = "Victim: %s"%(PersonToRob.display_name), color = discord.Color.green())
                 embed.set_thumbnail(url=PersonToRob.avatar_url)
-                embed.set_author(icon_url=ctx.author_url, name=ctx.author.display_name)
+                embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
                 embed.add_field(name="Status",value="`victorious`")
                 
                 wallet = mulah.find_one({"id":Op.Player.id}, {"money"})["money"]
@@ -1262,10 +1266,20 @@ class mmorpgGame(commands.Cog):
                 mulah.update_one({"id":You.Player.id}, {"$inc":{"money":steal}})
                 mulah.update_one({"id":Op.Player.id}, {"$inc":{"money":steal*(-1)}})
                 return
+            elif winner=="rob retreat":
+                embed = discord.Embed(title = "Robbery", description = "Victim: %s"%(PersonToRob.display_name), color = discord.Color.green())
+                embed.set_thumbnail(url=PersonToRob.avatar_url)
+                embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+                embed.add_field(name="Status",value="`retreated`")
+                
+                wallet = mulah.find_one({"id":Op.Player.id}, {"money"})["money"]
+                steal = wallet*0.08
+                embed.set_footer(text="pussy")
+                await ctx.channel.send(embed=embed)   
             else:
                 embed = discord.Embed(title = "Robbery", description = "Victim: %s"%(PersonToRob.display_name), color = discord.Color.green())
                 embed.set_thumbnail(url=PersonToRob.avatar_url)
-                embed.set_author(icon_url=ctx.author_url, name=ctx.author.display_name)
+                embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
                 embed.add_field(name="Status",value="`defeated`")
                 
                 wallet = mulah.find_one({"id":Op.Player.id}, {"money"})["money"]
@@ -1278,7 +1292,7 @@ class mmorpgGame(commands.Cog):
 
 
         except:
-            pass
+            print(traceback.format_exc())
         mulah.update_one({"id":ctx.author.id}, {"$set":{"duelwins":YouWins}})
         mulah.update_one({"id":ctx.author.id}, {"$set":{"duelloses":Youloss}})
         mulah.update_one({"id":PersonToRob.id}, {"$set":{"duelwins":OpWins}})
@@ -1478,9 +1492,14 @@ class mmorpgGame(commands.Cog):
 
         if allperms ==True:
             EquipItem(ctx.author, SpecificItem["name"])
+            embed = discord.Embed(title = "Successfull equip", description = "You have equipped `%s` to your `%a` slot"%(SpecificItem["name"], SpecificItem["type"]), color = discord.Color.green())
+            await ctx.channel.send(embed=embed)
+
         else:
             if Globals.InvCheck(ctx.author, item=items):
                 EquipItem(ctx.author, SpecificItem["name"])
+                embed = discord.Embed(title = "Successfull equip", description = "You have equipped `%s` to your `%a` slot"%(SpecificItem["name"], SpecificItem["type"]), color = discord.Color.green())
+                await ctx.channel.send(embed=embed)
             else:
                 await ctx.channel.send("You dont have this item in your inventory.")
 
@@ -1494,8 +1513,10 @@ class mmorpgGame(commands.Cog):
             stats = mmorpg["stats"]
             Points = Globals.InvCheckWithItem(ctx.author, "UpgradePoint", False)
             print(Points)
-
-            embed = discord.Embed(title = "Upgrade station- You have %g Upgrade Points!"%(Points["amount"]), desription = "Use `UpgradePoint`'s to upgrade your stats! an upgrade point can add either `3 strength`, `3 defense`, `3 intelligence` or `3 health`", color = discord.Color.blue())
+            try:
+                embed = discord.Embed(title = "Upgrade station- You have %g Upgrade Points!"%(Points["amount"]), desription = "Use `UpgradePoint`'s to upgrade your stats! an upgrade point can add either `3 strength`, `3 defense`, `3 intelligence` or `3 health`", color = discord.Color.blue())
+            except:
+                embed = discord.Embed(title = "Upgrade station- You dont have anymore Upgrade Points!", description = "Go duel someone or be more active in text channels!", color = discord.Color.gold())
             for x in stats:
                 embed.add_field(name = x, value = stats[x], inline=False)
             try:
