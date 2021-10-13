@@ -51,6 +51,7 @@ def getMongo():
 cluster = getMongo()
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
+DiscordGuild = cluster["discord"]["guilds"]
 achievements = [
     {"name":"First Kiss!", "desc":"Kiss someone for the first time!", "category":"relationships"},
     {"name":"Virginity Loss!", "desc":"Boink someone for the first time!", "category":"relationships"},
@@ -209,6 +210,14 @@ def GetLevel(id):
         lvl+=1
     return lvl
 
+def getLevelfromxp(xp):
+    lvl = 0
+    while True:
+        if xp < ((50*(lvl**2))+(50*(lvl))):
+            break
+        lvl+=1
+    return lvl
+
 def achievementcheck(user,achievement:str):
     try:
         value = mulah.find_one({"id":user.id}, {"achievements"})["achievements"]
@@ -265,6 +274,20 @@ async def AchievementEmbed(ctx, EarnedAchievement):
 def getEmotionList():
     return ["embarrassed", "horny","surprised","climax", "image", "bed", "angry", "fear", "sad", "dissapointed"]
 
+def getBegList():
+    return {
+        1:{"name":"Jake Paul", "value":"ew get away from me", "value":2},
+        2:{"name":"Mrbeast", "value":"Oh heres 10 grand without the grand", "amount":10},
+        3:{"name":"Joe Biden", "value":"u smell nice today", "amount":9},
+        4:{"name":"Naruto", "value":"hiruzen gave me less","amount":1},
+        5:{"name":"Luffy", "value":"have some bro","amount":5},
+        6:{"name":"Alien", "value":"Damn capitalism sucks","amount":11},
+        7:{"name":"The Rock", "value":"passive income baby woo", "amount":6},
+        8:{"name":"zendaya", "value":"idk what zendaya says bruh", "amount":8},
+        9:{"name":"Louis XVI", "value":"hey man have some bread", "amount":19},
+        10:{"name":"Askeladd", "value":"have some gold", "amount":10},
+
+    }
 
 def getAchievementList():
     return achievements
@@ -273,8 +296,10 @@ def getWorkLists():
     return [
             {"name":"McDonalds worker", "salary":15, "req":1, "words":["bigmac", "burger", "broken"], "sentences":["sorry, the icecream machine is broken", "what can I get for you?", "welcome to mcdonalds"]},
             {"name":"Gamer", "salary":150, "req": 5, "words":["dorito", "mechanical", "virgin"], "sentences":["i hate lag", "hes one tap", "what a sweat"]},
+            {"name":"Bitcoin Miner", "salary":250, "req": 10, "words":["nvidia", "shortage", "shameless"], "sentences":["People hate me for a good reason", "that is passive income", "I like cheese"]},
+            {"name":"Youtuber", "salary":450, "req": 15, "words":["subscribe", "like", "rich"], "sentences":["make sure to smash that like button", "i dont know how to start this video", "leave your memes in the subreddit"]},
             {"name":"Business Man", "salary":160, "req":20, "words":["business", "passive", "pigeon"], "sentences":["sorry thats not passive income", "it is ten times cheaper to keep a customer than to get a new one"]},
-            {"name":"Jeff bezos", "salary":1000000000, "req":100, "words":["bigmac", "burger", "broken"]},
+            {"name":"Jeff bezos", "salary":1000000000, "req":100, "words":["abuse", "rocket", "money"], "sentences":["I love money", "I appreciate the lower class", "i am not a supervillain"]},
         ]
 
 def getShopItems():
@@ -467,18 +492,64 @@ def getEffectDict():
 
 
         ]
-
-
 def getBackgroundList():
     return [
             {"name":"house.jpg", "paste":(378,167), "size":(377,467)},
             {"name":"nightsky.jpg", "paste":(60,82), "size":(195,279)},
             {"name":"macd.jpg", "paste":(72,6), "size":(204,310)},
+            {"name":"OliveGarden.jpg", "paste":(133,155), "size":(203,310)},
+            {"name":"redlobster.jpg", "paste":(213,77), "size":(191,254)}
         ]
+
+
 
 def getRestaurants():
     return [
-            {"name":"mcdonalds", "menu":{"bigmac":6, "QuarterPounder":3, "Bacon Clubhouse Burger":4, "fillet-o-fish":3, "happy meal":4}, "background":"macd.jpg", "img":"image", "waiter":"http://pilerats.com/assets/Uploads/_resampled/SetWidth940-mcdonalds-japan-anime-ad.jpg"}
+            {
+            "name":"olive garden", 
+            "menu":{
+                "Chicken and Shrimp Carbonara":27, 
+                "Chicken Parmigiana":23, 
+                "Shrimp Alfredo":26, 
+                "Chicken Marsala":24, 
+                "Cheese Ravioli":19,
+                "Herb Grilled Salmon":29,
+                "6oz sirloin":25
+                }, 
+            "background":"OliveGarden.jpg", 
+            "img":"image", 
+            "waiter":"OliveGardenWaiter.jpg"
+            },
+
+            {
+            "name":"Red Lobster",
+            "menu":{
+                "wild caught flounder":10,
+                "Shrimp Linguini Alfredo":11,
+                "Lobster pizza":11,
+                "clam chowder":5,
+                "classic caesar salad":10
+
+            },
+            "background":"redlobster.jpg",
+            "img":"image",
+            "waiter":"RedLobsterWaiter.jpg"
+
+            },
+
+            {
+            "name":"mcdonalds", 
+            "menu":{
+                "bigmac":6, 
+                "QuarterPounder":3, 
+                "Bacon Clubhouse Burger":4, 
+                "fillet-o-fish":3, 
+                "happy meal":4
+                }, 
+            "background":"macd.jpg", 
+            "img":"image", 
+            "waiter":"McdonaldsWaiter.jpg"
+            }
         ]
 
 def getDateTalkMap():
@@ -986,49 +1057,195 @@ def getTypePraise():
 
 
 
+def getFunCommands():
+    return "`pp`,`roll`,`rate`,`wisdom`, `rickroll`, `yomomma`, `8ball`, `animepic`, `cookie`, `coffee`"
 
+def getModCommands():
+    return "`ban`,`kick`,`mute`,`unmute`,`block`,`unblock`,`softban`, `swear`, `announce`,`suggest`, `swearlb`"
 
+def getSolveCommands():
+    return "`hangman`, `scramble`"
 
+def getUtilityCommands():
+    return "`snipe`, `esnipe`, `poll`, `timer`,`clean`, `choose`,`userinfo`,`serverinfo`,`channellinfo`,`permissions`"
+
+def getGamesCommands():
+    return "`mcstatus`, `mcskin`"
+
+def getVcCommands():
+    return "`p`,`pause`,`leave`,`resume`,`stop`"
+def getMathCommands():
+    return "`gcf`,`points`, `simplify`, `herons`, `hardsolve`, `softsolve`"
+def getWebCommands():
+    return "`question`, `imdb`\n\nreddit (group):`sub`,`reset`,`set` "
+def getLevelCommands():
+    return "`rank`, `ranklb`"
+def getEconomyCommands():
+    return """`rob`,`work`,`profile`,`worklist`,`apply`,`fish`,`hunt`,`mine`,`farm`,`chop`,`sell`,`craft`,`upgradepoint`,`send`,`achievement`,`achievement`,`balance`,`richlb`,`shop`,`use`, `give`,`gamestats`,`dep`,`withdraw`,`buy`,`inv`,`beg`,`watchlist`,`clearwatchlist`
+    \n\n pc (group):`build`,`stats`,`addram`,`install`,`dismantle`,`play`"""
+
+def getGfCommands():
+    return "`getgf`,`gfstats`,`breakup`, \n\n gf (group):`image`,`netflix`,`hug`,`kiss`,`boink`,`propose`,`date`,`movies`,`text`,`gaming`,`talk`"
+
+def getImageCommands():
+    return """`avatar`,`animeface`,`caption`,`ddlc`,`blurpify`,`phcomment`,`toxicity`,`weebify`,`tweet`,`nichijou`,`threats`,`bodypillow`,`baguette`,`deepfry`,`clyde`,`ship`,`lolice`,`fact`,
+    `captcha`,`trash`,`whowouldwin`,`awooify`,`changemymind`,`magik`,`jpeg`,`gif`,`cat`,`dog`,`iphonex`,`kannagen`,`minesweeper`,`wanted`,`abouttocry`,`animepic`"""
+
+def getDuelsCommands():
+    return "`duel`,`equip`,`upgrade`,`begin`"
+
+def getSettingsCommands():
+    return "`settings`,\n\nconfig (group): `badword`,`announcement`,`suggestion`,`setprefix`"
 
 
 
 
 ##-------------------------------------------------------------------ASYNC FUNCTS
+async def Imdb(ctx, moviee):
+    await ctx.trigger_typing()
+    moviesDB=IMDb()
+    movies = moviesDB.search_movie(moviee)
+    print(movies)
+    movieID = movies[0].getID()
+    movie = moviesDB.get_movie(movieID)
+
+            
+    yt = YoutubeSearch(str(movie)+" trailer", max_results=1).to_json()
+    yt_id = str(json.loads(yt)['videos'][0]['id'])
+    yt_url = 'https://www.youtube.com/watch?v='+yt_id
+    newyt = YoutubeSearch(str(movie)+" opening", max_results=1).to_json()
+    newytid = str(json.loads(newyt)['videos'][0]['id'])
+    thumnail_url = "https://img.youtube.com/vi/%s/maxresdefault.jpg"%(newytid)
+    try:
+        embed = discord.Embed(title = "%s, (%s)"%(movie, movie["year"]),url = yt_url,description = " Genre:%s"%(movie["genres"]), color = ctx.author.color)
+    except:
+        embed = discord.Embed(title = "%s"%(movie),url = yt_url,description = " Genre:%s"%(movie["genres"]), color = ctx.author.color)
+    try:
+        embed.add_field(name = "Synopsis:", value = "%s"%(str(moviesDB.get_movie_synopsis(movieID)["data"]["plot"][0])))
+    except:
+        pass
+    embed.set_image(url = thumnail_url)
+    embed.add_field(name = "Trailer", value = yt_url, inline=False)
+
+    listofdirectories = ["rating"]
+    for x in listofdirectories:
+        try:
+            embed.add_field(name = x, value = "%s"%(movie[x]))
+        except:
+            pass
+
+    try:
+        embed.add_field(name= "Episodes:", value = "%s"%(moviesDB.get_movie_episodes(movieID)["data"]["number of episodes"]))
+    except:
+        pass
+    return [embed, movie]
+
+
+def syntax(command):
+    cmd_and_aliases = "|".join([str(command), *command.aliases])
+    params = []
+
+    for key, value in command.params.items():
+        if key not in ("self", "ctx"):
+            params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
+
+    params = " ".join(params)
+
+    return f"```{cmd_and_aliases} {params}```"
+
+
+def getPrefix(ctx):
+    return DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]
+
+
+
 async def ChoiceEmbed(self, ctx, choices:list, TitleOfEmbed:str, ReactionsList=['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'],p:discord.Member=None,EmbedToEdit=None):
     count = 0
     reactionlist = []
     emptydict = {}
     finalstr = ""
-    for x in choices:
-        emptydict[ReactionsList[count]]=x
-        reactionlist.append(ReactionsList[count])
-        finalstr+="%s %s\n"%(ReactionsList[count], x)
-        count+=1
-    embed = discord.Embed(title = TitleOfEmbed, description = finalstr, color = ctx.author.color)
-    if EmbedToEdit!=None:
-        EmbedToEdit = await EmbedToEdit.edit(embed=embed)
-        EmbedToEdit.clear_reactions()
-        for x in reactionlist:
-            await EmbedToEdit.add_reaction(x)
-    else:
-        ThisMessage = await ctx.channel.send(embed=embed)
-        for x in reactionlist:
-            await ThisMessage.add_reaction(x)
-    if not p:
-        p=ctx.author
+    if len(choices)<=len(ReactionsList):
+        for x in choices:
+            emptydict[ReactionsList[count]]=x
+            reactionlist.append(ReactionsList[count])
+            finalstr+="%s %s\n"%(ReactionsList[count], x)
+            count+=1
+        embed = discord.Embed(title = TitleOfEmbed, description = finalstr, color = ctx.author.color)
+        if EmbedToEdit!=None:
+            EmbedToEdit = await EmbedToEdit.edit(embed=embed)
+            EmbedToEdit.clear_reactions()
+            for x in reactionlist:
+                await EmbedToEdit.add_reaction(x)
+        else:
+            ThisMessage = await ctx.channel.send(embed=embed)
+            for x in reactionlist:
+                await ThisMessage.add_reaction(x)
+        if not p:
+            p=ctx.author
 
-    def check(reaction, user):
-        return user==p and str(reaction.emoji) in reactionlist and reaction.message == ThisMessage
-    confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
-    try:
-        if confirm:
-            rawreaction = str(confirm[0])
+        def check(reaction, user):
+            return user==p and str(reaction.emoji) in reactionlist and reaction.message == ThisMessage
+        confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
+        try:
+            if confirm:
+                rawreaction = str(confirm[0])
+                if EmbedToEdit!=None:
+                    return[emptydict[rawreaction], EmbedToEdit]
+                else:
+                    return [emptydict[rawreaction], ThisMessage]
+        except TimeoutError:
+            await ctx.channel.send("You took too long! I guess we arent doing this.")
+    else:
+        chosen=False
+        pgnum=1
+        while chosen==False:
+            if pgnum==1:
+                choices=choices[0:9]
+            if pgnum==2:
+                choices=choices[10:len(choices)]
+            for x in choices:
+                emptydict[ReactionsList[count]]=x
+                reactionlist.append(ReactionsList[count])
+                finalstr+="%s %s\n"%(ReactionsList[count], x)
+                count+=1
+            embed = discord.Embed(title = TitleOfEmbed, description = finalstr, color = ctx.author.color)
             if EmbedToEdit!=None:
-                return[emptydict[rawreaction], EmbedToEdit]
+                EmbedToEdit = await EmbedToEdit.edit(embed=embed)
+                EmbedToEdit.clear_reactions()
+                for x in reactionlist:
+                    await EmbedToEdit.add_reaction(x)
             else:
-                return [emptydict[rawreaction], ThisMessage]
-    except TimeoutError:
-        await ctx.channel.send("You took too long! I guess we arent doing this.")
+                ThisMessage = await ctx.channel.send(embed=embed)
+                for x in reactionlist:
+                    await ThisMessage.add_reaction(x)
+                await ThisMessage.add_reaction("➡️")
+                await ThisMessage.add_reaction("⬅️")
+
+            if not p:
+                p=ctx.author
+
+            def check(reaction, user):
+                return user==p and str(reaction.emoji) in reactionlist and reaction.message == ThisMessage
+            confirm = await self.client.wait_for('reaction_add',check=check, timeout = 60)
+            try:
+                if confirm:
+                    rawreaction = str(confirm[0])
+                    if rawreaction=="➡️":
+                        pgnum+=1
+                        if pgnum>2:
+                            pgnum=2
+                    elif rawreaction=="⬅️":
+                        pgnum-=1
+                        if pgnum<1:
+                            pgnum=1
+                    else:
+                        if EmbedToEdit!=None:
+                            return[emptydict[rawreaction], EmbedToEdit]
+                        else:
+                            return [emptydict[rawreaction], ThisMessage]
+            except TimeoutError:
+                await ctx.channel.send("You took too long! I guess we arent doing this.")
+
 
 
 
@@ -1052,7 +1269,22 @@ async def AddChoices(self, ctx, choices:list, MessageToAddTo, p:discord.Member=N
 
 
 
+class missingItem(commands.CommandError):
+    def __init__(self, user, missingItem):
+        self.user=user
+        self.missingItem=missingItem
 
+def hasItem(itemToCheckFor):
+    def predicate(ctx):
+        if itemToCheckFor.lower()=="pc":
+            inv = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
+            for x in inv:
+                if "parts" in x.keys():
+                    return True
+            raise missingItem(ctx.author, itemToCheckFor)
+        elif not InvCheck(ctx.author,itemToCheckFor):
+            raise missingItem(ctx.author, itemToCheckFor)
+    return commands.check(predicate)
 
 
 

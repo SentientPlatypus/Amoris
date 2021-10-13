@@ -85,6 +85,7 @@ class DatabaseHandler(commands.Cog):
             {"name":"job", "value":None},
             {"name":"duelwins", "value":0},
             {"name":"duelloses", "value":0},
+            {"name":"duelretreats", "value":0},
             {"name":"inv", "value":[]},
             {"name":"watchlist", "value":[]},
             {"name":"achievements", "value":[]},
@@ -95,6 +96,9 @@ class DatabaseHandler(commands.Cog):
             {"name":"gamblewins","value":0},
             {"name":"upgradepoints","value":0},
             {"name":"gameskill","value":{}},
+            {"name":"bank", "value":0},
+            {"name":"net","value":0},
+            {"name":"abilityxp", "value":{}},
             {"name":"mmorpg",
             "value":{
                 "level":1,
@@ -133,12 +137,29 @@ class DatabaseHandler(commands.Cog):
         if ctx.author == self.client.user:
             return
         if ctx.author.bot: return
-
-        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
-        mulah.update_one({"id":ctx.author.id}, {"$set":{"money":math.ceil(money)}})
-
         global DBmsg
         Dbmsg = False
+
+        global abilityLevelCheck
+        async def abilityLevelCheck(user:discord.Member):
+            mmorpg = mulah.find_one({"id":user.id},{"mmorpg"})["mmorpg"]
+            abilityxp = mulah.find_one({"id":user.id},{"abilityxp"})["abilityxp"]
+            for x in abilityxp.keys():
+                if Globals.getLevelfromxp(abilityxp[x])!=mmorpg["abilities"][x]:
+                    mmorpg["abilities"][x] = Globals.getLevelfromxp(abilityxp[x])
+            mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
+
+
+        global abilityxpcheck
+        async def abilityxpcheck(user:discord.Member):
+            ability = mulah.find_one({"id":user.id},{"mmorpg"})["mmorpg"]["abilities"]
+            abilityxp = mulah.find_one({"id":user.id},{"abilityxp"})["abilityxp"]
+            for x in ability.keys():
+                if x not in abilityxp.keys():
+                    abilityxp[x]=0
+            mulah.update_one({"id":user.id}, {"$set":{"abilityxp":abilityxp}})
+
+
 
         global dbcheck
         async def dbcheck(user:discord.Member):
@@ -199,6 +220,12 @@ class DatabaseHandler(commands.Cog):
         await ServerCheck(ctx)
         await Serverdbcheck(ctx)
         await dbcheck(ctx.author)
+        await abilityxpcheck(ctx.author)
+        await abilityLevelCheck(ctx.author)
+        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+        bank = mulah.find_one({"id":ctx.author.id}, {"bank"})["bank"]
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"money":math.ceil(money)}})
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"net":money+bank}})
 
 
 

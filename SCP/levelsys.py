@@ -73,7 +73,7 @@ class levelsys(commands.Cog):
             else:
                 badwords = list
             global badwordresponse
-            badwordresponse = ["Language. My  creator senpai does not support that vulgar language.", "Shut up. Dont taint this server with those words.", "Do not swear. use of those words is unacceptable."]
+            badwordresponse = ["Shut up. Dont taint this server with those words.", "Do not swear. The use of those words is unacceptable."]
             if any(word in ctx.content.casefold() for word in badwords):
                 await ctx.delete()
                 randbadwords = random.choice(badwordresponse)
@@ -84,6 +84,7 @@ class levelsys(commands.Cog):
 
                 embed = discord.Embed(title = "Hey. I noticed that you tried to swear.", description = "%s"%(randbadwords), color = discord.Color.red())
                 embed.add_field(name = "%s intended to say,"%(re.sub("\#\d{4}$", "", str(ctx.author))), value = "%s"%(ctx.content))
+                embed.set_footer(text = 'This feature can be turned off with %s "profanity filter" disable'%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
                 await ctx.channel.send(embed = embed)
                 try:
                     swearvar = levelling.find_one({"id":ctx.author.id}, {"swears"})
@@ -276,18 +277,36 @@ class levelsys(commands.Cog):
         ids = [x.id for x in ctx.guild.members]
         rankings = levelling.find().sort("swears",-1)
         count=0
-        for x in levelling.find():
-            print(x["xp"])
-            count+=1
-        print(count)
         i=1
-        embed = discord.Embed(title = "Swear Leaderboard", color = ctx.author.color)
+        embed = discord.Embed(title = "%s's Swear Leaderboard"%(ctx.guild.name), color = ctx.author.color)
+        embed.set_thumbnail(url=ctx.guild.icon_url)
         for x in rankings:
             try:
                 temp = ctx.guild.get_member(int(x["id"])).display_name
 
                 tempswears = x["swears"]
-                embed.add_field(name = f"{i}: {temp}", value = f"Swears: {tempswears}", inline = False) 
+                embed.add_field(name = f"{i}: {temp}", value = f"Swears: `{tempswears}`", inline = False) 
+                i+=1
+                if i==11:
+                    break
+            except:
+                pass
+        await ctx.channel.send(embed=embed)
+
+
+    @commands.command()
+    async def ranklb(self, ctx):
+        ids = [x.id for x in ctx.guild.members]
+        rankings = levelling.find().sort("xp",-1)
+        i=1
+        embed = discord.Embed(title = "%s's Leaderboard"%(ctx.guild.name), color = ctx.author.color)
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+        for x in rankings:
+            try:
+                temp = ctx.guild.get_member(int(x["id"])).display_name
+
+                tempswears = x["xp"]
+                embed.add_field(name = f"{i}: {temp}", value = f"Level: `{Globals.getLevelfromxp(tempswears)}`", inline = False) 
                 i+=1
                 if i==11:
                     break

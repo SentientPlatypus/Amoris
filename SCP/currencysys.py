@@ -10,6 +10,7 @@ from discord import errors
 from discord import client
 from discord import channel
 from discord import embeds
+from discord import user
 from discord.embeds import Embed
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -410,6 +411,7 @@ class currencysys(commands.Cog):
                     if number.lower()=="all":
                         number = item["amount"]
             number=int(number)
+            number = abs(number)
 
             AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues+BattleShop
             ItemRef = next(x for x in AllItems if x["name"].lower()==item["name"].lower())
@@ -462,6 +464,7 @@ class currencysys(commands.Cog):
 
 
     @commands.command()
+    @commands.is_owner()
     async def UpgradePoint(self, ctx):
         XpRank = levelling.find()
         MulahRank = mulah.find()
@@ -481,16 +484,21 @@ class currencysys(commands.Cog):
         money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
         money1 = mulah.find_one({"id":p1.id}, {"money"})["money"]
         if money>=amount:
-            money-=amount
-            money1+=amount
+            if amount>0:
+                money-=amount
+                money1+=amount
+                
+                mulah.update_one({"id":ctx.author.id},{"$set":{"money":money}})
+                mulah.update_one({"id":p1.id},{"$set":{"money":money1}})
 
-            mulah.update_one({"id":ctx.author.id},{"$set":{"money":money}})
-            mulah.update_one({"id":p1.id},{"$set":{"money":money1}})
-
-            embed = discord.Embed(title = "Successfull transaction!", description  = "%s has sent `$%s` to %s!"%(ctx.author.mention, amount, p1.mention), color = discord.Color.green())
-            await ctx.channel.send(embed=embed)
+                embed = discord.Embed(title = "Successfull transaction!", description  = "%s has sent `$%s` to %s!"%(ctx.author.mention, amount, p1.mention), color = discord.Color.green())
+                await ctx.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title = "Failed transaction!", description  = "%s is trying to send a negative amount of money. use `rob` instead lol"%(ctx.author.mention), color = discord.Color.red())
+                await ctx.channel.send(embed=embed)
+  
         else:
-            embed = discord.Embed(title = "Failed transaction!", description  = "%s doesnt ahve enough money"%(ctx.author.mention), color = discord.Color.red())
+            embed = discord.Embed(title = "Failed transaction!", description  = "%s doesnt have enough money"%(ctx.author.mention), color = discord.Color.red())
             await ctx.channel.send(embed=embed)
         
 
@@ -550,39 +558,27 @@ class currencysys(commands.Cog):
     @commands.command()
     async def balance(self, ctx, namee:discord.Member=None):
         if namee is None:
-            embed = discord.Embed(title = "%s current balance"%(ctx.author.display_name), color = ctx.author.color)
-            walletval = mulah.find_one({"id":ctx.author.id},{"money"})
-            if walletval is not None:
-                try:
-                    walletval = walletval["money"]
-                    embed.add_field(name = "Wallet", value = "%s"%(walletval))
-                except:
-                    pass
-            lovepoints = mulah.find_one({"id" : ctx.author.id}, {"lp"})
-            if lovepoints is not None:
-                try:
-                    lovepoints = lovepoints["lp"]
-                    embed.add_field(name = "Love points", value = "%s"%(lovepoints))
-                except:
-                    pass
-            await ctx.send(embed = embed)       
-        else:
-            embed = discord.Embed(title = "%s current balance"%(namee.display_name), color = ctx.author.color)
-            walletval = mulah.find_one({"id":namee.id},{"money"})
-            if walletval is not None:
-                try:
-                    walletval = walletval["money"]
-                    embed.add_field(name = "Wallet", value = "%s"%(walletval))
-                except:
-                    pass
-            lovepoints = mulah.find_one({"id" : namee.id}, {"lp"})    
-            if lovepoints is not None:
-                try:
-                    lovepoints = lovepoints["lp"]
-                    embed.add_field(name = "Love points", value = "%s"%(lovepoints))
-                except:
-                    pass
-            await ctx.send(embed = embed)           
+            namee=ctx.author
+        embed = discord.Embed(title = "%s's current balance"%(namee.display_name), color = ctx.author.color)
+        walletval = mulah.find_one({"id":namee.id},{"money"})
+        bankval = mulah.find_one({"id":namee.id},{"bank"})
+        if walletval is not None:
+            try:
+                walletval = walletval["money"]
+                embed.add_field(name = "Wallet", value = "%s"%(walletval))
+            except:
+                pass
+        lovepoints = mulah.find_one({"id" : namee.id}, {"lp"})    
+        if lovepoints is not None:
+            try:
+                lovepoints = lovepoints["lp"]
+                embed.add_field(name = "Love points", value = "%s"%(lovepoints))
+            except:
+                pass
+
+        embed.add_field(name="bank", value = bankval["bank"])
+        embed.set_author(icon_url=namee.avatar_url, name = namee.display_name)
+        await ctx.send(embed = embed)           
     
 
 
@@ -705,6 +701,7 @@ class currencysys(commands.Cog):
         await ctx.channel.send(embed = embed)
 
     @pc.command()
+    @Globals.hasItem("pc")
     async def build(self, ctx):
         try:
             global pcitems
@@ -983,9 +980,12 @@ class currencysys(commands.Cog):
                                                     if item["amount"]==0:
                                                         inval.remove(item)
                                             mulah.update_one({"id":ctx.author.id}, {"$set":{"inv":inval}})
+                                            
                                 except asyncio.TimeoutError:
                                     print(traceback.format_exc())
                                     await ctx.channel.send("you took too long.")
+                            embed=discord.Embed(title="Added Ram to PC", description="nice, i doubt you will need it tho lol", color=discord.Color.green())
+                            await ctx.send(embed=embed)
                         else:
                             await ctx.channel.send("You dont have that many ram sticks")
                     else:
@@ -998,6 +998,7 @@ class currencysys(commands.Cog):
             await ctx.channel.send("You took to long! Please dont waste my time.")
 
     @pc.command()
+    @Globals.hasItem("pc")
     async def stats(self,ctx):
         alphabet = string.ascii_lowercase
         alphlist = list(alphabet)
@@ -1075,6 +1076,7 @@ class currencysys(commands.Cog):
             await ctx.channel.send("That item is not in your inventory!")
 
     @pc.command()
+    @Globals.hasItem("pc")
     async def install(self, ctx):
         global pcitems
         global gameitems
@@ -1101,6 +1103,7 @@ class currencysys(commands.Cog):
         try:
             msg = await self.client.wait_for('message', check = check, timeout=30)
             if emptydict[msg.content] in pcnames:
+                ThePcYouareInstallingOn=emptydict[msg.content]
                 for x in inval:
                     if "parts" in x.keys() and x["name"] == emptydict[msg.content]:
                         pcdict = x
@@ -1134,18 +1137,11 @@ class currencysys(commands.Cog):
                                     inval.remove(x)
                         inval.append(pcdict)
                         mulah.update_one({"id":ctx.author.id}, {"$set":{"inv":inval}})
-
-
-                        
-
-
-
-
-
-
-
-
-
+                        embed = discord.Embed(title="Added %s to %s"%(finaldict[msg.content], ThePcYouareInstallingOn), description="congrats on your new game! play it with `pc play`", color = discord.Color.green())
+                        embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+                        await ctx.channel.send(embed=embed)
+                    else:
+                        await ctx.send("please type the lowercase letter associated with the game. try the command again please.")
                 except asyncio.TimeoutError:
                     await ctx.channel.send("You took to long! do the command again!")
                             
@@ -1168,6 +1164,7 @@ class currencysys(commands.Cog):
 
 
     @pc.command()
+    @Globals.hasItem("pc")
     async def dismantle(self, ctx):
         global pcitems
         global gameitems
@@ -1229,6 +1226,7 @@ class currencysys(commands.Cog):
 
 
     @pc.command()
+    @Globals.hasItem("pc")
     async def play(self, ctx):
         global gameitems
         global gamewords
@@ -1359,6 +1357,7 @@ class currencysys(commands.Cog):
         p1invar = mulah.find_one({"id":p1.id}, {"inv"})
         p1inval = p1invar["inv"]
         itemcheck = []
+        number = abs(number)
         for x in inval:
             if x["name"].casefold() ==itemtogive: 
                 for z in p1inval:
@@ -1440,8 +1439,63 @@ class currencysys(commands.Cog):
 
 
 
+    @commands.command()
+    async def dep(self, ctx, amount=None):
+        money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
+        try:
+            if amount.lower()=="all":
+                amount = money
+            else:
+                amount=int(amount)
+        except:
+            pass
+        if amount<=money:
+            if amount>0:
+                money-=amount
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"bank":amount}})
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"money":money}})
+                embed = discord.Embed(title = "Successfull deposit", description = "You have deposited `$%g` into your bank!"%(amount), color=discord.Color.green())
+                embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+                await ctx.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title = "Failed deposit", description = "You are trying to deposit a negative amount of money. that is called withdrawing lmao", color=discord.Color.red())
+                embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+                await ctx.channel.send(embed=embed)
+              
+        else:
+            embed = discord.Embed(title = "Failed deposit", description = "You dont have that much money lmao", color=discord.Color.red())
+            embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+            await ctx.channel.send(embed=embed)
+          
 
-        
+    @commands.command()
+    async def withdraw(self, ctx, amount=None):
+        bank = mulah.find_one({"id":ctx.author.id}, {"bank"})["bank"]
+        try:
+            if amount.lower()=="all":
+                amount = bank
+            else:
+                amount=int(amount)
+        except:
+            pass
+
+        if amount<=bank:
+            if amount>0:
+                bank-=amount
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"money":amount}})
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"bank":bank}})
+                embed = discord.Embed(title = "Successfull withdrawal", description = "You have withdrawn `$%g` from your bank!"%(amount), color=discord.Color.green())
+                embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+                await ctx.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title = "Failed withdrawal", description = "You are trying to withdraw a negative amount of money. that is called a deposit lmao", color=discord.Color.red())
+                embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+                await ctx.channel.send(embed=embed)
+              
+        else:
+            embed = discord.Embed(title = "Failed withdrawal", description = "You dont have that much money lmao", color=discord.Color.red())
+            embed.set_author(icon_url=ctx.author.avatar_url, name=ctx.author.display_name)
+            await ctx.channel.send(embed=embed)
 
 
 
@@ -1464,7 +1518,9 @@ class currencysys(commands.Cog):
                 walletvar = mulah.find_one({"id":ctx.author.id}, {"money"})
                 walletval = walletvar["money"]
                 inval = mulah.find_one({"id":ctx.author.id}, {"inv"})["inv"]
-                if itemvalue<=walletval*number:
+                if itemvalue*number<=walletval:
+                    walletval-=number*itemvalue
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"money":walletval}})
                     Globals.AddToInventory(ctx.author, item=item, ReferenceList=AllItems, AmountToAdd=number) 
                     embed=discord.Embed(title = "Purchase successfull!", description = "You have purchased %s %s!"%(number, item), color = ctx.author.color)
                     await ctx.channel.send(embed=embed)
@@ -1498,6 +1554,7 @@ class currencysys(commands.Cog):
 
             
     @commands.command()
+    @commands.is_owner()
     async def clearinv(self,ctx,p1:discord.Member=None):
         if str(ctx.author) == "SentientPlatypus#1332":
             if p1 is None:
@@ -1516,9 +1573,17 @@ class currencysys(commands.Cog):
             await ctx.channel.send("Only creator senpai can do that!")            
 
 
-
-    
     @commands.command()
+    @commands.cooldown(1, 1000, BucketType.user)
+    async def beg(self,ctx):
+        dictionaryofresponses = Globals.getBegList()
+        randominteger=random.randint(1,10)
+        embed=discord.Embed(title=dictionaryofresponses[randominteger]["name"], description = dictionaryofresponses[randominteger]["value"], color=discord.Color.green())
+        embed.set_footer(text="You have recieved $%g"%(dictionaryofresponses[randominteger]["amount"]))
+        mulah.update_one({"id":ctx.author.id}, {"$inc":{"money":dictionaryofresponses[randominteger]["amount"]}})
+        await ctx.channel.send(embed=embed) 
+    @commands.command()
+    @commands.is_owner()
     async def getmoney(self,ctx,num:int, name:discord.Member=None):
         if str(ctx.author) == "SentientPlatypus#1332":
             if name is None:
@@ -1537,6 +1602,7 @@ class currencysys(commands.Cog):
             await ctx.channel.send("You dont have the rights to this command.")
     
     @commands.command()
+    @commands.is_owner()
     async def getlp(self,ctx,num:int, name:discord.Member=None):
         if str(ctx.author) == "SentientPlatypus#1332":
             if name is None:
@@ -1598,6 +1664,7 @@ class currencysys(commands.Cog):
 
                         else:
                             embed.add_field(name = "%s"%(x), value = "%s"%(mmorpg[x]), inline = False)
+                    embed.add_field(name = "XP", value = mulah.find_one({"id":ctx.author.id}, {"abilityxp"})["abilityxp"])
 
                 if rawreaction == "💰":
                     try:
@@ -1723,7 +1790,26 @@ class currencysys(commands.Cog):
 
     
 
+    @commands.command()
+    async def richlb(self, ctx):
+        ids = [x.id for x in ctx.guild.members]
+        rankings = mulah.find().sort("net",-1)
+        count=0
+        i=1
+        embed = discord.Embed(title = "%s's richest users"%(ctx.guild.name), color = ctx.author.color)
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+        for x in rankings:
+            try:
+                temp = ctx.guild.get_member(int(x["id"])).display_name
 
+                tempswears = x["net"]
+                embed.add_field(name = f"{i}: {temp}", value = f"net worth: `${tempswears}`", inline = False) 
+                i+=1
+                if i==11:
+                    break
+            except:
+                pass
+        await ctx.channel.send(embed=embed)
 
 
     @commands.group(invoke_without_command=True)
@@ -1763,47 +1849,13 @@ class currencysys(commands.Cog):
                         await message.clear_reactions()
                     except:
                         pass
-                    print(confirmation2)
-                    print("this")
-                    print(str(confirmation2[0]))
-                    print("before")
                     if str(confirmation2[0]) == "➕":
                         await message.edit(embed=discord.Embed(title = "Search for a movie/show to add!", color = ctx.author.color))
                         try:
                             msg = await self.client.wait_for('message', check = check, timeout = 120)
-                            movies  = moviesDB.search_movie(msg.content)
-                            movieID = movies[0].getID()
-                            movie = moviesDB.get_movie(movieID)
-
-                            
-                            yt = YoutubeSearch(str(movie)+" trailer", max_results=1).to_json()
-                            yt_id = str(json.loads(yt)['videos'][0]['id'])
-                            yt_url = 'https://www.youtube.com/watch?v='+yt_id
-                            newyt = YoutubeSearch(str(movie)+" trailer", max_results=1).to_json()
-                            newytid = str(json.loads(newyt)['videos'][0]['id'])
-                            thumnail_url = "https://img.youtube.com/vi/%s/maxresdefault.jpg"%(newytid)
-                            try:
-                                embed = discord.Embed(title = "%s, (%s)"%(movie, movie["year"]),url = yt_url,description = " Genre:%s"%(movie["genres"]), color = ctx.author.color)
-                            except:
-                                embed = discord.Embed(title = "%s"%(movie),url = yt_url,description = " Genre:%s"%(movie["genres"]), color = ctx.author.color)
-                            try:
-                                embed.add_field(name = "Synopsis:", value = "%s"%(str(moviesDB.get_movie_synopsis(movieID)["data"]["plot"][0])))
-                            except:
-                                pass
-                            embed.set_image(url = thumnail_url)
-                            embed.add_field(name = "Trailer", value = yt_url, inline=False)
-
-                            listofdirectories = ["rating"]
-                            for x in listofdirectories:
-                                try:
-                                    embed.add_field(name = x, value = "%s"%(movie[x]))
-                                except:
-                                    pass
-
-                            try:
-                                embed.add_field(name= "Episodes:", value = "%s"%(moviesDB.get_movie_episodes(movieID)["data"]["number of episodes"]))
-                            except:
-                                pass
+                            dictt = await Globals.Imdb(ctx, msg.content)
+                            embed = dictt[0]
+                            movie = dictt[1]
                             try:
                                 watchvar = mulah.find_one({"id":ctx.author.id},{"watchlist"})
                                 watchval = watchvar["watchlist"]
@@ -1930,12 +1982,17 @@ class currencysys(commands.Cog):
                 watchvar = mulah.find_one({"id":ctx.author.id},{"watchlist"})
                 watchval = watchvar["watchlist"]
                 watchval.clear()
-                mulah.update_one({"id":ctx.author.id},{"$set":{"watchlist":watchval}})                
+                mulah.update_one({"id":ctx.author.id},{"$set":{"watchlist":watchval}})    
+                await ctx.channel.send("cleared watchlist")            
             else:
+                if not ctx.author.guild_permissions.administrator:
+                    raise commands.MissingPermissions("administrator")
+                    return 
                 watchvar = mulah.find_one({"id":p1.id},{"watchlist"})
                 watchval = watchvar["watchlist"]
                 watchval.clear()
                 mulah.update_one({"id":p1.id},{"$set":{"watchlist":watchval}})
+                await ctx.channel.send("cleared watchlist")            
 
 def setup(client):
     client.add_cog(currencysys(client))

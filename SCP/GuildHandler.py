@@ -61,7 +61,7 @@ class GuildHandler(commands.Cog):
     async def settings(self, ctx, command=None, value=None):
         settings = DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]
         if not command:
-            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `^settings "<command>" <enable|disable>`\n `^configuration` is to alter server settings, eg. `^configuration setprefix <prefix>`.')
+            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `%ssettings "<command>" <enable|disable>`\n `%configuration` is to alter server settings, eg. `%sconfiguration setprefix <prefix>`.'%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
             for x in settings.keys():
                 check=""
                 if settings[x]["enabled"]==True:
@@ -80,7 +80,7 @@ class GuildHandler(commands.Cog):
                 if command!=None and value==None:
                     if command.lower() in namekey:
                         setting = next(x for x in settings.keys() if x.lower()==command.lower())
-                        embed = discord.Embed(title = setting, description = settings[setting]["desc"] + "\n use `^settings <command> <value>`")
+                        embed = discord.Embed(title = setting, description = settings[setting]["desc"] + "\n use `%ssettings <command> <value>`"%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
                         check=""
                         if settings[setting]["enabled"]==True:
                             check = "✅ `enabled`"
@@ -91,7 +91,7 @@ class GuildHandler(commands.Cog):
                 else:
                     if command.lower() in namekey:
                         setting = next(x for x in settings.keys() if x.lower()==command.lower())
-                        embed = discord.Embed(title = "You Updated "+setting, description = settings[setting]["desc"] + "\n use `^settings <command> <value>`")
+                        embed = discord.Embed(title = "You Updated "+setting, description = settings[setting]["desc"] + "\n use `%ssettings <command> <value>`"%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
                         if value.lower() == "enable".lower():
                             settings[setting]["enabled"]=True
                             DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":settings}})
@@ -108,25 +108,25 @@ class GuildHandler(commands.Cog):
                         embed.add_field(name = "Setting:", value = "%s\n%s"%(settings[setting]["desc"], check), inline=False)
                         await ctx.channel.send(embed=embed)
             else:
-                await ctx.channel.send("You do not have those perms")
+                raise commands.MissingPermissions("administrator")
 
-        
+
 
     @commands.group(invoke_without_command=True)
-    async def configuration(self, ctx):
-        embed= discord.Embed(title = "Edit values for server settings!")
-        embed.add_field(name = "commands", value = "`^configuration badword`, `^configuration announcement`, `^configuration suggestion`")
+    async def config(self, ctx):
+        embed= discord.Embed(title = "Edit values for server settings! only available to admins")
+        embed.add_field(name = "commands", value = "`badword`, `announcement`, `suggestion`, `setprefix`")
         await ctx.channel.send(embed=embed)
     
 
-    @configuration.command()
+    @config.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def setprefix(self, ctx, prefix):
         DiscordGuild.update_one({"id":ctx.author.guild.id}, {"$set":{"prefix":prefix}})
         await ctx.channel.send("Guild prefix has been updated to %s"%(prefix))
 
-    @configuration.command()
+    @config.command()
     async def badword(self, ctx):
         leave = False
         if ctx.author.guild_permissions.administrator:
@@ -174,7 +174,7 @@ class GuildHandler(commands.Cog):
             await ctx.channel.send("You dont have the permissions.")                
                     
 
-    @configuration.command()
+    @config.command()
     async def announcement(self, ctx):
         leave = False
         if ctx.author.guild_permissions.administrator:
@@ -224,7 +224,7 @@ class GuildHandler(commands.Cog):
             await ctx.channel.send("You dont have the permissions.")
 
 
-    @configuration.command()
+    @config.command()
     async def suggestion(self, ctx):
         leave = False
         if ctx.author.guild_permissions.administrator:

@@ -516,36 +516,6 @@ class Images(commands.Cog):
 
         await ctx.send(embed=self.__embed_json(res))
 
-    @commands.command()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def meme(self, ctx):
-        """Get a dank meme OwO"""
-        sub = ["dankmemes", "animemes"]  # Add more?
-        url = f'https://api.imgur.com/3/gallery/r/{random.choice(sub)}/hot/{random.randint(1, 5)}'
-        headers = {"Authorization": f"Client-ID {config.imgur}"}
-        async with self.session.get(url, headers=headers) as r:
-            res = await r.json()
-        if res["status"] == 429:
-            return await ctx.send("**Ratelimited, try again later.**")
-        js = random.choice(res['data'])
-        f = False
-        if js['nsfw'] or js['is_ad']:
-            for x in res["data"]:
-                if not js['nsfw'] or not js['is_ad']:
-                    js = x
-                    f = True
-                    break
-        else:
-            f = js
-        if not f:
-            return await ctx.send("Nothing found")
-        embed = discord.Embed(color=0xDEADBF,
-                              description=f"**{js['title']}**")
-        embed.set_image(url=js['link'])
-        time = datetime.datetime.fromtimestamp(int(js['datetime'])).strftime('%Y-%m-%d %H:%M')
-        embed.set_footer(text=f"Posted on {time}")
-
-        await ctx.send(embed=embed)
 
 
 

@@ -11,77 +11,20 @@ from io import BytesIO
 import datetime
 from urllib.parse import quote_plus
 from math import sqrt
+from prsaw import RandomStuff
 class General(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    @commands.guild_only()
-    @commands.cooldown(2, 5, commands.BucketType.user)
-    async def anime(self, ctx, *, search: str):
-        """Get Anime Stats"""
-        await ctx.trigger_typing()
-        async with aiohttp.ClientSession() as cs:
-            async with cs.post("https://graphql.anilist.co", json={
-                "query": helpers.anilist_query,
-                "variables": {
-                    "search": search
-                }
-            }) as res:
-                data = await res.json()
-        if data.get("errors", []):
-            return await ctx.send("Error getting data from anilist: {}".format(data["errors"][0]["message"]))
-        media = data["data"]["Page"]["media"]
-        if not media:
-            return await ctx.send("Nothing found.")
-        media = media[0]
-        if media["isAdult"] is True and not ctx.channel.is_nsfw():
-            return await ctx.send("NSFW Anime can't be displayed in non NSFW channels.")
-        color = int(media["coverImage"]["color"].replace("#", ""), 16) if media["coverImage"]["color"] else 0xdeadbf
-        em = discord.Embed(colour=color)
-        em.title = "{} ({})".format(media["title"]["romaji"], media["title"]["english"])
-        if media["description"]:
-            desc = BeautifulSoup(media["description"], "lxml")
-            if desc:
-                em.description = desc.text
-        em.url = "https://anilist.co/anime/{}".format(media["id"])
-        em.set_thumbnail(url=media["coverImage"]["extraLarge"])
-        em.add_field(name="Status", value=media["status"].title(), inline=True)
-        em.add_field(name="Episodes", value=media["episodes"], inline=True)
-        em.add_field(name="Score", value=str(media["averageScore"]), inline=True)
-        em.add_field(name="Genres", value=", ".join(media["genres"]))
-        dates = "{}/{}/{}".format(media["startDate"]["day"], media["startDate"]["month"], media["startDate"]["year"])
-        if media["endDate"]["year"] is not None:
-            dates += " - {}/{}/{}".format(media["endDate"]["day"], media["endDate"]["month"], media["endDate"]["year"])
-        em.add_field(name="Date", value=dates)
-        await ctx.send(embed=em)
-
-    def whatanime_embedbuilder(self, doc: dict):
-        em = discord.Embed(color=0xDEADBF)
-        em.title = doc["title_romaji"]
-        em.url = "https://myanimelist.net/anime/{}".format(doc["mal_id"])
-        em.add_field(name="Episode", value=str(doc["episode"]))
-        em.add_field(name="At", value=str(doc["at"]))
-        em.add_field(name="Matching %", value=str(round(doc["similarity"] * 100, 2)))
-        em.add_field(name="Native Title", value=doc["title_native"])
-        em.set_footer(text="Powered by trace.moe")
-        return em
-
-    def whatanime_prefbuilder(self, doc):
-        preview = f"https://trace.moe/thumbnail.php?anilist_id={doc['anilist_id']}" \
-                  f"&file={doc['filename']}" \
-                  f"&t={doc['at']}" \
-                  f"&token={doc['tokenthumb']}"
-        return preview
 
 
 
     @commands.command()
     async def cookie(self, ctx, user: discord.Member):
         """Give somebody a cookie :3"""
-        await ctx.send("<:NekoCookie:408672929379909632> - **{} gave {} a cookie** -"
-                         " <:NekoCookie:408672929379909632>".format(ctx.message.author.name, user.mention))
+        await ctx.send(" **{} gave {} a cookie** -"
+                         " :cookie:".format(ctx.message.author.name, user.mention))
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -221,8 +164,7 @@ class General(commands.Cog):
                 imgdata = await res.json()
             em = discord.Embed()
             msg = await ctx.send("*drinks coffee*", embed=em.set_image(url=imgdata["message"]))
-            color = await helpers.get_dominant_color(self.bot, imgdata["message"])
-            em = discord.Embed(color=color)
+            em = discord.Embed(color=discord.Color.purple())
             await msg.edit(embed=em.set_image(url=imgdata["message"]))
 
     @commands.command()
@@ -233,8 +175,7 @@ class General(commands.Cog):
             async with cs.get("https://nekobot.xyz/api/v2/image/animepic") as r:
                 res = await r.json()
         image = res["message"]
-        color = await helpers.get_dominant_color(self.bot, image)
-        em = discord.Embed(color=color)
+        em = discord.Embed(color=discord.Color.blurple())
         await ctx.send(embed=em.set_image(url=image))
 
 
@@ -270,18 +211,18 @@ class General(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def _8ball(self, ctx, *, question: str):
         """Ask 8Ball a question"""
-        answers = ["<:online:313956277808005120> It is certain", "<:online:313956277808005120> As I see it, yes",
-                   "<:online:313956277808005120> It is decidedly so", "<:online:313956277808005120> Most likely",
-                   "<:online:313956277808005120> Without a doubt", "<:online:313956277808005120> Outlook good",
-                   "<:online:313956277808005120> Yes definitely", "<:online:313956277808005120> Yes",
-                   "<:online:313956277808005120> You may rely on it", "<:online:313956277808005120> Signs point to yes",
-                   "<:away:313956277220802560> Reply hazy try again", "<:away:313956277220802560> Ask again later",
-                   "<:away:313956277220802560> Better not tell you now",
-                   "<:away:313956277220802560> Cannot predict now",
-                   "<:away:313956277220802560> Concentrate and ask again",
-                   "<:dnd:313956276893646850> Don't count on it",
-                   "<:dnd:313956276893646850> My reply is no", "<:dnd:313956276893646850> My sources say no",
-                   "<:dnd:313956276893646850> Outlook not so good", "<:dnd:313956276893646850> Very doubtful"]
+        answers = [":green_circle: It is certain", ":green_circle: As I see it, yes",
+                   ":green_circle: It is decidedly so", ":green_circle: Most likely",
+                   ":green_circle: Without a doubt", ":green_circle: Outlook good",
+                   ":green_circle: Yes definitely", ":green_circle: Yes",
+                   ":green_circle: You may rely on it", ":green_circle: Signs point to yes",
+                   ":yellow_circle: Reply hazy try again", ":yellow_circle: Ask again later",
+                   ":yellow_circle: Better not tell you now",
+                   ":yellow_circle: Cannot predict now",
+                   ":yellow_circle: Concentrate and ask again",
+                   ":red_circle: Don't count on it",
+                   ":red_circle: My reply is no", ":red_circle: My sources say no",
+                   ":red_circle: Outlook not so good", ":red_circle: Very doubtful"]
         await ctx.send(embed=discord.Embed(title=random.choice(answers), color=0xDEADBF))
 
     

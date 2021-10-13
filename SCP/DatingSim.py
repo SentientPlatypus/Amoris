@@ -46,6 +46,31 @@ import ssl
 
 cluster = Globals.getMongo()
 mulah = cluster["discord"]["mulah"]
+class noGirlfriend(commands.CommandError):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+
+def hasGirlfriend():
+    def predicate(ctx):
+        gf = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
+        if gf==0 or gf==None:
+            raise noGirlfriend(ctx.author)
+        else:
+            return True
+    return commands.check(predicate)
+
+class noWatchlist(commands.CommandError):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+
+def hasWatchlist():
+    def predicate(ctx):
+        gf = mulah.find_one({"id":ctx.author.id}, {"watchlist"})["watchlist"]
+        if not gf:
+            raise noWatchlist(ctx.author)
+        else:
+            return True
+    return commands.check(predicate)
 
 
 class DatingSim(commands.Cog):
@@ -114,6 +139,7 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
     async def image(self, ctx):
         leave = False
         while leave == False:
@@ -285,7 +311,10 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
+    @hasWatchlist()
     @commands.cooldown(1, 360, BucketType.user)
+    @Globals.hasItem(itemToCheckFor="netflixsub")
     async def netflix(self,ctx):
         global typegenrepraise
         global typeconplaint
@@ -409,6 +438,7 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
     @commands.cooldown(1, 600, BucketType.user)
     async def hug(self,ctx):
         global typegenrepraise
@@ -438,6 +468,7 @@ class DatingSim(commands.Cog):
         except:
             await ctx.channel.send("You need a girlfriend lmao")
     @gf.command()
+    @hasGirlfriend()
     @commands.cooldown(1, 600, BucketType.user)
     async def kiss(self,ctx):
         global typegenrepraise
@@ -509,6 +540,7 @@ class DatingSim(commands.Cog):
     @gf.command()
     @commands.cooldown(1, 3600, BucketType.user)
     @commands.is_nsfw()
+    @hasGirlfriend()
     async def boink(self,ctx):
         global boinkmap
         global boinkresponse        
@@ -622,6 +654,8 @@ class DatingSim(commands.Cog):
             await ctx.channel.send("You dont have enough love points for that. Lmao get cock blocked")
 
     @gf.command()
+    @hasGirlfriend()
+    @Globals.hasItem(itemToCheckFor="ring")
     @commands.cooldown(1, 600, BucketType.user)
     async def propose(self,ctx):
         global gftypes
@@ -688,6 +722,7 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
     async def date(self,ctx):
         global restaurants
         global backgrounds
@@ -840,16 +875,33 @@ class DatingSim(commands.Cog):
                         embed = discord.Embed(title = "Waiter:", description = "Your bill is $%s!"%(bill), color = ctx.author.color)
                         embed.add_field(name = "You ordered:", value = valuestring)
                         embed.add_field(name = "%s ordered:"%(gfval["name"]), value = gforder)
-                        embed.set_image(url = restaurant["waiter"])
-                        walletval-=bill
-                        mulah.update_one({"id":ctx.author.id}, {"$set":{"money":walletval}})
-                        embed.set_footer(text = "your balance is now $%s!"%(walletval))
+                        finalfile = discord.File(restaurant["waiter"])
+                        filename= restaurant["waiter"]
+                        stringfile = f"attachment://{filename}"
+                        embed.set_image(url=stringfile)
+                        if walletval>=bill:
+                            walletval-=bill
+                            mulah.update_one({"id":ctx.author.id}, {"$set":{"money":walletval}})
+                            embed.set_footer(text = "your balance is now $%s\n You have gained 25 love points!"%(walletval))
 
-                        dates+=1
-                        mulah.update_one({"id":ctx.author.id}, {"$set":{"dates":dates}})
-                        await editthis.clear_reactions()
-                        await editthis.delete()
-                        editthis = await ctx.channel.send(embed=embed)                        
+                            dates+=1
+                            mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":25}})
+                            mulah.update_one({"id":ctx.author.id}, {"$set":{"dates":dates}})
+                            await editthis.clear_reactions()
+                            await editthis.delete()
+                            editthis = await ctx.channel.send(embed=embed, file=finalfile)
+                        else:
+                            embed.description="Im sorry, You dont have enough money"
+                            await ctx.channel.send(embed=embed, file=finalfile)
+                            embed = discord.Embed(title = "%s"%(gfval["name"]), description = "Seriously, %s?"%(ctx.author.display_name), color = discord.Color.red())
+                            try:
+                                embed.set_image(url=gfval["dissapointed"])   
+                            except:
+                                pass
+                            embed.set_footer(text="you have lost 10 love points")
+                            mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":-10}})
+                      
+                            await ctx.channel.send(embed=embed)        
 
                     
 
@@ -884,6 +936,8 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
+    @Globals.hasItem(itemToCheckFor="movieticket")
     async def movies(self,ctx):
         global typegenrepraise
         global typeconplaint
@@ -979,6 +1033,7 @@ class DatingSim(commands.Cog):
 
 
     @commands.command()
+    @commands.is_owner()
     async def removegf(self,ctx,p1:discord.Member):
         if str(ctx.author) == "SentientPlatypus#1332":
             mulah.update_one({"id":p1.id},{"$set":{"gf":0}})
@@ -1004,6 +1059,8 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
+    @Globals.hasItem(itemToCheckFor="phone")
     async def text(self,ctx):
         global gftypes, typeconplaint, typepraise  
         try:
@@ -1156,6 +1213,8 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
+    @Globals.hasItem("pc")
     async def gaming(self, ctx):
         global gameitems
         global gamewords
@@ -1357,6 +1416,7 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @hasGirlfriend()
     @commands.is_nsfw()
     async def talk(self, ctx):
         global backgrounds
@@ -1546,6 +1606,7 @@ class DatingSim(commands.Cog):
 
 
     @commands.command()
+    @hasGirlfriend()
     async def breakup(self,ctx, name=None):
         gfvar = mulah.find_one({"id":ctx.author.id}, {"gf"})
         if name is None:
@@ -1587,6 +1648,7 @@ class DatingSim(commands.Cog):
 
 
     @commands.command()
+    @hasGirlfriend()
     async def gfstats(self, ctx, p1:discord.Member=None):
         global emotionlist
         if p1 is None:
@@ -1702,44 +1764,6 @@ class DatingSim(commands.Cog):
         except:
             mulah.update_one({"id": ctx.author.id}, {"$set":{"gf":0}})
             await ctx.channel.send("I have set up your dating profile! Try `^getgf` again!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @commands.Cog.listener()
-    async def on_message(self, ctx):
-
-        if ctx.content.startswith("^"):
             return 
         number = random.randint(1,500)
         try:
