@@ -15,6 +15,7 @@ from discord import file
 from discord.embeds import Embed
 from discord.ext import commands
 from discord.ext.commands.core import command
+from discord.ext.commands.errors import BadArgument
 from discord.ext.commands.help import _HelpCommandImpl
 from discord.member import Member
 from discord.player import PCMAudio
@@ -208,6 +209,7 @@ class levelsys(commands.Cog):
 
 
     @commands.command()
+    @commands.has_permissions(administrator=True)
     async def announce(self, ctx, title, message):
         if ctx.author.guild_permissions.administrator:
             embed = discord.Embed(title = title, description = message, color = ctx.author.color)
@@ -220,26 +222,23 @@ class levelsys(commands.Cog):
                     x = self.client.get_channel(x)
                     await x.send(embed=embed)
             except:
-                await ctx.channel.send("You need to add announcement channels with `^configuration announcement`")
+                raise commands.BadArgument("You need to add announcement channels with `%sconfiguration announcement`"%(Globals.getPrefix(ctx.guild.id)))
         else:
             await ctx.channel.send("You dont have the permissions.")
 
     @commands.command()
     async def suggest(self, ctx, title, message):
-        if ctx.author.guild_permissions.administrator:
-            embed = discord.Embed(title = title, description = message, color = ctx.author.color)
-            embed.set_author(name = "Suggestion from %s"%(ctx.author.display_name), icon_url=ctx.author.avatar_url)
-            embed.set_footer(text = datetime.now().strftime("%Y-%m-%d, %H:%M"))
-            embed.set_thumbnail(url = ctx.author.avatar_url)
-            channels = DiscordGuild.find_one({"id":ctx.guild.id}, {"suggestion channels"})["suggestion channels"]
-            try:
-                for x in channels:
-                    x = self.client.get_channel(x)
-                    await x.send(embed=embed)
-            except:
-                await ctx.channel.send("You need to add suggestion channels with `^configuration suggestion`")
-        else:
-            await ctx.channel.send("You dont have the permissions.")
+        embed = discord.Embed(title = title, description = message, color = ctx.author.color)
+        embed.set_author(name = "Suggestion from %s"%(ctx.author.display_name), icon_url=ctx.author.avatar_url)
+        embed.set_footer(text = datetime.now().strftime("%Y-%m-%d, %H:%M"))
+        embed.set_thumbnail(url = ctx.author.avatar_url)
+        channels = DiscordGuild.find_one({"id":ctx.guild.id}, {"suggestion channels"})["suggestion channels"]
+        try:
+            for x in channels:
+                x = self.client.get_channel(x)
+                await x.send(embed=embed)
+        except:
+            await commands.BadArgument("You need to add suggestion channels with `%sconfiguration suggestion`"%(Globals.getPrefix(ctx.guild.id)))
     @commands.command()
     async def rank(self, ctx, p1:discord.Member=None):
         if not p1:

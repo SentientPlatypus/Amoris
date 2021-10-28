@@ -244,7 +244,7 @@ class currencysys(commands.Cog):
                 Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
                 embed = discord.Embed(titile = "Fishing session!", description = "You Caught %g `%s`!"%(HowMany, item), color = discord.Color.blue())
                 embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
-                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                embed.set_footer(text = 'You can sell this item using `%ssell "%s"`!'%(Globals.getPrefix(ctx.guild.id) ,item))
                 await ctx.channel.send(embed=embed)
         else:
             await ctx.channel.send("you need a fishpole to fish.")
@@ -273,7 +273,7 @@ class currencysys(commands.Cog):
                 Globals.AddToInventory(ctx.author, item, farmitems)
                 embed = discord.Embed(titile = "Hunting session!", description = "You brought back a `%s`!"%(item), color = discord.Color.blue())
                 embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
-                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                embed.set_footer(text = 'You can sell this item using `%ssell "%s"`!'%(Globals.getPrefix(ctx.guild.id),item))
                 await ctx.channel.send(embed=embed)
         else:
             await ctx.channel.send("you need a rifle to hunt.")
@@ -317,7 +317,7 @@ class currencysys(commands.Cog):
                 Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
                 embed = discord.Embed(titile = "Hunting session!", description = "You found %g `%s`!"%(HowMany,item), color = discord.Color.blue())
                 embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
-                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                embed.set_footer(text = 'You can sell this item using `%ssell "%s"`!'%(Globals.getPrefix(ctx.guild.id),item))
                 await ctx.channel.send(embed=embed)
         else:
             await ctx.channel.send("you need a pickaxe to mine.")
@@ -355,7 +355,7 @@ class currencysys(commands.Cog):
                 Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
                 embed = discord.Embed(titile = "Farming session!", description = "You brought back %g `%s`!"%(HowMany,item), color = discord.Color.blue())
                 embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
-                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                embed.set_footer(text = 'You can sell this item using `%ssell "%s"`!'%(Globals.getPrefix(ctx.guild.id),item))
                 await ctx.channel.send(embed=embed)
         else:
             await ctx.channel.send("you need a hoe to farm.")
@@ -391,7 +391,7 @@ class currencysys(commands.Cog):
                 Globals.AddToInventory(ctx.author, item, farmitems, HowMany)
                 embed = discord.Embed(titile = "Farming session!", description = "You brought back %g `%s`!"%(HowMany,item), color = discord.Color.blue())
                 embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
-                embed.set_footer(text = 'You can sell this item using `^sell "%s"`!'%(item))
+                embed.set_footer(text = 'You can sell this item using `%ssell "%s"`!'%(Globals.getPrefix(ctx.guild.id),item))
                 await ctx.channel.send(embed=embed)
         else:
             await ctx.channel.send("you need an axe to farm.")
@@ -669,7 +669,7 @@ class currencysys(commands.Cog):
                     await shopmessage.edit(embed = embed)      
 
                 if thereaction=="🌳":
-                    embed = discord.Embed(title = "Farming rates", description = 'use `^sell "<material>"` to sell something!',color = ctx.author.color)
+                    embed = discord.Embed(title = "Farming rates", description = 'use `%ssell "<material>"` to sell something!',color = ctx.author.color)
                     for x in range(len(farmitems)):
                         nameee = farmitems[x]
                         embed.add_field(name = "%s"%(nameee["name"]), value = "`$%s`| %s"%(nameee["value"], nameee["desc"]), inline=True)

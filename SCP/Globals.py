@@ -48,6 +48,58 @@ def getMongo():
     return MongoClient("mongodb+srv://SCP:Geneavianina@scp16cluseter.foubt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
 
 
+class botUser(object):
+    def __init__(self, user:discord.Member):
+        self.user = user
+        self.inv = mulah.find_one({"id":user.id}, {"inv"})["inv"]
+        self.gf = mulah.find_one({"id":user.id}, {"gf"})["gf"]
+        self.lp = mulah.find_one({"id":user.id}, {"lp"})["lp"]
+        self.breakups = mulah.find_one({"id":user.id}, {"breakups"})["breakups"]
+        self.kisses = mulah.find_one({"id":user.id}, {"kisses"})["kisses"]
+        self.boinks = mulah.find_one({"id":user.id}, {"boinks"})["boinks"]
+        self.money = mulah.find_one({"id":user.id}, {"money"})["money"]
+        self.job = mulah.find_one({"id":user.id}, {"job"})["job"]
+        self.duelwins = mulah.find_one({"id":user.id}, {"duelwins"})["duelwins"]
+        self.duelloses = mulah.find_one({"id":user.id}, {"duelloses"})["duelloses"]
+        self.duelretreats = mulah.find_one({"id":user.id}, {"duelretreats"})["duelretreats"]
+        self.watchlist = mulah.find_one({"id":user.id}, {"watchlist"})["watchlist"]
+        self.achievements = mulah.find_one({"id":user.id}, {"achievements"})["achievements"]
+        self.proposes = mulah.find_one({"id":user.id}, {"proposes"})["proposes"]
+        self.dates = mulah.find_one({"id":user.id}, {"dates"})["dates"]
+        self.relationships = mulah.find_one({"id":user.id}, {"relationships"})["relationships"]
+        self.gambles = mulah.find_one({"id":user.id}, {"gambles"})["gambles"]
+        self.gamblewins = mulah.find_one({"id":user.id}, {"gamblewins"})["gamblewins"]
+        self.upgradepoints = mulah.find_one({"id":user.id}, {"upgradepoints"})["upgradepoints"]
+        self.gameskill = mulah.find_one({"id":user.id}, {"gameskill"})["gameskill"]
+        self.bank = mulah.find_one({"id":user.id}, {"bank"})["bank"]
+        self.net = mulah.find_one({"id":user.id}, {"net"})["net"]
+        self.abilityxp = mulah.find_one({"id":user.id}, {"abilityxp"})["abilityxp"]
+        self.mmorpg = mulah.find_one({"id":user.id}, {"mmorpg"})["mmorpg"]
+
+    def updateWholeMongo(self):
+        dictionaryOfAttributes = self.__dict__
+        for x in dictionaryOfAttributes:
+            mulah.update_one({"id", self.user.id}, {"$set":{x:dictionaryOfAttributes[x]}})
+    
+    def updateOne(self, attribute):
+        attribute = attribute.lower()
+        dictionaryOfAttributes = self.__dict__
+        try:
+            mulah.update_one({"id":self.user.id}, {"$set":{attribute:dictionaryOfAttributes[attribute]}})
+        except:
+            pass
+
+    def incOne(self, attribute, value:int):
+        attribute = attribute.lower()
+        try:
+            mulah.update_one({"id":self.user.id}, {"$inc":{attribute:value}})
+        except:
+            pass
+
+
+
+
+
 cluster = getMongo()
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
@@ -255,13 +307,13 @@ def ChoiceParts(choices:list, ReactionsList = ['1️⃣', '2️⃣', '3️⃣', 
 
 async def AchievementEmbed(ctx, EarnedAchievement):
 
-    UserAchievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
-    if EarnedAchievement not in UserAchievements:
+    user = botUser(ctx.author)
+    if EarnedAchievement not in user.achievements:
         AchievementDict = next(x for x in achievements if x["name"]==EarnedAchievement)
         embed = discord.Embed(title = "Congratulations! you earned the achievement %s"%(AchievementDict["name"]), description = AchievementDict["desc"], color = discord.Color.gold())
         embed.set_image(url = 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/271/trophy_1f3c6.png')
-        UserAchievements.append(EarnedAchievement)
-        mulah.update_one({"id":ctx.author.id}, {"$set":{"achievements":UserAchievements}})
+        user.achievements.append(EarnedAchievement)
+        user.updateWholeMongo()
         embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
         await ctx.channel.send(embed=embed)    
 
@@ -1061,7 +1113,7 @@ def getFunCommands():
     return "`pp`,`roll`,`rate`,`wisdom`, `rickroll`, `yomomma`, `8ball`, `animepic`, `cookie`, `coffee`"
 
 def getModCommands():
-    return "`ban`,`kick`,`mute`,`unmute`,`block`,`unblock`,`softban`, `swear`, `announce`,`suggest`, `swearlb`"
+    return "`automod`,`ban`,`kick`,`mute`,`unmute`,`block`,`unblock`,`softban`, `swear`, `announce`,`suggest`, `swearlb`"
 
 def getSolveCommands():
     return "`hangman`, `scramble`"
@@ -1154,8 +1206,8 @@ def syntax(command):
     return f"```{cmd_and_aliases} {params}```"
 
 
-def getPrefix(ctx):
-    return DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]
+def getPrefix(id):
+    return DiscordGuild.find_one({"id":id}, {"prefix"})["prefix"]
 
 
 

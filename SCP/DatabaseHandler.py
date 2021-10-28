@@ -69,6 +69,7 @@ class DatabaseHandler(commands.Cog):
             {"name":"badwords", "value":[]},
             {"name":"announcement channels", "value":[]},
             {"name":"suggestion channels", "value":[]},
+            {"name":"automod", "value":["links", "images","spam"]}
         ]
             
         
@@ -124,11 +125,52 @@ class DatabaseHandler(commands.Cog):
             }
         ]
 
+    global Serverdbcheck
+    async def Serverdbcheck(guild):
+        global ServerConfig
+        for x in ServerConfig:
+            try:
+                value = DiscordGuild.find_one({"id":guild.id},{x["name"]})[x["name"]]
+            except:
+                Dbmsg=True
+                DiscordGuild.update_one({"id":guild.id}, {"$set":{x["name"]:x["value"]}}, True)
+    global ServerCheck
+    async def ServerCheck(guild):
+        global ServerSettings
+        try:
+            settings = DiscordGuild.find_one({"id":guild.id}, {"settings"})["settings"]
+            for x in ServerSettings.keys():
+                try:
+                    z = settings[x]
+                except:
+                    Dbmsg=True
+                    settings[x] = ServerSettings[x]
+                    DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}}, True)
+
+        except:
+            Dbmsg=True
+            print(traceback.format_exc())
+            stats = levelling.find_one({"id" : guild.id})
+            if stats == None:
+                DiscordGuild.insert_one({"id":guild.id, "settings":ServerSettings})
+            else:
+                DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}})
+    global getNumMembers
+    def getNumMembers():
+        membersz=0
+        for x in self.client.guilds:
+            membersz+=len(x.members)+1
+        return membersz        
 
 
-
-
-
+    @commands.has_permissions(administrator=True)
+    @commands.command()
+    async def resetguild(self, ctx):
+        guild = ctx.guild
+        for x in ServerConfig:
+            DiscordGuild.update_one({"id":guild.id}, {"$set":{x["name"]:x["value"]}}, True)
+        DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}})
+        await ctx.channel.send("Guild settings have been reset to default")
 
 
 
@@ -180,45 +222,14 @@ class DatabaseHandler(commands.Cog):
                         print("updated %s' %s"%(user.display_name, x["name"]))        
 
 
-        async def Serverdbcheck(ctx):
-            global ServerConfig
-            for x in ServerConfig:
-                try:
-                    value = DiscordGuild.find_one({"id":ctx.guild.id},{x["name"]})[x["name"]]
-                except:
-                    Dbmsg=True
-                    DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{x["name"]:x["value"]}}, True)
-
-        async def ServerCheck(ctx):
-            global ServerSettings
-            try:
-                settings = DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]
-                for x in ServerSettings.keys():
-                    try:
-                        z = settings[x]
-                    except:
-                        Dbmsg=True
-                        settings[x] = ServerSettings[x]
-                        DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}}, True)
-
-            except:
-                Dbmsg=True
-                print(traceback.format_exc())
-                stats = levelling.find_one({"id" : ctx.guild.id})
-                if stats == None:
-                    DiscordGuild.insert_one({"id":ctx.guild.id, "settings":ServerSettings})
-                    print("updated %s' guild, inserted"%(ctx.author))                
-                else:
-                    DiscordGuild.update_one({"id":ctx.guild.id}, {"$set":{"settings":ServerSettings}})
-                    print("updated %s' guild"%(ctx.author))
 
 
         if ctx.author == self.client.user:
             if ctx.author.bot: return
             return
 
-        await ServerCheck(ctx)
-        await Serverdbcheck(ctx)
+        await ServerCheck(ctx.guild)
+        await Serverdbcheck(ctx.guild)
         await dbcheck(ctx.author)
         await abilityxpcheck(ctx.author)
         await abilityLevelCheck(ctx.author)
@@ -227,6 +238,11 @@ class DatabaseHandler(commands.Cog):
         mulah.update_one({"id":ctx.author.id}, {"$set":{"money":math.ceil(money)}})
         mulah.update_one({"id":ctx.author.id}, {"$set":{"net":money+bank}})
 
+    @commands.Cog.listener()
+    async def on_guild_join(self,guild):
+        await ServerCheck(guild)
+        await Serverdbcheck(guild)
+        await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers())))
 
 
 

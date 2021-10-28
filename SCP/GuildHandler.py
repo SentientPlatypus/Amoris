@@ -61,7 +61,7 @@ class GuildHandler(commands.Cog):
     async def settings(self, ctx, command=None, value=None):
         settings = DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]
         if not command:
-            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `%ssettings "<command>" <enable|disable>`\n `%configuration` is to alter server settings, eg. `%sconfiguration setprefix <prefix>`.'%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
+            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `%ssettings "<command>" <enable|disable>`\n `%sconfiguration` is to alter server settings, eg. `%sconfiguration setprefix <prefix>`.'%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
             for x in settings.keys():
                 check=""
                 if settings[x]["enabled"]==True:
@@ -127,6 +127,7 @@ class GuildHandler(commands.Cog):
         await ctx.channel.send("Guild prefix has been updated to %s"%(prefix))
 
     @config.command()
+    @commands.has_permissions(administrator=True)
     async def badword(self, ctx):
         leave = False
         if ctx.author.guild_permissions.administrator:
@@ -175,6 +176,7 @@ class GuildHandler(commands.Cog):
                     
 
     @config.command()
+    @commands.has_permissions(administrator=True)
     async def announcement(self, ctx):
         leave = False
         if ctx.author.guild_permissions.administrator:
@@ -225,6 +227,7 @@ class GuildHandler(commands.Cog):
 
 
     @config.command()
+    @commands.has_permissions(administrator=True)
     async def suggestion(self, ctx):
         leave = False
         if ctx.author.guild_permissions.administrator:

@@ -2,9 +2,26 @@ from os import name
 import discord
 from discord.ext import commands
 import datetime
-
+import datetime
+import json
+from re import search
+import asyncio
+import discord
+from discord.ext import commands
+from discord.ext.commands import cog
 from discord.ext.commands.errors import BadArgument
+import Globals
+
+cluster = Globals.getMongo()
+DiscordGuild = cluster["discord"]["guilds"]
 # This prevents staff members from being punished 
+
+
+
+
+
+
+
 class Sinner(commands.Converter):
     async def convert(self, ctx, argument):
         argument = await commands.MemberConverter().convert(ctx, argument) # gets a member object
@@ -202,3 +219,5 @@ class Moderation(commands.Cog):
                                 
 def setup(bot):
     bot.add_cog(Moderation(bot))
+
+

@@ -19,7 +19,7 @@ from discord.enums import ActivityType
 from discord.flags import Intents
 import requests
 import random
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, ipc
 import asyncio
 import re
 import time
@@ -62,6 +62,7 @@ import pymongo
 from typing import Optional
 import moderation
 import HelpCommand
+import automod
 
 from pymongo.database import Database
 from youtube_search import YoutubeSearch
@@ -69,6 +70,7 @@ import json
 import youtube_dl
 from imdb import IMDb
 
+cogautomod = [automod]
 cogMod = [moderation]
 cogHelp = [HelpCommand]
 cogExtras = [extras]
@@ -87,6 +89,24 @@ DiscordGuild = cluster["discord"]["guilds"]
 tagre = "\#\d{4}$"
 
 
+
+class Scp(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ipc = ipc.Server(self, secret_key="g")
+    
+
+    async def on_ipc_ready(self):
+        """Called upon the IPC Server being ready"""
+        print("Ipc server is ready.")
+
+    async def on_ipc_error(self, endpoint, error):
+        """Called upon an error being raised within an IPC route"""
+        print(endpoint, "raised", error)
+
+
+
+
 async def determine_prefix(bot, message):
     guild = message.guild
     if guild:
@@ -94,7 +114,29 @@ async def determine_prefix(bot, message):
         return prefix
     else:
         return "^"
-client = commands.Bot(command_prefix=determine_prefix, intents =discord.Intents.all(), status=discord.Status.online)
+client = Scp(command_prefix=determine_prefix, intents =discord.Intents.all(), status=discord.Status.online)
+
+
+
+@client.ipc.route()
+async def get_guild_count(data):
+    return len(client.guilds)
+
+@client.ipc.route()
+async def get_guild_ids(data):
+    final = [x.id for x in client.guilds]
+    return final
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -119,278 +161,6 @@ async def helpp(ctx):
     
 
     await ctx.send(embed = embed)
-
-@helpp.command()
-async def gf(ctx):
-
-    embed = discord.Embed(title = "Gf", description = "for your single ass", color = ctx.author.color)
-
-    embed.add_field(name = "commands:", value = "`^gfstats` `^getgf` `^gfinteract` `^gf gamimng` `^gf movies` `^gf kiss` `^gf hug` `^gf netflix` `^gf boink` `^gf propose`, `^gf date` `^gf talk`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def config(ctx):
-
-    embed = discord.Embed(title = "Settings!", description = 'use `^settings` to view server settings. `^settings "<command>" <enable|disable>` to edit settings. Use `^configuration` to alter settings', color = ctx.author.color)
-    embed.set_footer(text = "Settings may only be changed by admins")
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def mmorpg(ctx):
-    embed = discord.Embed(title = "The MMORPG", description = "My creator senpai read solo leveling, and is now inspired.", color = ctx.author.color)
-    embed.add_field(name = "Setup commands", value = "`begin`")
-    await ctx.channel.send(embed=embed)
-
-@helpp.command()
-async def money(ctx):
-
-    embed = discord.Embed(title = "Economy!", description = "make some mulah", color = ctx.author.color)
-
-    embed.add_field(name = "commands:", value = "`^shop` `^buy` `^pc build` `^pc play` `^addram` `^pc stats`, `^work`, `^balance`, `^use`, `^give`")
-
-    await ctx.send(embed = embed) 
-
-
-@helpp.command()
-async def use(ctx):
-
-    embed = discord.Embed(title = "Use!", description = "Use a consumable!", color = ctx.author.color)
-
-    embed.add_field(name = "syntax", value = "`^use <item> <number>`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def give(ctx):
-
-    embed = discord.Embed(title = "give", description = "give an item to a person", color = ctx.author.color)
-
-    embed.add_field(name = "syntax", value = "`^give <item> <number> <mentionPerson>`")
-
-    await ctx.send(embed = embed) 
-@helpp.command()
-async def yomomma(ctx):
-
-    embed = discord.Embed(title = "Yomomma machine!", description = "get some jokes", color = ctx.author.color)
-
-    embed.add_field(name = "syntax:", value = "`^yomomma`")
-
-    await ctx.send(embed = embed) 
-@helpp.command()
-async def wanted(ctx):
-
-    embed = discord.Embed(title = "wanted", description = "wanted image", color = ctx.author.color)
-
-    embed.add_field(name = "syntax:", value = "`^wanted`")
-
-    await ctx.send(embed = embed) 
-
-
-@helpp.command()
-async def abouttocry(ctx):
-
-    embed = discord.Embed(title = "abouttocry!", description = "komi-saaan", color = ctx.author.color)
-
-    embed.add_field(name = "syntax:", value = "`^abouttocry`")
-
-    await ctx.send(embed = embed) 
-@helpp.command()
-@commands.has_permissions(administrator=True)
-async def clean(ctx):
-
-    embed = discord.Embed(title = "clean", description = "Deletes messages", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "^clean <#ofmessages>")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def currency(ctx):
-
-    embed = discord.Embed(title = "Economy!", description = "make some mulah", color = ctx.author.color)
-
-    embed.add_field(name = "commands:", value = "`^shop` `^buy` `^pc build` `^pc play` `^addram` `^pc stats`, `^work` `^balance`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def credit(ctx):
-
-    embed = discord.Embed(title = "credit", description = "Shows who contributed to my creation.", color = ctx.author.color)
-
-    await ctx.send(embed = embed) 
-
-
-@helpp.command()
-async def hello(ctx):
-
-    embed = discord.Embed(title = "hello", description = "Say hello to me!", color = ctx.author.color)
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def howru(ctx):
-
-    embed = discord.Embed(title = "howru", description = "Ask me how im doing!", color = ctx.author.color)
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def pp(ctx):
-
-    embed = discord.Embed(title = "pp", description = "get an accurate pp measure", color = ctx.author.color)
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def rickroll(ctx):
-    embed = discord.Embed(title = "Rickroll", description = "rickroll a voice channel", color = ctx.author.color)
-    embed.add_field(name = "syntax:", value = "`^rickroll <vcname>` make sure to use the correct capitalization.")
-    await ctx.send(embed = embed)
-
-@helpp.command()
-async def voice(ctx):
-    embed = discord.Embed(title = "Voice chat 🎵", description = "basic VC commands.", color = ctx.author.color)
-    embed.add_field(name = "syntax:", value = "`^p <url> <vcname>`, `^pause`, `^resume`, `^stop`, `^leave`")
-    await ctx.send(embed = embed)
-
-@helpp.command()
-async def stats(ctx):
-
-    em = discord.Embed(title = "stats", description = "get an accurate stats report", color = ctx.author.color)
-
-    await ctx.send(embed = em) 
-
-@helpp.command()
-async def roll(ctx):
-
-    embed = discord.Embed(title = "roll", description = "Simulate rolling a dice.", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "^roll <#ofsides> <#ofdie>")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def unscramble(ctx):
-
-    embed = discord.Embed(title = "unscramble", description = "unscramble a word", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "^unscramble <word>")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def gcf(ctx):
-
-    embed = discord.Embed(title = "GCF", description = "find the GCF of two integers.", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "^gcf <intx> <inty>")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def poll(ctx):
-    embed = discord.Embed(title = "Polls!", description = "Get the voice of the people with polls. Not like I care though.", color = ctx.author.color)
-    embed.add_field(name = "Syntax:", value = '`^poll "<question>" "<option1>" "<option2>" "<option3>"...` (can handle up to ten options)')
-    await ctx.send(embed = embed)
-
-
-@helpp.command()
-async def hangman(ctx):
-    embed = discord.Embed(title = "Hangman!", description = "Play a game of hangman.", color = ctx.author.color)
-    embed.add_field(name = "Syntax:", value = '`^play hangman` to start playing.\n `^guess hangman <guess>`')
-    await ctx.send(embed = embed)
-
-
-
-@helpp.command()
-async def points(ctx):
-
-    embed = discord.Embed(title = "Coordinate plane information", description = "Get information regarding inputted points", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^points <x1> <y1> <x2> <y2> .... <xn> <yn>` **place points in the correct order clockwise**")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def esnipe(ctx):
-
-    embed = discord.Embed(title = "esnipe", description = "Get messages before they were edited", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^esnipe <#oflatestmessages>`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def snipe(ctx):
-
-    embed = discord.Embed(title = "snipe", description = "Get messages before they were deleted", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^snipe <#oflatestmessages>`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def sub(ctx):
-
-    embed = discord.Embed(title = "sub", description = "get submissions from subreddit", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^red sub <subreddit>`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def simplify(ctx):
-
-    embed = discord.Embed(title = "Simlify", description = "simplify a fraction", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^simplify <numerator> <denominator>`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def rank(ctx):
-
-    embed = discord.Embed(title = "rank", description = "Get your level information", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^rank`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def leaderboard(ctx):
-
-    embed = discord.Embed(title = "Leaderboard", description = "Get leaderboard information", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^leaderboard`")
-
-    await ctx.send(embed = embed) 
-@helpp.command()
-async def herons(ctx):
-
-    embed = discord.Embed(title = "Herons", description = "Calculate the area of a triange with its side lengths", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^herons <sidelen1> <sidelen2> <sidelen3>`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()
-async def question(ctx):
-
-    embed = discord.Embed(title = "Question", description = "Ask me a question, and I will answer according to my ability.", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^question <question>`")
-
-    await ctx.send(embed = embed) 
-
-@helpp.command()			
-async def hardsolve(ctx):
-
-    embed = discord.Embed(title = "Hardsolve", description = "I will solve an equation or expression to the best of my ability.", color = ctx.author.color)
-
-    embed.add_field(name = "**Syntax**", value = "`^mafs hardsolve <equation>`, **THIS COMMAND ISNT CURRENTLY WORKING**	")
-
-    await ctx.send(embed = embed) 
 
 
 ##-------------------------profanitycheck-------------------
@@ -423,20 +193,6 @@ def profanitycheck(string):
 
 
 ##-------------------------------------------FUN-----------------------------------------
-@helpp.command()
-async def fun(ctx):
-
-    embed = discord.Embed(title = "FUN😃", description = "fun things to do!", color = ctx.author.color)
-
-    embed.add_field(name = "commands:", value = "`pp`,`roll`,`stats`,`wisdom`, `rickroll`, `yomomma`")
-
-    await ctx.send(embed = embed) 
-@helpp.command()
-async def guess(ctx):
-    embed = discord.Embed(title = "Guess", description = "Guess something for a game with `^guess <game> <guess>`")
-    choose_message = await ctx.send(embed = embed)
-    await choose_message.add_reaction("🎮")
-
 
 
     #STATS
@@ -517,7 +273,7 @@ async def wisdom(ctx):
 
 
 @client.command()
-async def yomomma(ctx):
+async def yomomma(ctx):     
     req = requests.get('https://api.yomomma.info').json()["joke"]
     embed = discord.Embed(title = "Yomomma Machine", description = req, color = ctx.author.color)
     await ctx.channel.send(embed=embed)
@@ -742,6 +498,7 @@ async def poll(ctx, state, *l):
         optionsfinal = [x + "\n\n" for x in optionsfinal]
         embed = discord.Embed(title = "%s"%(state), description = "%s\n\n\n"%("".join(optionsfinal)), color = ctx.author.color)
         embed.set_author(name= ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        embed.timestamp = ctx.message.created_at
         try:
             if suggestions == True:
                 embed.set_footer(text = "suggestions are open! use the ➕ to add a suggestion!")
@@ -781,7 +538,6 @@ async def poll(ctx, state, *l):
                         closed = True
                         break
         except:
-            print(traceback.format_exc())
             def check(reaction,user):
                 return user==ctx.author and str(reaction.emoji) in ["➕", "🚪"] and reaction.message==msg
             confirm = await client.wait_for('reaction_add', check=check)
@@ -835,7 +591,7 @@ async def clean(ctx, num):
 async def credit(ctx):
     await ctx.channel.send("""Coded By my dearest, Sentient Platypus.
 
-    However, when in need, He asked Jerry Qian and other senpai's from dev team for help. He would be lying to say He did it all by myself.""")
+However, when in need, He asked Jerry Qian and other senpai's from dev team for help. He would be lying to say He did it all by myself.""")
 
 
 
@@ -1067,6 +823,7 @@ async def softsolve(ctx, *q):
     try:
         question = " ".join(q)
         r = wolframalphaclient.query(question)
+        print(r.results)
         res = next(r.results).text
         embed = discord.Embed(title = "%s"%(res), color = ctx.author.color)
         embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
@@ -1370,7 +1127,7 @@ async def sub(ctx, subr):
         limit = 1
         subChannel[ctx.author.id]=1
     count = 0
-    async for submission in subreddit.top(limit = limit):
+    async for submission in subreddit.hot(limit = limit):
         count+=1
         if count==limit:
             random_sub= submission
@@ -1489,6 +1246,9 @@ for i in range(len(cogHelp)):
 
 for i in range(len(cogMod)):
     cogMod[i].setup(client)
+
+for i in range(len(cogautomod)):
+    cogautomod[i].setup(client)
 ##------------------------------------------sim--------------------------------------------
 @client.command()
 async def testcog(ctx):
@@ -1633,13 +1393,13 @@ async def hangman(ctx, word):
 
 @client.event
 async def on_command_error(ctx, error):
+    print("failed")
     commandThatFailed = ctx.command
     embed = discord.Embed()
     embed.timestamp = ctx.message.created_at
     embed.set_author(icon_url=client.user.avatar_url, name="Command Error")
     embed.set_thumbnail(url=client.user.avatar_url)
     embed.color=discord.Color.red()
-
     if isinstance(error, commands.CommandOnCooldown):
         msg = "Retry in %s"%(datetime.timedelta(seconds=math.floor(error.retry_after)))
         embed.title = "Still On Cooldown!"
@@ -1650,24 +1410,65 @@ async def on_command_error(ctx, error):
         embed.set_footer(text = 'Make Sure to add "quotation marks" around a parameter that has a space!')
     elif isinstance(error, noGirlfriend):
         embed.title = "No Girlfriend Found"
-        embed.description= "Maan, you're hopeless. You can get a girlfriend with ```%sgetgf```"%(Globals.getPrefix(ctx))
+        embed.description= "Maan, you're hopeless. You can get a girlfriend with ```%sgetgf```"%(Globals.getPrefix(ctx.guild.id))
     elif isinstance(error, commands.MissingPermissions):
         embed.title = "Missing permissions"
-        embed.description="```You dont have the Permissions. Theres Nothing I can do about that.```"
+        embed.description="```You dont have the Permission %s. Theres Nothing I can do about that.```"%(error.missing_perms)
+    elif isinstance(error, commands.NotOwner):
+        embed.title = "You are not SentientPlatypus!"
+        embed.description = "```only my creator has access to that command```"
     elif isinstance(error, noWatchlist):
         embed.title = "Empty Watchlist"
-        embed.description="```You need a watchlist to watch netflix with your girlfriend! Its not that hard!\n use %swatchlist```"%(Globals.getPrefix(ctx))
+        embed.description="```You need a watchlist to watch netflix with your girlfriend! Its not that hard!\n use %swatchlist```"%(Globals.getPrefix(ctx.guild.id))
     elif isinstance(error, NSFWChannelRequired):
         embed.title = "NSFW content prohibited in this channel"
         embed.description = "```Hmm? horny I see? get into a nsfw channel. No one wants to see that stuff.```"
     elif isinstance(error, Globals.missingItem):
         embed.title = "Missing required item."
         embed.description="```In order to execute <%s>, you need a %s. just get it at the store! This is basic stuff.```"%(commandThatFailed, error.missingItem)
+    elif isinstance(error, commands.BadArgument):
+        embed.title="Bad Argument"
+        embed.description="```%s```"%(str(error))
     else:
+        print("failed")
         print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
         return
     await ctx.channel.send(embed=embed)
+
+
+@client.command(hidden=True)
+@commands.is_owner()
+@commands.guild_only()
+async def load(ctx, extension):
+    try:
+        client.load_extension(f"{extension}")
+        await ctx.message.add_reaction("👍")
+    except:
+        print(traceback.format_exc())
+        await ctx.message.add_reaction("👎")
+
+@client.command(hidden=True)
+@commands.is_owner()
+@commands.guild_only()
+async def unload(ctx, extension):
+    try:
+        client.unload_extension(f"{extension}")
+        await ctx.message.add_reaction("👍")
+    except:
+        await ctx.message.add_reaction("👎")
+
+@client.command(hidden=True)
+@commands.is_owner()
+@commands.guild_only()
+async def reload(ctx, extension):
+    try:
+        client.unload_extension(f"{extension}")
+        client.load_extension(f"{extension}")
+        await ctx.message.add_reaction("👍")
+    except:
+        print(traceback.format_exc())
+        await ctx.message.add_reaction("👎")
 
 
 
@@ -1706,15 +1507,9 @@ async def on_ready():
 async def on_message(ctx):
     if ctx.author == client.user:
         return
-
-    
-
-
-
-
     await client.process_commands(ctx)
 
 
 
-
+client.ipc.start()
 client.run("ODIyMjY1NjE0MjQ0NTExNzU0.YFPwhw.cOH2DLXY1c06IsdDl6_WVuG2OLI")
