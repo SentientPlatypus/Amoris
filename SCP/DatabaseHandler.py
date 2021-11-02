@@ -66,7 +66,7 @@ class DatabaseHandler(commands.Cog):
         global ServerConfig
         ServerConfig = [
             {"name":"prefix", "value":"^"},
-            {"name":"badwords", "value":[]},
+            {"name":"badwords", "value":["fuck", "bitch", "shit", "cunt"]},
             {"name":"announcement channels", "value":[]},
             {"name":"suggestion channels", "value":[]},
             {"name":"automod", "value":["links", "images","spam"]}

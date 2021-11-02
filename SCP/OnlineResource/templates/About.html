@@ -16,7 +16,7 @@
                 </a>
                 <nav>
                     <ul class = "nav_links" id="nav_links">
-                        <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Documentation</a></li>
+                        <li><a href="/documentation.html">Documentation</a></li>
                         <li><a href="./About.html">About</a></li>      
                         <li><a href="./intex.html#contact">Contact</a></li>
                         {% if not authorized %}   
@@ -158,7 +158,7 @@
                     </p>
                 </div>
             </div>
-            <img src="C:\Users\trexx\Documents\PYTHON CODE LOL\SCP-16-Tsundere-Discord-Bot\profile.png" alt="info example" class="right">
+            <img src="{{ url_for('static',filename='imagegen.png') }}" alt="info example" class="right">
 
             <div class="aboutelement">
                 <img src="{{ url_for('static',filename='fun.png') }}" alt="info example">

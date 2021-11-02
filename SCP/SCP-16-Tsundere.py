@@ -107,7 +107,7 @@ class Scp(commands.Bot):
 
 
 
-async def determine_prefix(bot, message):
+async def determine_prefix(bot,message):
     guild = message.guild
     if guild:
         prefix = DiscordGuild.find_one({"id":guild.id}, {"prefix"})["prefix"]
@@ -127,10 +127,80 @@ async def get_guild_ids(data):
     final = [x.id for x in client.guilds]
     return final
 
+@client.ipc.route()
+async def get_guild(data):
+    guild = client.get_guild(data.guild_id)
+    if guild is None:
+        return None
+    else:
+        return "%s"%(guild)
+
+@client.ipc.route()
+async def getDocumentation(data):
+    commandDict = {}
+    def cmdhelp(command):
+        commandDict[command.name] = {"name": command.name, "usage":Globals.noEmbedSyntax(command), "desc":command.help}
+
+    for command in client.commands:
+        cmdhelp(command)
+    
+    return commandDict
 
 
+@client.ipc.route()
+async def get_guild_settings(data):
+    guildid = data.guild_id
+
+    prefix = DiscordGuild.find_one({"id":guildid}, {"prefix"})["prefix"]
+    currentGuildSettings = DiscordGuild.find_one({"id":guildid}, {"settings"})["settings"]
+    announcementChannels =DiscordGuild.find_one({"id":guildid}, {"announcement channels"})["announcement channels"]
+    suggestionChannels =DiscordGuild.find_one({"id":guildid}, {"suggestion channels"})["suggestion channels"]
+    automod = DiscordGuild.find_one({"id":guildid}, {"automod"})["automod"]
+    badwords = DiscordGuild.find_one({"id":guildid}, {"badwords"})["badwords"]
+
+    settings = {
+        "Profanity Filter": currentGuildSettings["Profanity Filter"]["enabled"],
+        "lol on message" : currentGuildSettings["lol on message"]["enabled"],
+        "announce": currentGuildSettings["announce"]["enabled"],
+        "suggest":currentGuildSettings["suggest"]["enabled"],
+
+        "prefix":prefix,
+        "announcement channels":[{client.get_channel(x).name:x} for x in announcementChannels],
+        "suggestion channels":[{client.get_channel(x).name:x} for x in suggestionChannels],
+        "automod":automod,
+        "badwords":badwords
+    }
+    return settings
+
+@client.command()
+async def get_guild_settings(data):
+    commandDict = {}
+    def cmdhelp(command):
+        commandDict[command.name] = {"name": command.name, "usage":Globals.noEmbedSyntax(command), "desc":command.help}
+
+    for command in client.commands:
+        cmdhelp(command)
+    
+    print(commandDict)
+
+@client.ipc.route()
+async def return_channels(data):
+    guild = client.get_guild(data.guild_id)
+    textchannels = guild.text_channels
+    textchannelnames = {
+
+    }
+    for x in textchannels:
+        textchannelnames[x.name] = x.id
+    return textchannelnames
 
 
+@client.command()
+async def return_channels(data):
+    guild = client.get_guild(data.guild.id)
+    textchannels = guild.text_channels
+    textchannelnames = [x.name for x in textchannels]
+    await data.channel.send(textchannelnames)
 
 
 

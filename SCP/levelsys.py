@@ -70,7 +70,7 @@ class levelsys(commands.Cog):
             global badwords
             list = DiscordGuild.find_one({"id":ctx.guild.id}, {"badwords"})["badwords"]
             if not list:
-                badwords = ["fuck", "bitch", "shit", "cunt", "entot", "anjing", "asw", "ngentod", "goblok", "gblk", "wtf", "ngentot"]
+                badwords = ["fuck", "bitch", "shit", "cunt"]
             else:
                 badwords = list
             global badwordresponse

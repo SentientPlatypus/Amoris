@@ -1205,6 +1205,17 @@ def syntax(command):
 
     return f"```{cmd_and_aliases} {params}```"
 
+def noEmbedSyntax(command):
+    cmd_and_aliases = "|".join([str(command), *command.aliases])
+    params = []
+
+    for key, value in command.params.items():
+        if key not in ("self", "ctx"):
+            params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
+
+    params = " ".join(params)
+
+    return f"{cmd_and_aliases} {params}"
 
 def getPrefix(id):
     return DiscordGuild.find_one({"id":id}, {"prefix"})["prefix"]
