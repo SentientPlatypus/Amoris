@@ -84,7 +84,9 @@ cogDB = [DatabaseHandler]
 coggf = [DatingSim]
 d = enchant.Dict("en_US")
 cluster = Globals.getMongo()
+levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
+mulah = cluster["discord"]["mulah"]
 
 tagre = "\#\d{4}$"
 
@@ -149,6 +151,65 @@ async def getDocumentation(data):
 
 @client.ipc.route()
 async def get_guild_settings(data):
+    def swearleader(guildid):
+        guild = client.get_guild(guildid)
+        ids = [x.id for x in guild.members]
+        rankings = levelling.find().sort("swears",-1)
+        returnlist = []
+        count=0
+        i=1
+        for x in rankings:
+            try:
+                temp = guild.get_member(int(x["id"])).display_name
+
+                tempswears = x["swears"]
+                returnlist.append(f"{temp}'s' Swears: `{tempswears}`") 
+                i+=1
+                if i==11:
+                    break
+            except:
+                pass
+        return returnlist
+
+    def rankleader(guildid):
+        guild = client.get_guild(guildid)
+        ids = [x.id for x in guild.members]
+        rankings = levelling.find().sort("xp",-1)
+        returnlist = []
+        i=1
+        for x in rankings:
+            try:
+                temp = guild.get_member(int(x["id"])).display_name
+
+                tempswears = x["xp"]
+                returnlist.append(f"{temp}'s Level: `{Globals.getLevelfromxp(tempswears)}`") 
+                i+=1
+                if i==11:
+                    break
+            except:
+                pass
+        return returnlist
+
+    def richleader(guildid):
+        guild = client.get_guild(guildid)
+        ids = [x.id for x in guild.members]
+        returnlist = []
+        rankings = mulah.find().sort("net",-1)
+        count=0
+        i=1
+        for x in rankings:
+            try:
+                temp = guild.get_member(int(x["id"])).display_name
+
+                tempswears = x["net"]
+                returnlist.append(f"{temp}'s net worth: `${tempswears}`") 
+                i+=1
+                if i==11:
+                    break
+            except:
+                pass
+        return returnlist
+
     guildid = data.guild_id
 
     prefix = DiscordGuild.find_one({"id":guildid}, {"prefix"})["prefix"]
@@ -157,6 +218,10 @@ async def get_guild_settings(data):
     suggestionChannels =DiscordGuild.find_one({"id":guildid}, {"suggestion channels"})["suggestion channels"]
     automod = DiscordGuild.find_one({"id":guildid}, {"automod"})["automod"]
     badwords = DiscordGuild.find_one({"id":guildid}, {"badwords"})["badwords"]
+    swearlb = swearleader(guildid)
+    ranklb = rankleader(guildid)
+    richlb = richleader(guildid)
+
 
     settings = {
         "Profanity Filter": currentGuildSettings["Profanity Filter"]["enabled"],
@@ -168,7 +233,11 @@ async def get_guild_settings(data):
         "announcement channels":[{client.get_channel(x).name:x} for x in announcementChannels],
         "suggestion channels":[{client.get_channel(x).name:x} for x in suggestionChannels],
         "automod":automod,
-        "badwords":badwords
+        "badwords":badwords,
+
+        "richlb":richlb,
+        "ranklb":ranklb,
+        "swearlb":swearlb
     }
     return settings
 
@@ -187,11 +256,9 @@ async def get_guild_settings(data):
 async def return_channels(data):
     guild = client.get_guild(data.guild_id)
     textchannels = guild.text_channels
-    textchannelnames = {
-
-    }
+    textchannelnames = []
     for x in textchannels:
-        textchannelnames[x.name] = x.id
+        textchannelnames.append({x.name:x.id})
     return textchannelnames
 
 
@@ -911,6 +978,17 @@ async def points(ctx, *l):
     def distanceformula(x1,y1,x2,y2):
         c = round(math.sqrt((y2-y1)**2+(x2-x1)**2),2)
         return c
+
+    def midpoint(x1, y1, x2, y2):
+        return "(%s,%s)"%((x1+x2)/2, (y1+y2)/2)
+
+    def simplifywf(question):
+        r = wolframalphaclient.query(question)
+        print(r.results)
+        res = next(r.results).text
+        return res
+
+
     yvalues = []
 
     xvalues = []
@@ -932,27 +1010,39 @@ async def points(ctx, *l):
             slope.append(0)
         else:
             slope.append(float((yvalues[x]-yvalues[x-1])/(xvalues[x]-xvalues[x-1])))
+        
+        distance = distanceformula(xvalues[x-1], yvalues[x-1], xvalues[x], yvalues[x])
+        orval = 0
+        try:
+            wf = simplifywf("sqrt "+str(round(distance**2)))
+            if len(re.findall("sqrt", wf))!=0:
+                orval = wf
+            else:
+                orval = "sqrt(%g)"%(round(distance**2))
+        except:
+            pass
         #distance
-        distanzes.append(distanceformula(xvalues[x-1], yvalues[x-1], xvalues[x], yvalues[x]))
-    distanzes = ["%g"%(x)+"\n" for x in distanzes]
-    print(distanzes)
+        distanzes.append("%g or %s"%(distance, orval))
+
+    distanzes = ["%s"%(x)+"\n" for x in distanzes]
+    
     for x in range(len(yvalues)):
         bz.append(float(yvalues[x]-1*(slope[x]*xvalues[x])))
         equation = "`y = %g(x)+%g`"%(round(float(slope[x]), 2),round(float(bz[x]), 2))
         equations.append(equation)
     pointt = []
-    print(equations)
+
     for x in range(len(yvalues)):
         pointt.append("(%g,%g),"%(xvalues[x],yvalues[x]))
     
     for x in range(len(yvalues)):
         coordinatestring = " (%g,%g) (%g,%g)\n"%(xvalues[x-1],yvalues[x-1], xvalues[x],yvalues[x])
         displayedcoordinates.append(coordinatestring)
-    print(displayedcoordinates)
+
     equationsemifinal = []
     distancefinal = []
     for x in range(len(displayedcoordinates)):
-        equationsemifinal.append(displayedcoordinates[x] + equations[x] + "\n\n")
+        equationsemifinal.append(displayedcoordinates[x] + equations[x] + "\n\n\n")
         distancefinal.append(displayedcoordinates[x]+distanzes[x]+"\n\n")
     equationfln = "".join(equationsemifinal)
     totalarea = 0
@@ -963,13 +1053,18 @@ async def points(ctx, *l):
         totalarea += areaofpolygonlist[x]
     areaofpolygonfinal = abs((1/2)*totalarea)
 
+    midpoints = []
+    for x in range(len(yvalues)):
+        coordinatestring = " (%g,%g) (%g,%g)\n %s"%(xvalues[x-1],yvalues[x-1], xvalues[x],yvalues[x], midpoint(xvalues[x-1],yvalues[x-1], xvalues[x],yvalues[x]))
+        midpoints.append(coordinatestring)
 
 
 
     embed = discord.Embed(title = "the wolfram alpha we have at home", description = "Here is the data for the points %s"%("".join(pointt)), color = ctx.author.color)
-    embed.add_field(name = "Equation", value = "%s"%(equationfln))	
-    embed.add_field(name = "Distance:", value = "%s"%("".join(distancefinal)))
-    embed.add_field(name = "Area of Polygon", value = "%g"%(areaofpolygonfinal))
+    embed.add_field(name = "Equation", value = "%s"%(equationfln), inline=True)	
+    embed.add_field(name = "Distance:", value = "%s"%("".join(distancefinal)), inline=True)
+    embed.add_field(name = "midpoint:", value = "%s"%("\n\n\n".join(midpoints)), inline=True)
+    embed.add_field(name = "Area of Polygon", value = "%g"%(areaofpolygonfinal), inline=True)
 
 
     await ctx.send(embed = embed)	
@@ -1499,6 +1594,9 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         embed.title="Bad Argument"
         embed.description="```%s```"%(str(error))
+    elif isinstance(error, levelsys.settingNotEnabled):
+        embed.title="Setting Not Enabled"
+        embed.description='```The setting %s is not enabled. \nYou can enable it with: %ssettings "%s" enable\nOr you could use our new webapp```'%(error.settingToEnable, Globals.getPrefix(ctx.guild.id), error.settingToEnable)
     else:
         print("failed")
         print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)

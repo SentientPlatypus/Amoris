@@ -18,6 +18,7 @@
                     <ul class = "nav_links" id="nav_links">
                         <li><a href="/documentation.html">Documentation</a></li>
                         <li><a href="/About.html">About</a></li>      
+                        <li><a href="/intex.html#updates">Updates</a></li>
                         <li><a href="/intex.html#contact">Contact</a></li>
                         {% if not authorized %}   
                         <li><a href="/login" class="cta"><button>Login</button></a></li>
@@ -48,12 +49,19 @@
                     <li><a href="/dashboard/{{guild_id}}/automod">automod</a></li>
                     {%endif %}
 
+                    {% if selected == 'stats' %}
+                    <li id="selected"><a href="/dashboard/{{guild_id}}/stats">Server Stats</a></li>
+                    {% else %}
+                    <li><a href="/dashboard/{{guild_id}}/stats">Server Stats</a></li>
+                    {%endif %}
+
                 </ul>
             </nav>
             <div class="largecontent">   
                 <p>
                     Welcome, {{username}}, to {{guildname}}.
                 </p>
+                {% if selected != 'stats'%}
                 <form action="/dashboard/{{guild_id}}/{{selected}}/handledata" method="POST" name="form">
                     {% if selected == 'automod' %}
                     <section class='automod'>
@@ -103,58 +111,60 @@
                     {%elif selected == 'mainsettings'%}
                     <section class='mainsettings'>
                         <label for="Profanity Filter">Profanity Filter</label>
-                        {% if settings['Profanity Filter']%}
+                        {% if settings['Profanity Filter']== True%}
                         <select id="Profanity Filter" name="Profanity Filter" value="enabled">
-                            <option value="enabled">Enabled</option>
+                            <option value="enabled" selected>Enabled</option>
                             <option value="disabled">Disabled</option>
                         </select>   
                         {% else%}
                         <select id="Profanity Filter" name="Profanity Filter" value="disabled">
                             <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
+                            <option value="disabled" selected>Disabled</option>
                         </select>   
                         {%endif%}
                         <hr>
 
                         <label for="lol on message">Lol on message</label>
-                        {% if settings['lol on message']%}
+                        {% if settings['lol on message']== True%}
                         <select id="lol on message" name="lol on message" value="enabled">
-                            <option value="enabled">Enabled</option>
+                            <option value="enabled" selected>Enabled</option>
                             <option value="disabled">Disabled</option>
                         </select>   
                         {% else%}
                         <select id="lol on message" name="lol on message" value="disabled">
                             <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
+                            <option value="disabled" selected>Disabled</option>
                         </select>   
-                        {%endif%}                        <hr>
+                        {%endif%}                        
+                        <hr>
 
                         <label for="suggest">Allow Suggestions</label>
-                        {% if settings['suggest']%}
+                        {% if settings['suggest']== True%}
                         <select id="suggest" name="suggest" value="enabled">
-                            <option value="enabled">Enabled</option>
+                            <option value="enabled" selected>Enabled</option>
                             <option value="disabled">Disabled</option>
                         </select>   
                         {% else%}
                         <select id="suggest" name="suggest" value="disabled">
                             <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
+                            <option value="disabled" selected>Disabled</option>
                         </select>   
                         {%endif%}
                         <hr>
 
                         <label for="announce">Allow announcements from admins</label>
-                        {% if settings['announce']%}
+                        {% if settings['announce'] == True%}
                         <select id="announce" name="announce" value="enabled">
-                            <option value="enabled">Enabled</option>
+                            <option value="enabled" selected>Enabled</option>
                             <option value="disabled">Disabled</option>
                         </select>   
                         {% else%}
                         <select id="announce" name="announce" value="disabled">
                             <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
+                            <option value="disabled" selected>Disabled</option>
                         </select>  
-                        {%endif%}                    
+                        {%endif%}  
+
                     </section>
 
 
@@ -170,9 +180,12 @@
                         <hr>
                         <label for="badwords">Filtered words</label>
                         <div class="inputfield">
-                            <ol id="list_item_badwords" name="ol">
-                                {% for x in settings['badwords']%}
-                                <Li>{{x}} <button type="button" class="close">x</button> </Li>
+                            <ol id="list_item_badwords">
+                                {% for word in settings['badwords']%}
+                                <Li>
+                                    <input type="text" id="badword" name="badwords" value="{{word}}">
+                                    <button type="button" class="close">x</button> 
+                                </Li>
                                 {%endfor%}
 
                             </ol>
@@ -183,18 +196,20 @@
 
                         <label for="announcement channels">Announcement Channels</label>
                         <div class="inputfield">
-                            <ol id="list_item_announce" name="ol">
+                            <ol id="list_item_announce">
                                 {% for x in settings['announcement channels']%}
-                                <Li>{{x}} <button type="button" class="close">x</button> </Li>
+                                <Li>
+                                    <input type="text" id="announcement" name="announcement channels" value="{{x}}" readonly>
+                                    <button type="button" class="close">x</button> 
+                                </Li>                                
                                 {%endfor%}
                             </ol>
                             <input type="button" id="addannounce" value="Add New" class="addbutton">
-                            <input list="announcementchannels" id="announcement_channels" name="announcement channels" >
-                            <datalist id="announcementchannels">
+                            <select id="announcement_channels">
                                 {% for channel in textchannels%}
-                                <option value="{{channel}}"></option>
+                                <option value="{{channel}}">{{channel}}</option>
                                 {%endfor %}
-                            </datalist>
+                            </select>
                         </div>
                         <hr>
 
@@ -202,22 +217,54 @@
                         <div class="inputfield">
                             <ol id="list_item_suggest" name = "ol">
                                 {% for x in settings['suggestion channels']%}
-                                <Li>{{x}} <button type="button" class="close">x</button> </Li>
+                                <Li>
+                                    <input type="text" id="suggestion" name="suggestion channels" value="{{x}}" readonly>
+                                    <button type="button" class="close">x</button> 
+                                </Li>                                
                                 {%endfor%}
                             </ol>
                             <input type="button" id="addsuggest" value="Add New" class="addbutton">
-                            <input list="suggestionchannels" id="suggestion_channels" name="suggestion channels" >
-                            <datalist id="suggestionchannels">
+                            <select id="suggestion_channels">
                                 {% for channel in textchannels%}
-                                <option value="{{channel}}"></option>
+                                <option value="{{channel}}">{{channel}}</option>
                                 {%endfor %}
-                            </datalist>
+                            </select>
                         </div>
                     </section>
 
                     {%endif %}
                     <input type="submit", value="save changes" class="submitbutton">
                 </form>
+                {% endif%}
+                {%if selected == 'stats'%}
+                <div>
+                    <p>Server Level Leaderboard</p>
+                    <ol class="inputfield">
+                        {%for x in settings['ranklb']%}
+                        <li>{{x}}</li>
+                        {%endfor%}
+                    </ol>
+                </div>
+                <hr>
+                <div>
+                    <p>Server net worth Leaderboard</p>
+                    <ol class="inputfield">
+                        {%for x in settings['richlb']%}
+                        <li>{{x}}</li>
+                        {%endfor%}
+                    </ol>
+                </div>
+                <hr>
+                <div>   
+                    <p>Server swears Leaderboard</p>
+                    <ol class="inputfield">
+                        {%for x in settings['swearlb']%}
+                        <li>{{x}}</li>
+                        {%endfor%}
+                    </ol>
+                </div>
+
+                {%endif%}
 
 
             </div>
@@ -243,9 +290,8 @@
 
             document.getElementById("addannounce").onclick  = function() {
                 var node = document.createElement("Li");
-                var text = document.getElementById("announcement channels").value; 
+                var text = document.getElementById("announcement_channels").value; 
                 var textnode=document.createTextNode(text);
-                node.appendChild(textnode);
 
                 var button = document.createElement("button");
                 button.type = "button";
@@ -253,6 +299,15 @@
                 var xnode = document.createTextNode("x")
                 button.appendChild(xnode)
                 addremover(button)
+
+                var input = document.createElement("input");
+                input.type = "text";
+                input.id = "announcement";
+                input.name = "announcement_channels";
+                input.value = text;
+                input.readOnly = true;
+
+                node.appendChild(input)
                 node.appendChild(button);
                 
                 document.getElementById("list_item_announce").appendChild(node);
@@ -262,32 +317,50 @@
                 var node = document.createElement("Li");
                 var text = document.getElementById("badwords").value; 
                 var textnode=document.createTextNode(text);
-                node.appendChild(textnode);
+
                 var button = document.createElement("button");
                 button.type = "button";
                 button.className = "close";
                 var xnode = document.createTextNode("x")
                 button.appendChild(xnode)
                 addremover(button)
+
+                var input = document.createElement("input");
+                input.type = "text";
+                input.id = "badword";
+                input.name = "badword";
+                input.value = text;
+                input.readOnly = true;
+
+
+                node.appendChild(input)
                 node.appendChild(button);
-                
 
                 document.getElementById("list_item_badwords").appendChild(node);
             }
 
             document.getElementById("addsuggest").onclick  = function() {
                 var node = document.createElement("Li");
-                var text = document.getElementById("suggestion channels").value; 
+                var text = document.getElementById("suggestion_channels").value; 
                 var textnode=document.createTextNode(text);
-                node.appendChild(textnode);
+
                 var button = document.createElement("button");
                 button.type = "button";
                 button.className = "close";
                 var xnode = document.createTextNode("x")
                 button.appendChild(xnode)
                 addremover(button)
+
+                var input = document.createElement("input");
+                input.type = "text";
+                input.id = "suggestion";
+                input.name = "suggestion_channels";
+                input.value = text;
+                input.readOnly = true;
+
+
+                node.appendChild(input)
                 node.appendChild(button);
-                
 
                 document.getElementById("list_item_suggest").appendChild(node);
             }
@@ -301,6 +374,7 @@
                 document.getElementsByTagName("nav")[0].style.top = "0px";
             }
             }
+
         </script>
     </body>
 </html>

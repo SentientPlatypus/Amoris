@@ -6,6 +6,9 @@ from quart_discord import DiscordOAuth2Session
 from discord.ext import ipc
 from pymongo import MongoClient
 import json
+import traceback
+import ast
+import re
 def getMongo():
     return MongoClient("mongodb+srv://SCP:Geneavianina@scp16cluseter.foubt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
 
@@ -99,8 +102,9 @@ async def dashboardSettingPage(guild_id, settingPage):
 
     user = await discord.fetch_user()
 
+    print("check")
     settings = await ipc_client.request("get_guild_settings", guild_id=guild_id)
-    
+    print(settings)
 
     return await render_template(
         "/dashboard.html", 
@@ -118,10 +122,16 @@ async def dashboardSettingPage(guild_id, settingPage):
 @app.route('/dashboard/<int:guild_id>/<string:settingPage>/handledata', methods=['POST'])
 async def handledata(guild_id, settingPage):
     projectpath = await request.form
+    form = {}
+    for key in projectpath.keys():
+        values = projectpath.getlist(key)
+        if len(values) == 1:
+            form[key] = values[0]
+        else:
+            form[key] = values
     print("------------------------------")
-    print(projectpath)
-    print("------------------------------")
-
+    print(form)
+    print("------------------------------\n\n\n")
     modop = DiscordGuild.find_one({"id":guild_id}, {"automod"})["automod"]
     mainsettings = DiscordGuild.find_one({"id":guild_id}, {"settings"})["settings"]
     announcementChannels =DiscordGuild.find_one({"id":guild_id}, {"announcement channels"})["announcement channels"]
@@ -147,9 +157,51 @@ async def handledata(guild_id, settingPage):
 
     if settingPage == "config":
         DiscordGuild.update_one({"id":guild_id}, {"$set":{"prefix":projectpath.get("prefix")}})
+        regex = "\:\s\d{18}\}$"
+        geId = "\d{18}"
+        formKeys = form.keys()
+
+        if "announcement_channels" in formKeys:
+            announcementChannels.clear()
+            if type(form["announcement_channels"]) == list:
+                for channelDict in form["announcement_channels"]:
+                    print(channelDict)
+                    valueString = re.findall(regex, channelDict)[0]
+                    channelId = int(re.findall(geId, valueString)[0])
+                    announcementChannels.append(channelId)
+            else:
+                valueString = re.findall(regex, form["announcement_channels"])[0]
+                channelId = int(re.findall(geId, valueString)[0])
+                announcementChannels.append(channelId)
+            print(announcementChannels)
+            DiscordGuild.update_one({"id":guild_id}, {"$set":{"announcement channels":announcementChannels}})
+
+
+        if "suggestion_channels" in formKeys:
+            suggestionChannels.clear()
+            if type(form["suggestion_channels"]) == list:
+                for channelDict in form["suggestion_channels"]:
+                    print(channelDict)
+                    valueString = re.findall(regex, channelDict)[0]
+                    channelId = int(re.findall(geId, valueString)[0])
+                    suggestionChannels.append(channelId)
+            else:
+                valueString = re.findall(regex, form["suggestion_channels"])[0]
+                channelId = int(re.findall(geId, valueString)[0])
+                suggestionChannels.append(channelId)
+            DiscordGuild.update_one({"id":guild_id}, {"$set":{"suggestion channels":suggestionChannels}})
+
+
+        if "badwords" in formKeys:
+            newBadWords = form["badwords"]
+            print(newBadWords)
+            if type(newBadWords) == list:
+                DiscordGuild.update_one({"id":guild_id}, {"$set":{"badwords":newBadWords}})
+            else:
+                DiscordGuild.update_one({"id":guild_id}, {"$set":{"badwords":[newBadWords]}})
 
     
-    return "success"
+    return redirect(f"/dashboard/{guild_id}/{settingPage}")
 
 
 

@@ -54,6 +54,21 @@ cluster = Globals.getMongo()
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
 mulah = cluster["discord"]["mulah"]
+
+class settingNotEnabled(commands.CommandError):
+    def __init__(self, user, setting, *args, **kwargs):
+        self.user = user
+        self.settingToEnable = setting
+
+def isEnabled(key):
+    def predicate(ctx):
+        checkSetting = DiscordGuild.find_one({"id":ctx.author.guild.id}, {"settings"})["settings"][key]["enabled"]
+        if checkSetting:
+            return commands.check(predicate)
+        else:
+            raise settingNotEnabled(ctx.author, key)
+    return commands.check(predicate)
+
 class levelsys(commands.Cog):
     def __init__(self,client):
         self.client = client
@@ -209,6 +224,7 @@ class levelsys(commands.Cog):
 
 
     @commands.command()
+    @isEnabled("announce")
     @commands.has_permissions(administrator=True)
     async def announce(self, ctx, title, message):
         if ctx.author.guild_permissions.administrator:
@@ -227,6 +243,7 @@ class levelsys(commands.Cog):
             await ctx.channel.send("You dont have the permissions.")
 
     @commands.command()
+    @isEnabled("suggest")
     async def suggest(self, ctx, title, message):
         embed = discord.Embed(title = title, description = message, color = ctx.author.color)
         embed.set_author(name = "Suggestion from %s"%(ctx.author.display_name), icon_url=ctx.author.avatar_url)
