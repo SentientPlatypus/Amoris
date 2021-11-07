@@ -195,7 +195,9 @@ async def handledata(guild_id, settingPage):
         if "badwords" in formKeys:
             newBadWords = form["badwords"]
             print(newBadWords)
+
             if type(newBadWords) == list:
+                newBadWords = [x for x in newBadWords if x!=""]
                 DiscordGuild.update_one({"id":guild_id}, {"$set":{"badwords":newBadWords}})
             else:
                 DiscordGuild.update_one({"id":guild_id}, {"$set":{"badwords":[newBadWords]}})

@@ -132,10 +132,8 @@ class GuildHandler(commands.Cog):
         leave = False
         if ctx.author.guild_permissions.administrator:
             while leave==False:
-                print("this worked")
                 embed = discord.Embed(title = "Bad Words!", value = "These words will be censored if `Profanity Filter` is enabled.", color = ctx.author.color)
                 words = DiscordGuild.find_one({"id":ctx.guild.id}, {"badwords"})
-                print(words)
                 try:
                     embed.add_field(name = "badwords:", value = "Observe:\n"+"\n".join(words["badwords"]))
                 except:
@@ -144,7 +142,6 @@ class GuildHandler(commands.Cog):
                 if not ctx.author.guild_permissions.administrator:
                     break
                 words = DiscordGuild.find_one({"id":ctx.guild.id}, {"badwords"})
-                print(words)
                 try:
                     await msg.clear_reactions()
                 except:
@@ -191,7 +188,6 @@ class GuildHandler(commands.Cog):
                 if not ctx.author.guild_permissions.administrator:
                     break
                 words = DiscordGuild.find_one({"id":ctx.guild.id}, {"announcement channels"})
-                print(words)
                 try:
                     await msg.clear_reactions()
                 except:
@@ -242,7 +238,6 @@ class GuildHandler(commands.Cog):
                 if not ctx.author.guild_permissions.administrator:
                     break
                 words = DiscordGuild.find_one({"id":ctx.guild.id}, {"suggestion channels"})
-                print(words)
                 try:
                     await msg.clear_reactions()
                 except:

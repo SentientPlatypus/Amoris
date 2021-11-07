@@ -99,16 +99,12 @@ class currencysys(commands.Cog):
             hourlywage = next(x for x in worklists if x["name"]==job)["salary"]
         else:
             hourlywage=15
-        print("check1")
         if job:
-            print("check2")
             try:
                 YourJob = next(x for x in worklists if x["name"]==job)
                 workoption = random.choice(["unscramble", "guess"])
                 right = False
                 wrong = False
-                print("check3")
-                print(workoption)
                 if workoption == "guess":
                     def check(m):
                         return m.author==ctx.author and m.channel==ctx.channel
@@ -136,17 +132,13 @@ class currencysys(commands.Cog):
                         return m.author==ctx.author and m.channel==ctx.channel
 
                     randomword = random.choice(YourJob["words"])
-                    print(randomword)
                     answer = randomword
                     ll = list(randomword)
                     random.shuffle(ll)
 
                     while "".join(ll)==answer:
                         random.shuffle(ll)
-                        print("".join(ll))
                     finalrandword = "".join(ll)     
-                    print(finalrandword)
-                    print("sdjfklsdjklf")
                     checks = []
                     for x in range(3):
                         embed = discord.Embed(title = "fill in the blank!", description = "You have %s chances! Unscramble the word `%s`"%(3-x, finalrandword), color = discord.Color.green())
@@ -293,7 +285,6 @@ class currencysys(commands.Cog):
                     pass
             for x in range(tool["fortune"]):
                 luck*=(115/100)
-            print(luck)
             if 10> luck >= 0:
                 embed = discord.Embed(title = "Mining session", description = "You found nothing!", color = discord.Color.blue())
                 embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
@@ -415,7 +406,6 @@ class currencysys(commands.Cog):
 
             AllItems = pcitems+shopitems+gameitems+farmitems+ToolValues+BattleShop
             ItemRef = next(x for x in AllItems if x["name"].lower()==item["name"].lower())
-            print(ItemRef)
             SoldFor = ItemRef["value"]*number
             money+=SoldFor
             Globals.RemoveFromInventory(ctx.author, item["name"], number)
@@ -469,7 +459,6 @@ class currencysys(commands.Cog):
         XpRank = levelling.find()
         MulahRank = mulah.find()
         for x in XpRank:
-            print(x)
             DbId = x["id"]
             CurrentLevel = Globals.GetLevel(DbId)
             temp = ctx.guild.get_member(int(DbId))
@@ -790,7 +779,6 @@ class currencysys(commands.Cog):
                                 
 
 
-                            print(var)
                             embed = discord.Embed(title = "Choose your %s!"%(stri), description =finalstring, color = ctx.author.color)
                             if x == 0:
                                 reactthis = await ctx.channel.send(embed =embed)
@@ -803,7 +791,6 @@ class currencysys(commands.Cog):
                                 return user==ctx.author and str(reaction.emoji) in ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'] and reaction.message == reactthis                                
                             confirm = await self.client.wait_for('reaction_add', check = check2, timeout = 20)
                             if confirm:
-                                print("this worked")
                                 thisreaction = str(confirm[0])
                                 partdict[stri] = reactiondict[thisreaction]
                                 z = next(a for a in invdict if a["name"] == reactiondict[thisreaction])
@@ -911,7 +898,6 @@ class currencysys(commands.Cog):
         emptydict = {}
         for x in range(len(pcname)):
             emptydict[alphlist[x]] = pcname[x]
-        print(emptydict)
             
 
 
@@ -932,7 +918,6 @@ class currencysys(commands.Cog):
                             pcdict = x
                             for z in x["parts"]:
                                 if x["parts"][z] == None and len(re.findall("ram",z))>0:
-                                    print(x["parts"][z])
                                     count+=1
 
 
@@ -1027,7 +1012,6 @@ class currencysys(commands.Cog):
             if emptydict[msg.content] in pcnames:
                 for x in inval:
                     if "parts" in x.keys() and x["name"] == emptydict[msg.content]:
-                        print(x)
                         embed =discord.Embed(title = "%s"%(x["name"]), description = x["desc"], color = ctx.author.color)
                         for z in x["parts"]:
                             embed.add_field(name = "%s"%(z), value = "%s"%(pcdict["parts"][z]))
@@ -1192,13 +1176,9 @@ class currencysys(commands.Cog):
             msg = await self.client.wait_for('message', check = check, timeout = 30)
             if emptydict[msg.content] in pcnames:
                 pcdict = next(item for item in inval if "parts" in item.keys() and item["name"] == emptydict[msg.content])
-                print(pcdict)
                 for x in pcdict["parts"].keys():
                     invaldict = next((item for item in inval if item["name"] == pcdict["parts"][x]), None)
                     pcitemdict = next((item for item in pcitems if item["name"] == pcdict["parts"][x]), None)
-                    print(pcitemdict)           
-                    print(x)  
-                    print(pcdict["parts"][x])    
                     if invaldict is not None:
                         invaldict["amount"]+=1
                     else:   
@@ -1246,8 +1226,6 @@ class currencysys(commands.Cog):
                 finalstring+= "%s:%s\n"%(alphlist[count], x["name"])
                 emptydict[alphlist[count]] = x["name"]
                 count+=1
-        print(emptydict)
-        print(pcnames)
         embed = discord.Embed(title = "Which PC would you like to use?", description = finalstring, color = ctx.author.color)
         await ctx.channel.send(embed=embed)
         def check(m):
@@ -1281,7 +1259,6 @@ class currencysys(commands.Cog):
                                     if x["recommendedspecs"]["totalram"]>pcdict["parts"]["totalram"] or x["recommendedspecs"]["power"]>pcdict["parts"]["power"]:
                                         specscheck.append("nope")
                             if not specscheck:
-                                print(newdict[msg.content])
                                 for x in gamewords:
                                     if x["name"] == newdict[msg.content]:
                                         randomword = random.choice(x["words"])
@@ -1624,7 +1601,6 @@ class currencysys(commands.Cog):
     async def profile(self,ctx,p1:discord.Member=None):
         if p1 == None:
             p1 = ctx.author
-        print(mulah.find_one({"id":p1.id}))
         breakupval = mulah.find_one({"id":p1.id}, {"breakups"})["breakups"]
         kissval = mulah.find_one({"id":p1.id}, {"kisses"})["kisses"]
         boinkval = mulah.find_one({"id":p1.id}, {"boinks"})["boinks"]
@@ -1699,9 +1675,7 @@ class currencysys(commands.Cog):
 
                             embed.add_field(name = "❤️Love Points", value = "%s"%(lpval))
                             try:
-                                print(gfval["image"])
                                 if gfval["image"].startswith("http"):
-                                    print("yes, it starts with http")
                                     embed.set_image(url = gfval["image"])
                             except:
                                 print(traceback.format_exc())

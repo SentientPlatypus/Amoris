@@ -68,26 +68,27 @@
                         <label for="links">Restrict Links</label>
                         {% if 'links' in settings['automod'] %}
                         <select id="links" name="links" value="enabled">
-                            <option value="enabled">Enabled</option>
+                            <option value="enabled" selected>Enabled</option>
                             <option value="disabled">Disabled</option>
                         </select>
                         {%else%}
                         <select id="links" name="links" value="disabled">
                             <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
-                        </select>                        {%endif%}
+                            <option value="disabled" selected>Disabled</option>
+                        </select>                        
+                        {%endif%}
                         <hr>
 
                         <label for="images">Restrict attatchments</label>
                         {% if 'images' in settings['automod'] %}
                         <select id="images" name="images" value="enabled">
-                            <option value="enabled">Enabled</option>
+                            <option value="enabled" selected>Enabled</option>
                             <option value="disabled">Disabled</option>
                         </select>   
                         {%else%}
                         <select id="images" name="images" value="disabled">
                             <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
+                            <option value="disabled" selected>Disabled</option>
                         </select>   
                         {%endif%}
                         <hr>
@@ -95,13 +96,13 @@
                         <label for="spam">Restrict Spamming</label>
                         {% if 'spam' in settings['automod'] %}
                         <select id="spam" name="spam" value="enabled">
-                            <option value="enabled">Enabled</option>
+                            <option value="enabled" selected>Enabled</option>
                             <option value="disabled">Disabled</option>
                         </select>   
                         {%else%}
                         <select id="spam" name="spam" value="disabled">
                             <option value="enabled">Enabled</option>
-                            <option value="disabled">Disabled</option>
+                            <option value="disabled" selected>Disabled</option>
                         </select>   
                         {%endif%}                    
                     </section>

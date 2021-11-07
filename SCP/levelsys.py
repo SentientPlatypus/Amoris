@@ -73,9 +73,6 @@ class levelsys(commands.Cog):
     def __init__(self,client):
         self.client = client
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print('ready')
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
@@ -202,8 +199,6 @@ class levelsys(commands.Cog):
                 swearvar = levelling.find_one({"id":ctx.author.id},{"swears"})
                 swearval = swearvar["swears"]
                 id = ctx.guild
-                for x in ctx.guild.members:
-                    print(x)
                 embed = discord.Embed(title = "You have sworn %s times."%(swearval), color = ctx.author.color)
                 embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
                 await ctx.channel.send(embed=embed)
@@ -214,8 +209,6 @@ class levelsys(commands.Cog):
                 swearvar = levelling.find_one({"id":p1.id},{"swears"})
                 swearval = swearvar["swears"]
                 id = p1.guild
-                for x in p1.guild.members:
-                    print(x)
                 embed = discord.Embed(title = "%s has sworn %s times."%(p1.display_name, swearval), color = ctx.author.color)
                 embed.set_author(name = p1.display_name, icon_url=p1.avatar_url)
                 await ctx.channel.send(embed=embed)

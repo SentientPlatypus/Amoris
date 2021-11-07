@@ -44,6 +44,156 @@ import requests
 import Globals
 import pymongo
 import ssl
+global ServerSettings
+ServerSettings = {
+    "Profanity Filter":{"desc":"Censors Profanity.", "enabled":True},
+    "lol on message":{"desc":"sends a lol message when someone laughs", "enabled":True},
+    "announce":{"desc":"settings for `^announce`", "enabled":True},
+    "suggest":{"desc":"settings for `^suggest`", "enabled":True},
+}
+global ServerConfig
+ServerConfig = [
+    {"name":"prefix", "value":"^"},
+    {"name":"badwords", "value":["fuck", "bitch", "shit", "cunt"]},
+    {"name":"announcement channels", "value":[]},
+    {"name":"suggestion channels", "value":[]},
+    {"name":"automod", "value":["links", "images","spam"]}
+]
+    
+
+
+
+global DatabaseKeys
+DatabaseKeys = [
+    {"name":"needsUpdate", "value":True},
+    {"name":"gf", "value":0},
+    {"name":"lp", "value":0},
+    {"name":"breakups", "value":0},
+    {"name":"kisses", "value":0},
+    {"name":"boinks", "value":0},
+    {"name":"money", "value":0},
+    {"name":"job", "value":None},
+    {"name":"duelwins", "value":0},
+    {"name":"duelloses", "value":0},
+    {"name":"duelretreats", "value":0},
+    {"name":"inv", "value":[]},
+    {"name":"watchlist", "value":[]},
+    {"name":"achievements", "value":[]},
+    {"name":"proposes", "value":0},
+    {"name":"dates", "value":0},
+    {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
+    {"name":"gambles", "value":0},
+    {"name":"gamblewins","value":0},
+    {"name":"upgradepoints","value":0},
+    {"name":"gameskill","value":{}},
+    {"name":"bank", "value":0},
+    {"name":"net","value":0},
+    {"name":"abilityxp", "value":{}},
+    {"name":"mmorpg",
+    "value":{
+        "level":1,
+        "class":None,
+        "stats":{
+            "strength":1, 
+            "intelligence":100, 
+            "defense":1, 
+            "health":100,
+            }, 
+        "abilities":{"Punch":1},
+        
+        "loadout":{
+            "head":None, 
+            "torso":None, 
+            "pants":None, 
+            "arms":None, 
+            "hands":None, 
+            "primary":None,
+            "secondary":None,
+        }
+    }
+    }
+]
+global Serverdbcheck
+async def Serverdbcheck(guild):
+    global ServerConfig
+    for x in ServerConfig:
+        try:
+            value = DiscordGuild.find_one({"id":guild.id},{x["name"]})[x["name"]]
+        except:
+            Dbmsg=True
+            DiscordGuild.update_one({"id":guild.id}, {"$set":{x["name"]:x["value"]}}, True)
+
+global ServerCheck
+async def ServerCheck(guild):
+    global ServerSettings
+    try:
+        settings = DiscordGuild.find_one({"id":guild.id}, {"settings"})["settings"]
+        for x in ServerSettings.keys():
+            try:
+                z = settings[x]
+            except:
+                Dbmsg=True
+                settings[x] = ServerSettings[x]
+                DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}}, True)
+    except:
+        Dbmsg=True
+        print(traceback.format_exc())
+        stats = levelling.find_one({"id" : guild.id})
+        if stats == None:
+            DiscordGuild.insert_one({"id":guild.id, "settings":ServerSettings})
+        else:
+            DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}})
+
+global abilityLevelCheck
+async def abilityLevelCheck(user:discord.Member):
+    mmorpg = mulah.find_one({"id":user.id},{"mmorpg"})["mmorpg"]
+    abilityxp = mulah.find_one({"id":user.id},{"abilityxp"})["abilityxp"]
+    for x in abilityxp.keys():
+        if Globals.getLevelfromxp(abilityxp[x])!=mmorpg["abilities"][x]:
+            mmorpg["abilities"][x] = Globals.getLevelfromxp(abilityxp[x])
+    mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
+
+
+global abilityxpcheck
+async def abilityxpcheck(user:discord.Member):
+    ability = mulah.find_one({"id":user.id},{"mmorpg"})["mmorpg"]["abilities"]
+    abilityxp = mulah.find_one({"id":user.id},{"abilityxp"})["abilityxp"]
+    for x in ability.keys():
+        if x not in abilityxp.keys():
+            abilityxp[x]=0
+    mulah.update_one({"id":user.id}, {"$set":{"abilityxp":abilityxp}})
+
+
+
+global dbcheck
+async def dbcheck(user:discord.Member):
+    global DatabaseKeys
+    global Dbmsg
+    try:
+        needsUpdate = mulah.find_one({"id":user.id},{"needsUpdate"})["needsUpdate"]
+    except:
+        mulah.update_one({"id":user.id}, {"$set":{"needsUpdate":True}}, True)
+        needsUpdate = mulah.find_one({"id":user.id},{"needsUpdate"})["needsUpdate"]
+        print("updated %s' needUpdate to True"%(user.display_name))
+    if needsUpdate:
+        mulah.update_one({"id":user.id}, {"$set":{"needsUpdate":False}})
+        print("updated %s' needUpdate to False"%(user.display_name))
+        for x in DatabaseKeys:
+            try:
+                value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
+            except:
+                Dbmsg=True
+                mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}})
+                print("updated %s' %s"%(user.display_name, x["name"]))
+                try:
+                    value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
+                except:
+                    Dbmsg=True
+                    mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}}, True)
+                    print("updated %s' %s"%(user.display_name, x["name"]))        
+
+
+
 
 cluster = Globals.getMongo()
 mulah = cluster["discord"]["mulah"]
@@ -54,107 +204,8 @@ class DatabaseHandler(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        global ServerSettings
-        ServerSettings = {
-            "Profanity Filter":{"desc":"Censors Profanity.", "enabled":True},
-            "lol on message":{"desc":"sends a lol message when someone laughs", "enabled":True},
-            "announce":{"desc":"settings for `^announce`", "enabled":True},
-            "suggest":{"desc":"settings for `^suggest`", "enabled":True},
-        }
-        global ServerConfig
-        ServerConfig = [
-            {"name":"prefix", "value":"^"},
-            {"name":"badwords", "value":["fuck", "bitch", "shit", "cunt"]},
-            {"name":"announcement channels", "value":[]},
-            {"name":"suggestion channels", "value":[]},
-            {"name":"automod", "value":["links", "images","spam"]}
-        ]
-            
-        
 
 
-        global DatabaseKeys
-        DatabaseKeys = [
-            {"name":"gf", "value":0},
-            {"name":"lp", "value":0},
-            {"name":"breakups", "value":0},
-            {"name":"kisses", "value":0},
-            {"name":"boinks", "value":0},
-            {"name":"money", "value":0},
-            {"name":"job", "value":None},
-            {"name":"duelwins", "value":0},
-            {"name":"duelloses", "value":0},
-            {"name":"duelretreats", "value":0},
-            {"name":"inv", "value":[]},
-            {"name":"watchlist", "value":[]},
-            {"name":"achievements", "value":[]},
-            {"name":"proposes", "value":0},
-            {"name":"dates", "value":0},
-            {"name":"relationships", "value":0, "conditional":"gf", "ModifiedVal":1},
-            {"name":"gambles", "value":0},
-            {"name":"gamblewins","value":0},
-            {"name":"upgradepoints","value":0},
-            {"name":"gameskill","value":{}},
-            {"name":"bank", "value":0},
-            {"name":"net","value":0},
-            {"name":"abilityxp", "value":{}},
-            {"name":"mmorpg",
-            "value":{
-                "level":1,
-                "class":None,
-                "stats":{
-                    "strength":1, 
-                    "intelligence":100, 
-                    "defense":1, 
-                    "health":100,
-                    }, 
-                "abilities":{"Punch":1},
-                
-                "loadout":{
-                    "head":None, 
-                    "torso":None, 
-                    "pants":None, 
-                    "arms":None, 
-                    "hands":None, 
-                    "primary":None,
-                    "secondary":None,
-                }
-            }
-            }
-        ]
-
-    global Serverdbcheck
-    async def Serverdbcheck(guild):
-        global ServerConfig
-        for x in ServerConfig:
-            try:
-                value = DiscordGuild.find_one({"id":guild.id},{x["name"]})[x["name"]]
-            except:
-                Dbmsg=True
-                DiscordGuild.update_one({"id":guild.id}, {"$set":{x["name"]:x["value"]}}, True)
-    global ServerCheck
-    async def ServerCheck(guild):
-        global ServerSettings
-        try:
-            settings = DiscordGuild.find_one({"id":guild.id}, {"settings"})["settings"]
-            for x in ServerSettings.keys():
-                try:
-                    z = settings[x]
-                except:
-                    Dbmsg=True
-                    settings[x] = ServerSettings[x]
-                    DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}}, True)
-
-        except:
-            Dbmsg=True
-            print(traceback.format_exc())
-            stats = levelling.find_one({"id" : guild.id})
-            if stats == None:
-                DiscordGuild.insert_one({"id":guild.id, "settings":ServerSettings})
-            else:
-                DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}})
     global getNumMembers
     def getNumMembers():
         membersz=0
@@ -179,58 +230,8 @@ class DatabaseHandler(commands.Cog):
         if ctx.author == self.client.user:
             return
         if ctx.author.bot: return
-        global DBmsg
-        Dbmsg = False
-
-        global abilityLevelCheck
-        async def abilityLevelCheck(user:discord.Member):
-            mmorpg = mulah.find_one({"id":user.id},{"mmorpg"})["mmorpg"]
-            abilityxp = mulah.find_one({"id":user.id},{"abilityxp"})["abilityxp"]
-            for x in abilityxp.keys():
-                if Globals.getLevelfromxp(abilityxp[x])!=mmorpg["abilities"][x]:
-                    mmorpg["abilities"][x] = Globals.getLevelfromxp(abilityxp[x])
-            mulah.update_one({"id":user.id}, {"$set":{"mmorpg":mmorpg}})
 
 
-        global abilityxpcheck
-        async def abilityxpcheck(user:discord.Member):
-            ability = mulah.find_one({"id":user.id},{"mmorpg"})["mmorpg"]["abilities"]
-            abilityxp = mulah.find_one({"id":user.id},{"abilityxp"})["abilityxp"]
-            for x in ability.keys():
-                if x not in abilityxp.keys():
-                    abilityxp[x]=0
-            mulah.update_one({"id":user.id}, {"$set":{"abilityxp":abilityxp}})
-
-
-
-        global dbcheck
-        async def dbcheck(user:discord.Member):
-            global DatabaseKeys
-            global Dbmsg
-            for x in DatabaseKeys:
-                try:
-                    value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
-                except:
-                    Dbmsg=True
-                    mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}})
-                    print("updated %s' %s"%(user.display_name, x["name"]))
-                    try:
-                        value = mulah.find_one({"id":user.id},{x["name"]})[x["name"]]
-                    except:
-                        Dbmsg=True
-                        mulah.update_one({"id":user.id}, {"$set":{x["name"]:x["value"]}}, True)
-                        print("updated %s' %s"%(user.display_name, x["name"]))        
-
-
-
-
-        if ctx.author == self.client.user:
-            if ctx.author.bot: return
-            return
-
-        await ServerCheck(ctx.guild)
-        await Serverdbcheck(ctx.guild)
-        await dbcheck(ctx.author)
         await abilityxpcheck(ctx.author)
         await abilityLevelCheck(ctx.author)
         money = mulah.find_one({"id":ctx.author.id}, {"money"})["money"]
@@ -243,9 +244,30 @@ class DatabaseHandler(commands.Cog):
         await ServerCheck(guild)
         await Serverdbcheck(guild)
         await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers())))
+        for x in guild.members:
+            if not x.bot:
+                await dbcheck(x)
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        if not member.bot:
+            await dbcheck(member)
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        for guild in self.client.guilds:
+            for member in guild.members:
+                if not member.bot:
+                    await dbcheck(member)
+        print("The bot is ready, and the database has been updated")
 
+    @commands.command()
+    async def updateWholeDb(self, ctx):
+        for guild in self.client.guilds:
+            for member in guild.members:
+                mulah.update_one({"id":member.id}, {"$set":{"needsUpdate":True}})
+                await dbcheck(member)
+        await ctx.channel.send("The bot is ready, and the database has been updated")  
 
     @commands.Cog.listener()
     async def on_command_completion(self,ctx):
@@ -371,7 +393,7 @@ class DatabaseHandler(commands.Cog):
         if ctx.author.id==643764774362021899:
             Data = mulah.find_one({"id":p1.id}, {key})
             await ctx.channel.send("```%s```"%(Data))
-            print(Data)
+
 
 
     @commands.command()

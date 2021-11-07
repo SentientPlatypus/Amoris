@@ -63,7 +63,6 @@ from typing import Optional
 import moderation
 import HelpCommand
 import automod
-
 from pymongo.database import Database
 from youtube_search import YoutubeSearch
 import json
@@ -250,8 +249,6 @@ async def get_guild_settings(data):
     for command in client.commands:
         cmdhelp(command)
     
-    print(commandDict)
-
 @client.ipc.route()
 async def return_channels(data):
     guild = client.get_guild(data.guild_id)
@@ -618,7 +615,6 @@ async def esnipe(ctx):
 
 @client.command()
 async def poll(ctx, state, *l):
-    print(l)
     await ctx.message.delete()
     if len(l)>=11:
         embed = discord.Embed(title = "Do a better job at making options.", description = "This isnt a Third world election.", color = ctx.author.color)
@@ -656,8 +652,6 @@ async def poll(ctx, state, *l):
                     return str(reaction.emoji) in ["➕", "🚪"] and reaction.message==msg
                 confirm2 = await client.wait_for('reaction_add', check=check2)
                 if confirm2:
-                    print(confirm2)
-                    print(str(confirm2[1]))
                     if str(confirm2[0]) == "➕":
                         doodle = await ctx.channel.send(embed=discord.Embed(title = "Type your suggestion!", color = ctx.author.color))
                         def check3(m):
@@ -667,9 +661,7 @@ async def poll(ctx, state, *l):
                         await confirm3.delete()
                         l.append("%s"%(confirm3.content))
                 if str(confirm2[0]) == "🚪":
-                    print("no")
                     if str(confirm2[1]) == str(ctx.author):
-                        print("non")
                         embed.set_footer(text="This poll is closed!")
                         await msg.edit(embed=embed)
                         closed = True
@@ -960,7 +952,6 @@ async def softsolve(ctx, *q):
     try:
         question = " ".join(q)
         r = wolframalphaclient.query(question)
-        print(r.results)
         res = next(r.results).text
         embed = discord.Embed(title = "%s"%(res), color = ctx.author.color)
         embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
@@ -984,7 +975,6 @@ async def points(ctx, *l):
 
     def simplifywf(question):
         r = wolframalphaclient.query(question)
-        print(r.results)
         res = next(r.results).text
         return res
 
@@ -1229,7 +1219,6 @@ async def goodimdb(ctx, *, moviee):
     await ctx.trigger_typing()
     moviesDB=IMDb()
     movies = moviesDB.search_movie(moviee)
-    print(movies)
     movieID = movies[0].getID()
     movie = moviesDB.get_movie(movieID)
 
@@ -1287,7 +1276,6 @@ async def sub(ctx, subr):
     try:
         subChannel[ctx.author.id]+=1
         limit=subChannel[ctx.author.id]
-        print(limit)
     except:
         limit = 1
         subChannel[ctx.author.id]=1
@@ -1424,9 +1412,6 @@ async def testcog(ctx):
         else:
             cog_list.append(c)
     cog_list = sorted(cog_list)
-    for cog_name in cog_list:
-        print(cog_name.title())
-
     for i in client.get_cog("Images").walk_commands():
         await ctx.channel.send(i)
 
@@ -1558,7 +1543,6 @@ async def hangman(ctx, word):
 
 @client.event
 async def on_command_error(ctx, error):
-    print("failed")
     commandThatFailed = ctx.command
     embed = discord.Embed()
     embed.timestamp = ctx.message.created_at

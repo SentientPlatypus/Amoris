@@ -84,8 +84,10 @@ input#badwords {
     width: 80%;
 }
 
-input#announcement_channels, input#suggestion_channels{
+input#announcement_channels, input#suggestion_channels, input#announcement, input#badword, input#suggestion{
     width: 75%;
+    border: #edf0f1 solid 2px;
+    border-radius: 15px;
 }
 
 .inputfield .addbutton {
