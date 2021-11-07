@@ -207,7 +207,7 @@ class DatabaseHandler(commands.Cog):
 
 
     global getNumMembers
-    def getNumMembers():
+    def getNumMembers(self):
         membersz=0
         for x in self.client.guilds:
             membersz+=len(x.members)+1
@@ -243,7 +243,7 @@ class DatabaseHandler(commands.Cog):
     async def on_guild_join(self,guild):
         await ServerCheck(guild)
         await Serverdbcheck(guild)
-        await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers())))
+        await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers(self))))
         for x in guild.members:
             if not x.bot:
                 await dbcheck(x)
