@@ -690,7 +690,6 @@ class currencysys(commands.Cog):
         await ctx.channel.send(embed = embed)
 
     @pc.command()
-    @Globals.hasItem("pc")
     async def build(self, ctx):
         try:
             global pcitems
@@ -1671,6 +1670,8 @@ class currencysys(commands.Cog):
                             for x in gfval.keys():
                                 if x not in emotionlist:
                                     embed.add_field(name = "%s"%(x), value = gfval[x])
+                            startrelationship = mulah.find_one({"id":p1.id}, {"gfdata"})["gfdata"]["start"]
+                            embed.add_field(name = "Together since", value = startrelationship)
 
 
                             embed.add_field(name = "❤️Love Points", value = "%s"%(lpval))

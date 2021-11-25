@@ -1,6 +1,7 @@
 
 from datetime import date
 from inspect import trace
+import openai
 from logging import exception
 from operator import mul
 from os import name
@@ -156,7 +157,26 @@ def GetFirstKey(dict:dict):
 
 
 
-
+class chat(object):
+    def __init__(self, chatlog):
+        self.chatlog = chatlog
+    
+    def ask(self,question):
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt=self.chatlog + question + "\nAI:",
+            temperature=0.9,
+            max_tokens=150,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.6,
+            stop=["\n", " Human:", " AI:"]
+        )
+        return response["choices"][0]["text"]
+    
+    def append_interaction_to_chat_log(self, answer):
+        self.chatlog += "AI:" +answer+"\n"
+    
 
 
 
@@ -214,7 +234,18 @@ def InvCheckWithItem(user, item:str, Id=False, amount:int=1):
         return check
 
 
-
+def gpt3completion(prompt):
+    openai.organization = "org-6cx7PCsPB7dbTOcOu2oI6nYX"
+    openai.api_key = "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"
+    openai.Engine.retrieve("davinci")
+    z = openai.Completion.create(
+    engine="davinci",
+    prompt=prompt,
+    max_tokens=1000,
+    presence_penalty=1,
+    frequency_penalty=1
+    )
+    return z["choices"][0]["text"]
 
 
 
@@ -386,7 +417,7 @@ def getBattleItems():
             "type":"head", 
             "desc":"Op doujutsu",
             "rarity":"Legendary", 
-            "value":2000,
+            "value":200000,
             "abilities":{"Amaterasu":1, "Susanoo":1}},
 
 
@@ -394,8 +425,24 @@ def getBattleItems():
             "type":"primary", 
             "desc":"Can deflect spells completely!", 
             "rarity":"Legendary", 
-            "value":2000,
+            "value":20000,
             "abilities":{"Black Slash":1, "Deflect":1, "Black Divider":1}
+            },
+
+            {"name":"Sword", 
+            "type":"primary", 
+            "desc":"Basic sword.", 
+            "rarity":"Common", 
+            "value":200,
+            "abilities":{"Slash":1}
+            },
+
+            {"name":"Spear", 
+            "type":"primary", 
+            "desc":"Basic weapon.", 
+            "rarity":"Common", 
+            "value":200,
+            "abilities":{"Pierce":1}
             },
 
         ]
@@ -1106,11 +1153,107 @@ def getTypePraise():
             {"typename": "Kamidere", "text": "I found that enjoyable. Texting is in fact, the most practical form of communication. I appreciate you.", "gaming":"I found that enjoyable. Thank you for this. We should play more often.<3", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
 
         ]              
+def gpt3Classification(query, examples, labels):
+    a=openai.Classification.create(
+        search_model="ada",
+        model="curie",
+        examples=examples,
+        query=query,
+        labels=labels,
+    )
+    return a
+def classifyText(prompt):
+    labels = [
+        "wants to kiss",
+        "wants to hug",
+        "wants to play games",
+        "wants to boink",
+        "climax",
+        "embarrassed",
+        "horny",
+        "neutral",
+        "happy",
+        "disappointed",
+        "mad",
+    ]
+    examples = [
+        ["kiss me", "wants to kiss"],
+        ["hug me", "wants to hug"],
+        ["put my body on yours", "wants to boink"],
+        ["you feel so good inside", "horny"],
+        ["aaaaahhhhh im  aaaaaaah", "climax"],
+        ["im cumming","climax"],
+        ["this... its embarrassing", "embarrassed"],
+        ["...baka!!", "embarrassed"],
+        ["pervert!!", "embarrassed"],
+        ["wanna play val?", "wants to play games"],
+        ["want to play a game?", "wants to play games"],
+        ["thats great!", "happy"],
+        ["are you serious?", "disappointed"],
+        ["Im so mad at you", "mad"]
+    ]
+    return gpt3Classification(prompt, examples=examples, labels=labels)
+
+
+class chat(object):
+    def __init__(self, chatlog):
+        self.chatlog = chatlog
+    
+    def ask(self,question):
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt=self.chatlog + question + "\nAI:",
+            temperature=0.9,
+            max_tokens=150,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.6,
+            stop=["\n", " Human:", " AI:"]
+        )
+        return response["choices"][0]["text"]
+    
+    def append_interaction_to_chat_log(self, answer):
+        self.chatlog += "AI:" +answer+"\n"
+
+    
+    def getprompt(user:discord.Member):
+        #{
+        #    "kisses":0,#
+        #    "boinks":0,#
+        #    "dates":0,#
+         #   "hugs":0,#
+          #  "games":0,#
+           # "text":0,#
+           # "netflix":0,#
+         #   "movies":0,
+         #   "start": date.today().strftime("%B %d, %Y"),
+        #}},
+        gf = mulah.find_one({"id":user.id}, {"gf"})["gf"]
+        gfdata = mulah.find_one({"id":user.id}, {"gfdata"})["gfdata"]
+        prompt = "The following is a conversation between a %s girlfriend whose name is %s and her lover, whose name is %s."%(
+            gf["type"], gf["name"], user.display_name
+        )
+
+        prompt+=" %s has been dating %s since %s. They have kissed %s times, hugged %s times, had sex %s times, played games %s times, texted %s times, watched netlix together %s times, and watched movies %s times"%(
+            gf["name"], user.display_name, gfdata["start"], gfdata["kisses"], gfdata["hugs"], gfdata["boinks"], gfdata["games"], gfdata["texts"], gfdata["netflix"], gfdata["movies"]
+        )
+
+        prompt+=" %s's hobby is %s. Her favorite genre is %s, her least favorite is %s. Her favorite subject is %s."%(
+            gf["name"], gf["likes"], gf["adventure"], gf["dislikes"], gf["favorite subject"]
+        )
+        prompt+="\n\nHuman: my name is sen.\n AI: I know that already."
+        return prompt
+
+
+
+
+
+
 
 
 
 def getFunCommands():
-    return "`pp`,`roll`,`rate`,`wisdom`, `rickroll`, `yomomma`, `8ball`, `animepic`, `cookie`, `coffee`"
+    return "`pp`,`roll`,`rate`,`wisdom`, `rickroll`, `yomomma`, `8ball`, `animepic`, `cookie`, `coffee`, `story`"
 
 def getModCommands():
     return "`automod`,`ban`,`kick`,`mute`,`unmute`,`block`,`unblock`,`softban`, `swear`, `announce`,`suggest`, `swearlb`"

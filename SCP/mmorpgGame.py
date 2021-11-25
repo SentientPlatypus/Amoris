@@ -476,6 +476,8 @@ class mmorpgGame(commands.Cog):
             {"name":"Punch", "category":"attack","type":"Physical", "damage":10, "desc":"A basic attack anyone can do.", "special":None,"cooldown":0,"ult":False, "mana":10, "effect":None},
             {"name":"Black Divider", "category":"attack", "type":"Physical", "damage":2000, "desc":"A devastating attack from the Demon Destroyer","cooldown":4,"ult":True, "special":None, "mana":10, "effect":["Bleed"]},
             {"name":"Amaterasu", "category":"attack", "type":"Magic", "damage":100, "desc":"Burns infinitely","cooldown":4,"ult":True, "special":None, "mana":70, "effect":["Amaterasu"]},
+            {"name":"Slash", "category":"attack", "type":"Physical", "damage":25, "desc":"basic slash attack","cooldown":0,"ult":False, "special":None, "mana":0, "effect":None},
+            {"name":"Pierce", "category":"attack", "type":"Physical", "damage":45, "desc":"basic spear attack","cooldown":2,"ult":False, "special":None, "mana":0, "effect":None},
 
         ]
 

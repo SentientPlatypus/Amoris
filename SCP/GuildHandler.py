@@ -61,7 +61,7 @@ class GuildHandler(commands.Cog):
     async def settings(self, ctx, command=None, value=None):
         settings = DiscordGuild.find_one({"id":ctx.guild.id}, {"settings"})["settings"]
         if not command:
-            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `%ssettings "<command>" <enable|disable>`\n `%sconfiguration` is to alter server settings, eg. `%sconfiguration setprefix <prefix>`.'%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
+            embed = discord.Embed(title = 'Server Settings', description = 'This servers settings.\n use `%ssettings "<command>" <enable|disable>`\n `%sconfiguration` is to alter server settings, eg. `%sconfiguration setprefix <prefix>`.\n [Server Dashboard](http://scp16tsundere.pagekite.me:443)'%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]))
             for x in settings.keys():
                 check=""
                 if settings[x]["enabled"]==True:
@@ -114,7 +114,7 @@ class GuildHandler(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def config(self, ctx):
-        embed= discord.Embed(title = "Edit values for server settings! only available to admins")
+        embed= discord.Embed(title = "Edit values for server settings! only available to admins", description="\n [Server Dashboard](http://scp16tsundere.pagekite.me:443)")
         embed.add_field(name = "commands", value = "`badword`, `announcement`, `suggestion`, `setprefix`")
         await ctx.channel.send(embed=embed)
     

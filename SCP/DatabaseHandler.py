@@ -1,9 +1,10 @@
 from discord.ext.commands.cooldowns import BucketType
-from datetime import date
+from datetime import date, datetime
 from inspect import trace
 from logging import exception
 from operator import mul
 from os import name
+from datetime import date
 from typing import AsyncContextManager
 import discord
 from discord import errors
@@ -25,6 +26,7 @@ import math
 import asyncio
 import linecache
 import sys
+
 import traceback
 import string
 import itertools
@@ -46,8 +48,8 @@ import pymongo
 import ssl
 global ServerSettings
 ServerSettings = {
-    "Profanity Filter":{"desc":"Censors Profanity.", "enabled":True},
-    "lol on message":{"desc":"sends a lol message when someone laughs", "enabled":True},
+    "Profanity Filter":{"desc":"Censors Profanity.", "enabled":False},
+    "lol on message":{"desc":"sends a lol message when someone laughs", "enabled":False},
     "announce":{"desc":"settings for `^announce`", "enabled":True},
     "suggest":{"desc":"settings for `^suggest`", "enabled":True},
 }
@@ -57,7 +59,7 @@ ServerConfig = [
     {"name":"badwords", "value":["fuck", "bitch", "shit", "cunt"]},
     {"name":"announcement channels", "value":[]},
     {"name":"suggestion channels", "value":[]},
-    {"name":"automod", "value":["links", "images","spam"]}
+    {"name":"automod", "value":["spam"]}
 ]
     
 
@@ -67,6 +69,18 @@ global DatabaseKeys
 DatabaseKeys = [
     {"name":"needsUpdate", "value":True},
     {"name":"gf", "value":0},
+    {"name":"gfdata", "value":
+    {
+        "kisses":0,#
+        "boinks":0,#
+        "dates":0,#
+        "hugs":0,#
+        "games":0,#
+        "text":0,#
+        "netflix":0,#
+        "movies":0,
+        "start": date.today().strftime("%B %d, %Y"),
+    }},
     {"name":"lp", "value":0},
     {"name":"breakups", "value":0},
     {"name":"kisses", "value":0},
@@ -251,6 +265,7 @@ class DatabaseHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         if not member.bot:
+            await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers(self))))
             await dbcheck(member)
 
     @commands.Cog.listener()
@@ -261,12 +276,14 @@ class DatabaseHandler(commands.Cog):
                     await dbcheck(member)
         print("The bot is ready, and the database has been updated")
 
+    @commands.is_owner()
     @commands.command()
     async def updateWholeDb(self, ctx):
         for guild in self.client.guilds:
             for member in guild.members:
-                mulah.update_one({"id":member.id}, {"$set":{"needsUpdate":True}})
-                await dbcheck(member)
+                if not member.bot:
+                    mulah.update_one({"id":member.id}, {"$set":{"needsUpdate":True}})
+                    await dbcheck(member)
         await ctx.channel.send("The bot is ready, and the database has been updated")  
 
     @commands.Cog.listener()
@@ -363,7 +380,7 @@ class DatabaseHandler(commands.Cog):
             await ctx.channel.send("ok creator senpai! i did it.")
 
 
-
+    @commands.is_owner()
     @commands.command()
     async def resetDB(self, ctx, key, p1:discord.Member=None):
         global DatabaseKeys
@@ -373,6 +390,17 @@ class DatabaseHandler(commands.Cog):
             x = next(a for a in DatabaseKeys if a["name"].lower()==key.lower())
             mulah.update_one({"id":p1.id}, {"$set":{x["name"]:x["value"]}})
             await ctx.channel.send("ok creator senpai! i did it.")
+
+    @commands.is_owner()
+    @commands.command()
+    async def resetKeyWholeDb(self, ctx, key):
+        global DatabaseKeys
+        for guild in self.client.guilds:
+            for member in guild.members:
+                if not member.bot:
+                    x = next(a for a in DatabaseKeys if a["name"].lower()==key.lower())
+                    mulah.update_one({"id":member.id}, {"$set":{x["name"]:x["value"]}})
+        await ctx.channel.send("reset `%s` to default for all users"%(key))
 
 
             

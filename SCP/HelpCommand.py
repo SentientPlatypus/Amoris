@@ -14,7 +14,7 @@ from pymongo import MongoClient
 cluster = Globals.getMongo()
 DiscordGuild = cluster["discord"]["guilds"]
 
-
+#python pagekite.py 5000 scp16tsundere.pagekite.me
 
 class HelpMenu(ListPageSource):
     def __init__(self, ctx, data):
@@ -65,7 +65,7 @@ class Help(commands.Cog):
             pgnum=1
             while leave==False:
                 if pgnum==1:
-                    embed = discord.Embed(title = "Help", description = "Use `%shelp <command>` for extended information on a command.\n If the command is in a group, please use `%s <group>` to get more info"%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]),color = ctx.author.color)
+                    embed = discord.Embed(title = "Help", description = "Use `%shelp <command>` for extended information on a command.\n If the command is in a group, please use `%s <group>` to get more info\n [Server Dashboard](http://scp16tsundere.pagekite.me:443)"%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]),color = ctx.author.color)
                     embed.add_field(name="Bot", value="`info`,`help`, `credit`",inline=False)
                     embed.add_field(name = "Moderation🚨", value = Globals.getModCommands(),inline=False)
                     embed.add_field(name = "Utility🔧", value = Globals.getUtilityCommands(),inline=False)
@@ -83,6 +83,7 @@ class Help(commands.Cog):
                     embed.add_field(name = "Math📚📐📏", value = Globals.getMathCommands(),inline=False)
                     embed.add_field(name = "Web🌎", value = Globals.getWebCommands(),inline=False)
                     embed.add_field(name = "Images📷", value = Globals.getImageCommands(),inline=False)
+                embed.set_footer(text="I have a completed webapp/user interface to make server management easier, but I am currently looking for online hosting for it.")
                 try:
                     await msg.edit(embed=embed)
                     await msg.remove_reaction(emoji=rawreaction, member=ctx.author)

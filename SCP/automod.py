@@ -154,7 +154,7 @@ class AutoMod(commands.Cog):
         embed.set_thumbnail(url=self.client.user.avatar_url)
         embed.color=discord.Color.red()
         embed.title = "Illegal Action"
-        embed.set_footer(text="you can change this setting with %sautomod"%(Globals.getPrefix(message.guild.id)))
+        embed.set_footer(text="you can change this setting with %sautomod or by using our new [Server Dashboard](http://scp16tsundere.pagekite.me:443)"%(Globals.getPrefix(message.guild.id)))
         def spam_check(msg):
             return (
                 (msg.author == message.author)

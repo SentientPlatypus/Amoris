@@ -394,6 +394,9 @@ class DatingSim(commands.Cog):
                         embed.set_footer(text="You gained %s Love points."%(math.floor(gfsat)))
                         await ctx.channel.send(embed=embed)
                         mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+                        data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                        data["netflix"]+=1
+                        mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
 
                     else:
                         pass
@@ -463,6 +466,9 @@ class DatingSim(commands.Cog):
                 await ctx.channel.send(embed=embed)
                 lpval+=25
                 mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+                data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                data["hugs"]+=1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
             else:
                 await ctx.channel.send("You dont have enogh love points")
         except:
@@ -508,6 +514,9 @@ class DatingSim(commands.Cog):
                 await ctx.channel.send(embed=embed)
                 lpval+=40
                 mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+                data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                data["kisses"]+=1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
             else:
                 await ctx.channel.send("You dont have enogh love points")
         except:
@@ -580,6 +589,9 @@ class DatingSim(commands.Cog):
                     mulah.update_one({"id":ctx.author.id}, {"$set":{"gf":gfval}})
                     lpval+=100
                     mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":lpval}})
+                    data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                    data["boinks"]+=1
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
                     await editthis.edit(embed=embed)
                     climaxx == True
                     break
@@ -587,6 +599,9 @@ class DatingSim(commands.Cog):
                 if action == "kiss":
                     kisses+=1
                     mulah.update_one({"id":ctx.author.id},{"$set":{"kisses":kisses}})
+                    data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                    data["kisses"]+=1
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
                 if action == "pin down":
                     pinned = True
                 if action in actionlist:
@@ -901,7 +916,10 @@ class DatingSim(commands.Cog):
                             embed.set_footer(text="you have lost 10 love points")
                             mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":-10}})
                       
-                            await ctx.channel.send(embed=embed)        
+                            await ctx.channel.send(embed=embed)    
+                        data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                        data["dates"]+=1
+                        mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
 
                     
 
@@ -1012,6 +1030,9 @@ class DatingSim(commands.Cog):
 
                     mulah.update_one({"id":ctx.author.id},{"$set":{"inv":inval}})
                     mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+                    data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                    data["movies"]+=1
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
 
                 else:
                     pass
@@ -1139,6 +1160,9 @@ class DatingSim(commands.Cog):
 
                                 newauthorlp = authorlp+newgfsat
                                 mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":newauthorlp}})
+                                data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                                data["text"]+=1
+                                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
                                 embed.set_footer(text = " You have gained %s love points"%(newgfsat))    
                                 try:
                                     embed.set_image(url = "%s"%(authorgf["gf"]["image"]))      
@@ -1358,6 +1382,9 @@ class DatingSim(commands.Cog):
                                     mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":lpval}})
 
                                     mulah.update_one({"id":ctx.author.id}, {"$set":{"gameskill":skilldict}})
+                                    data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+                                    data["games"]+=1
+                                    mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
                                     await ctx.channel.send(embed=embed)
                                 else:
                                     await ctx.channel.send("Your PC does not meet the requirements. You should look at system requirements before installing a game!")
@@ -1756,6 +1783,18 @@ class DatingSim(commands.Cog):
                     mulah.update_one({"id":ctx.author.id}, {"$set":{"relationships":relationships}})
                     mulah.update_one({"id":ctx.author.id}, {"$set":{"gf":newdictionary}})
                     mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":100}})
+                    datadict ={
+                            "kisses":0,
+                            "boinks":0,
+                            "dates":0,
+                            "hugs":0,
+                            "games":0,
+                            "text":0,
+                            "netflix":0,
+                            "movies":0,
+                            "start":date.today().strftime("%B %d, %Y")
+                        }
+                    mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":datadict}})
             
                 except asyncio.TimeoutError:
                     await ctx.channel.send("You took to long to respond! I guess we arent doing this.")
