@@ -141,7 +141,7 @@ class currencysys(commands.Cog):
                     finalrandword = "".join(ll)     
                     checks = []
                     for x in range(3):
-                        embed = discord.Embed(title = "fill in the blank!", description = "You have %s chances! Unscramble the word `%s`"%(3-x, finalrandword), color = discord.Color.green())
+                        embed = discord.Embed(title = "unscramble the word!", description = "You have %s chances! Unscramble the word `%s`"%(3-x, finalrandword), color = discord.Color.green())
                         embed.set_footer(text = "working as %s"%(job))
                         await ctx.channel.send(embed=embed)
                         nmsg = await self.client.wait_for('message', check = check, timeout = 30)
@@ -1610,8 +1610,8 @@ class currencysys(commands.Cog):
         gamblewins = mulah.find_one({"id":p1.id}, {"gamblewins"})["gamblewins"]
         mmorpg = mulah.find_one({"id":p1.id}, {"mmorpg"})["mmorpg"]
         job = mulah.find_one({"id":p1.id}, {"job"})["job"]
-        YouWins =mulah.find_one({"id":ctx.author.id}, {"duelwins"})["duelwins"] 
-        Youloss =mulah.find_one({"id":ctx.author.id}, {"duelloses"})["duelloses"] 
+        YouWins =mulah.find_one({"id":p1.id}, {"duelwins"})["duelwins"] 
+        Youloss =mulah.find_one({"id":p1.id}, {"duelloses"})["duelloses"] 
 
         embed = discord.Embed(title = "%s' Profile!"%(p1.display_name), description = "Use the reactions to navigate the profile!", color = discord.Color.blue())
         embed.set_image(url = p1.avatar_url)
@@ -1623,7 +1623,7 @@ class currencysys(commands.Cog):
         while leave ==False:
             def check(reaction,user):
                 return user==ctx.author and str(reaction.emoji) in reactions and reaction.message==profilembed
-            confirm = await self.client.wait_for('reaction_add', check=check)
+            confirm = await self.client.wait_for('reaction_add', check=check, timeout=120)
             if confirm:
                 rawreaction = str(confirm[0])
                 if rawreaction =="⚔️":
@@ -1639,7 +1639,7 @@ class currencysys(commands.Cog):
 
                         else:
                             embed.add_field(name = "%s"%(x), value = "%s"%(mmorpg[x]), inline = False)
-                    embed.add_field(name = "XP", value = mulah.find_one({"id":ctx.author.id}, {"abilityxp"})["abilityxp"])
+                    embed.add_field(name = "XP", value = mulah.find_one({"id":p1.id}, {"abilityxp"})["abilityxp"])
 
                 if rawreaction == "💰":
                     try:
@@ -1719,7 +1719,7 @@ class currencysys(commands.Cog):
                         mulah.update_one({"id":p1.id}, {"$set":{"achievements":[]}})     
                         embed = discord.Embed(title = "He has no achievements. Rip", color = discord.Color.blue())
                 if rawreaction=="🚪":
-                    embed = discord.Embed(title = "You have left the profile!", color =ctx.author.color)
+                    embed = discord.Embed(title = "You have left the profile!", color =p1.color)
                     await profilembed.edit(embed=embed)
                     leave = True
                 

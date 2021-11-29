@@ -234,18 +234,7 @@ def InvCheckWithItem(user, item:str, Id=False, amount:int=1):
         return check
 
 
-def gpt3completion(prompt):
-    openai.organization = "org-6cx7PCsPB7dbTOcOu2oI6nYX"
-    openai.api_key = "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"
-    openai.Engine.retrieve("davinci")
-    z = openai.Completion.create(
-    engine="davinci",
-    prompt=prompt,
-    max_tokens=1000,
-    presence_penalty=1,
-    frequency_penalty=1
-    )
-    return z["choices"][0]["text"]
+
 
 
 
@@ -1153,6 +1142,11 @@ def getTypePraise():
             {"typename": "Kamidere", "text": "I found that enjoyable. Texting is in fact, the most practical form of communication. I appreciate you.", "gaming":"I found that enjoyable. Thank you for this. We should play more often.<3", "movies":"I love movies. ", "relaxing":"I love this quality time with you!"},
 
         ]              
+
+
+openai.organization = "org-6cx7PCsPB7dbTOcOu2oI6nYX"
+openai.api_key = "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"
+
 def gpt3Classification(query, examples, labels):
     a=openai.Classification.create(
         search_model="ada",
@@ -1194,7 +1188,16 @@ def classifyText(prompt):
     ]
     return gpt3Classification(prompt, examples=examples, labels=labels)
 
-
+def gpt3completion(prompt):
+    openai.Engine.retrieve("davinci")
+    z = openai.Completion.create(
+    engine="davinci",
+    prompt=prompt,
+    max_tokens=1000,
+    presence_penalty=1,
+    frequency_penalty=1
+    )
+    return z["choices"][0]["text"]
 class chat(object):
     def __init__(self, chatlog):
         self.chatlog = chatlog
@@ -1212,7 +1215,7 @@ class chat(object):
         )
         return response["choices"][0]["text"]
     
-    def append_interaction_to_chat_log(self, answer):
+    def append_answer(self, answer):
         self.chatlog += "AI:" +answer+"\n"
 
     
