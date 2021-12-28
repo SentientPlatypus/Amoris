@@ -1,3 +1,4 @@
+from discord.ext.commands.converter import RoleConverter
 from discord.ext.commands.cooldowns import BucketType
 from datetime import date
 from inspect import trace
@@ -38,7 +39,7 @@ import text2emotion as te
 from removebg import RemoveBg
 import os
 from PIL import Image
-from io import BytesIO
+from io import BytesIO, IncrementalNewlineDecoder
 import requests
 import Globals
 import pymongo
@@ -384,10 +385,12 @@ class DatingSim(commands.Cog):
                         if gfval["likes"] == "relaxing":
                             dialogue += next(item for item in typepraise if item["typename"] == gfval["type"])["relaxing"]
                             gfsat+=115/100
+
+                        gfResponse = Globals.getGFresponse("*watches %s with you*"%(emptydict[msg.content.lower()]), ctx.author)
                         embed = discord.Embed(title = "You watched %s with %s"%(emptydict[msg.content.lower()],gfval["name"]), color = ctx.author.color)
                         embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
                         try:
-                            embed.set_image(url = "%s"%(gfval["image"]))
+                            embed.set_image(url=Globals.getGFimage(ctx.author,Globals.classifyGFEmotion(gfResponse)))
                         except:
                             pass
                         lpval+=math.floor(gfsat)
@@ -455,11 +458,13 @@ class DatingSim(commands.Cog):
             lpval = lpvar["lp"] 
             if lpval>=150:
                 embed = discord.Embed(title = "You hugged %s!"%(gfval["name"]), color = ctx.author.color)
-                dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["hugresponse"]
-
+                try:
+                    dialogue = Globals.getGFresponse("*kisses you*", ctx.author)
+                except:
+                    dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["hugresponse"]
                 embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
                 try:
-                    embed.set_image(url=gfval["image"])
+                    embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(dialogue)))
                 except:
                     pass
                 embed.set_footer(text = "You have gained 25 Love points!")
@@ -473,6 +478,7 @@ class DatingSim(commands.Cog):
                 await ctx.channel.send("You dont have enogh love points")
         except:
             await ctx.channel.send("You need a girlfriend lmao")
+
     @gf.command()
     @hasGirlfriend()
     @commands.cooldown(1, 600, BucketType.user)
@@ -488,16 +494,15 @@ class DatingSim(commands.Cog):
             lpval = lpvar["lp"] 
             if lpval>=200:
                 embed = discord.Embed(title = "You kissed %s!"%(gfval["name"]), color = ctx.author.color)
-                dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["kissresponse"]
-
+                try:
+                    dialogue = Globals.getGFresponse("*kisses you*", ctx.author)
+                except:
+                    dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["kissresponse"]
                 embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
                 try:
-                    embed.set_image(url=gfval["embarrased"])
+                    embed.set_image(url=Globals.getGFimage(ctx.author,Globals.classifyGFEmotion(dialogue)))
                 except:
-                    try:
-                        embed.set_image(url=gfval["image"])
-                    except:
-                        pass
+                    pass
                 if gfval["tier"] == 1:
                     
                     gfval["tier"] = 2
@@ -505,7 +510,6 @@ class DatingSim(commands.Cog):
                     mulah.update_one({"id":ctx.author.id},{"$set":{"gf":gfval}})
                 else:
                     pass
-                UserAchievements = mulah.find_one({"id":ctx.author.id},{"achievements"})["achievements"]
                 kisses = mulah.find_one({"id":ctx.author.id},{"kisses"})["kisses"]
                 kisses+=1
                 mulah.update_one({"id":ctx.author.id},{"$set":{"kisses":kisses}})
@@ -683,11 +687,14 @@ class DatingSim(commands.Cog):
         if lpval>=1600:
             if next((x for x in inval if x["name"] == "ring" and "parts" not in x.keys()), None) is not None:
                 if gfval["tier"] !=4:
-                    response = next(x for x in gftypes if x["typename"] == gfval["type"])["proposeresponse"].format(ctx.author.display_name)
+                    try:
+                        response = Globals.getGFresponse("Will you marry me? *proposes*", ctx.author)
+                    except:
+                        response = next(x for x in gftypes if x["typename"] == gfval["type"])["proposeresponse"].format(ctx.author.display_name)
                     embed = discord.Embed(title = "You proposed to %s!"%(gfval["name"]), color = ctx.author.color)
                     embed.add_field(name = "%s"%(gfval["name"]), value=response)
                     try:
-                        embed.set_image(url = gfval["image"])
+                        embed.set_image(url = Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(response)))
                     except:
                         pass
                     UserAchievements = mulah.find_one({"id":ctx.author.id},{"achievements"})["achievements"]
@@ -762,11 +769,15 @@ class DatingSim(commands.Cog):
                 finalstring+="%s| %s\n"%(alphlist[count], x["name"])
                 count+=1
                 
-            embed = discord.Embed(title = "%s:"%(gfval["name"]), description = random.choice(typemap["invite"]).format(author = ctx.author.display_name), color = ctx.author.color)
+            try:
+                invitation = Globals.getGFresponse("Im taking you out to eat!", ctx.author)
+            except:
+                random.choice(typemap["invite"]).format(author = ctx.author.display_name)
+            embed = discord.Embed(title = "%s:"%(gfval["name"]), description = invitation, color = ctx.author.color)
             embed.add_field(name = "Where do you take her?", value = finalstring)
 
             try:
-                embed.set_image(url = gfval["image"])
+                embed.set_image(url = Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(invitation)))
             except:
                 pass
             editthis = await ctx.channel.send(embed=embed)
@@ -848,6 +859,9 @@ class DatingSim(commands.Cog):
                             else:
                                 userreact.append(str(confirm2[0]))
                                 pass
+
+
+                            
                     embed = discord.Embed(title = "%s:"%(gfval["name"]), description = "Itadakimasu!", color = ctx.author.color)
                     try:
                         backgroundict = next(a for a in backgrounds if a["name"] == restaurant["background"])
@@ -1015,10 +1029,13 @@ class DatingSim(commands.Cog):
                     if gfval["likes"] == "movies":
                         dialogue += next(item for item in typepraise if item["typename"] == gfval["type"])["movies"]
                         gfsat+=115/100
+
+
+                    gfResponse = Globals.getGFresponse("*watches %s with you"%(emptydict[msg.content]), ctx.author)
                     embed = discord.Embed(title = "You watched %s with %s"%(emptydict[msg.content],gfval["name"]), color = ctx.author.color)
                     embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
                     try:
-                        embed.set_image(url = "%s"%(gfval["image"]))
+                        embed.set_image(url=Globals.getGFimage(ctx.author,Globals.classifyGFEmotion(gfResponse)))
                     except:
                         pass
                     lpval+=math.floor(gfsat)
@@ -1080,156 +1097,52 @@ class DatingSim(commands.Cog):
 
 
     @gf.command()
+    @Globals.hasItem("phone")
     @hasGirlfriend()
-    @Globals.hasItem(itemToCheckFor="phone")
     async def text(self,ctx):
-        global gftypes, typeconplaint, typepraise  
+        gf = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
+        embed = discord.Embed(title="Text %s"%(gf["name"]), description="Your next message in this channel will be sent to %s"%(gf["name"]), color=discord.Color.blue())
+        await ctx.channel.send(embed=embed)
+        def check(m):
+            return m.author==ctx.author and m.channel==ctx.channel
+        textContent = await self.client.wait_for('message', check=check, timeout= 120)
+        textContent = textContent.content
+
+        lpIncrease = 0
+        imageToSend="image"
+        classification = Globals.classifyGFText(textContent)
+        classification = classification.lower()
+        if classification=="good":
+            lpIncrease+=15
+            imageToSend = "image"
+        if classification=="decent":
+            lpIncrease+=10
+            imageToSend = "image"
+        if classification=="bad":
+            lpIncrease+=3
+            imageToSend = random.choice(["angry","sad", "dissapointed"])
+        
+        embed = discord.Embed(title = "You texted %s"%(gf["name"]), color = discord.Color.blue())
+        embed.add_field(name=f"{ctx.author.display_name}:", value=f"{textContent}", inline=False)
+        
+        gfResponse = Globals.getGFresponse(textContent, ctx.author)
         try:
-            textdict = {"name": "📱text", "lpincrease": 15, "lprequired": 0, "itemrequired": "phone","category":"texting", "desc": "Text your girlfriend! you need a phone for this."}
-            authorgf = mulah.find_one({"id":ctx.author.id}, {"gf"})
-            authorgfname = authorgf["gf"]["name"]
-            authorgflikes = authorgf["gf"]["likes"]
-            authorgfdislikes = authorgf["gf"]["dislikes"]
-            authorgffavoritesub = authorgf["gf"]["favorite subject"]
-            authorgftype = authorgf["gf"]["type"]
-            authorgfgenre = authorgf["gf"]["favorite genre"]
-            authorlp = mulah.find_one({"id":ctx.author.id}, {"lp"})
-            authorlp = authorlp["lp"]
-            if authorlp>=textdict["lprequired"]:
-                if textdict["itemrequired"] is not None:
-                    try:
-                        authoritem = mulah.find_one({"id":ctx.author.id}, {"inv"})
-                        authoritemlist = authoritem["inv"]
-                        xlist = []
-                        for x in authoritemlist:
-                            
-                            if ("name", textdict["itemrequired"]) in x.items():
-
-                                xlist.append(x)
-                                embed = discord.Embed(title = "You texted %s!"%(authorgfname), color = ctx.author.color)
-
-                                listofwords = ["love", "dinner", "yogurt", "cake", "steak", "bed", "couch", "plans", "steak", "cuddle"]
-                                randchoice = random.choice(listofwords)
-                                nrandchoice = list(randchoice)
-                                random.shuffle(nrandchoice)
-                                nrandchoice = "".join(nrandchoice)
-                                checklist = []
-                                for x in range(3):
-                                    await ctx.channel.send(" you have %s chances! Unscramble the word `%s`"%(3-x,nrandchoice))
-                                    def check(m):
-                                        return m.author == ctx.author and m.channel == ctx.channel
-                                    try:
-                                        guess = await self.client.wait_for('message', check=check, timeout=10.0)
-                                    except asyncio.TimeoutError:
-                                        await ctx.channel.send(f'you took too long. it was {randchoice}.')
-                                        gfsat = random.randint(10,20)
-                                        break
-                                    if guess.content == randchoice:
-                                        gfsat = random.randint(100-(x*20/1+x),150-(x*20/1+x))
-                                        checklist.append(x)
-                                        break
-                                if not checklist:
-                                    gfsat = 40
-                                extrastring = " "
-
-                                if authorgflikes == textdict["category"]:
-                                    gfsat = gfsat*1.15
-                                    for x in typepraise:
-                                        if authorgftype == x["typename"]:
-                                            extrastring = x["text"]
-                                            break                                    
-                                elif authorgfdislikes == textdict["category"]:
-                                    gfsat = gfsat*.85
-                                    for x in typeconplaint:
-                                        if authorgftype == x["typename"]:
-                                            extrastring = x["text"]
-                                            break
-                                else:
-                                    pass
-                                newgfsat = math.floor((gfsat/100)*textdict["lpincrease"])
-
-
-                                for x in gftypes:
-                                    if authorgftype == x["typename"]:
-                                        if gfsat <50:
-                                            embed.add_field(name = "%s:"%(authorgfname), value = "%s "%(x["textresponse"][0])+ "%s"%(extrastring))
-                                        elif 50<=gfsat<100:
-                                            embed.add_field(name = "%s:"%(authorgfname), value = "%s "%(x["textresponse"][1])+ "%s"%(extrastring))
-                                        else:
-                                            embed.add_field(name = "%s:"%(authorgfname), value = "%s "%(x["textresponse"][2])+ "%s"%(extrastring))
-
-                                newauthorlp = authorlp+newgfsat
-                                mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":newauthorlp}})
-                                data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
-                                data["text"]+=1
-                                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
-                                embed.set_footer(text = " You have gained %s love points"%(newgfsat))    
-                                try:
-                                    embed.set_image(url = "%s"%(authorgf["gf"]["image"]))      
-                                except:
-                                    pass
-                                await ctx.channel.send(embed = embed)
-                                break
-                        if len(xlist) ==0:
-                            await ctx.channel.send("you need a %s"%(textdict["itemrequired"]))
-                    except Exception as e:
-                        await ctx.channel.send("you need a %s"%(textdict["itemrequired"]))
-
-
-                else:
-                    embed = discord.Embed(title = "You texted %s!"%(authorgfname), color = ctx.author.color)
-
-                    listofwords = ["love", "dinner", "yogurt", "cake", "steak", "bed", "couch", "plans", "steak", "cuddle"]
-                    randchoice = random.choice(listofwords)
-                    nrandchoice = list(randchoice)
-                    random.shuffle(nrandchoice)
-                    nrandchoice = "".join(nrandchoice)
-                    checklist = []
-                    for x in range(3):
-                        await ctx.channel.send(" you have %s chances! Unscramble the word `%s`"%(3-x,nrandchoice))
-                        def check(m):
-                            return m.author == ctx.author and m.channel == ctx.channel
-                        try:
-                            guess = await self.client.wait_for('message', check=check, timeout=10.0)
-                        except asyncio.TimeoutError:
-                            await ctx.channel.send(f'you took too long. it was {randchoice}.')
-                            gfsat = random.randint(10,20)
-                            break
-                        if guess.content == randchoice:
-                            gfsat = random.randint(100-(x*20/1+x),150-(x*20/1+x))
-                            checklist.append(x)
-                            break
-                    if not checklist:
-                        gfsat = 40
-
-                    if authorgflikes == textdict["category"]:
-                        gfsat = gfsat*1.15
-                    elif authorgfdislikes == textdict["category"]:
-                        gfsat = gfsat*.85
-                    else:
-                        pass
-                    newgfsat = math.floor((gfsat/100)*textdict["lpincrease"])
-
-
-                    for x in gftypes:
-                        if authorgftype == x["typename"]:
-                            if gfsat <50:
-                                embed.add_field(name = "%s:"%(authorgfname), value = "%s"%(x["textresponse"][0]))
-                            elif 50<=gfsat<100:
-                                embed.add_field(name = "%s:"%(authorgfname), value = "%s"%(x["textresponse"][1]))
-                            else:
-                                embed.add_field(name = "%s:"%(authorgfname), value = "%s"%(x["textresponse"][2]))
-
-                    newauthorlp = authorlp+newgfsat
-                    mulah.update_one({"id":ctx.author.id}, {"$set":{"lp":newauthorlp}})
-                    embed.set_footer(text = " You have gained %s love points"%(newgfsat))          
-                    await ctx.channel.send(embed = embed)
-
-            else:
-                await ctx.channel.send("you dont have enough love points! You need %s more"%(textdict["lprequired"]-authorlp))
-            
+            embed.set_image(url=Globals.getGFimage(ctx.author,Globals.classifyGFEmotion(gfResponse)))
         except:
-            await ctx.channel.send("You need a girlfriend for this, baaka.")
+            pass
+        embed.add_field(name="%s:"%(gf["name"]), value=gfResponse, inline=False)
+
+        mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":lpIncrease}})
+
+        embed.set_footer(text=f"You have gained {lpIncrease} love points!")
+
+        await ctx.channel.send(embed=embed)
+
+
+
+
+        
+
 
 
 
@@ -1334,37 +1247,52 @@ class DatingSim(commands.Cog):
                                         skilldict[newdict[msg.content]] =0
                                         skilldict[newdict[msg.content]] +=skillint
                                     responsedict = next(item for item in gfgamingresponse if item["typename"] == gfval["type"])
-                                    finalstring = ""
+                                    
                                     gflikesgaming = next(item for item in typepraise if item["typename"] == gfval["type"])
                                     gfgenrebad = next(item for item in typeconplaint if item["typename"] == gfval["type"])
                                     gfgenregood = next(item for item in typegenrepraise if item["typename"] == gfval["type"])
                                     gamedict = next(item for item in gameitems if item["name"] == newdict[msg.content])
                                     gfsat = gamedict["lpincrease"]*(skilldict[newdict[msg.content]]/100)
-                                    if skilldict[newdict[msg.content]]<35:
-                                        finalstring+="%s"%(responsedict["poor"])
-                                    elif 35<=skilldict[newdict[msg.content]]<45:
-                                        finalstring+="%s"%(responsedict["medium"])
-                                    elif 45<=skilldict[newdict[msg.content]]:
-                                        finalstring+="%s"%(responsedict["good"])
+                                    try:
+                                        quality = "*plays %s with you but does "%(gamedict["name"])
+                                        if skilldict[newdict[msg.content]]<35:
+                                            quality+="poorly"
+                                        elif 35<=skilldict[newdict[msg.content]]<45:
+                                            quality+="decent"
+                                        elif 45<=skilldict[newdict[msg.content]]:
+                                            quality+="really good"
+                                        finalstring = Globals.getGFresponse(quality, ctx.author)
+                                            
+                                    except:
+                                        finalstring = ""
+                                        if skilldict[newdict[msg.content]]<35:
+                                            finalstring+="%s"%(responsedict["poor"])
+                                        elif 35<=skilldict[newdict[msg.content]]<45:
+                                            finalstring+="%s"%(responsedict["medium"])
+                                        elif 45<=skilldict[newdict[msg.content]]:
+                                            finalstring+="%s"%(responsedict["good"])
 
-                                    dislikes = False
-                                    if gfval["likes"] == "gaming":
-                                        finalstring+="%s"%(gflikesgaming["gaming"])
-                                        gfsat= gfsat*(115/100)
-                                    if gfval["dislikes"] in gamedict["genre"]:
-                                        dislikes = True
-                                        finalstring+="%s"%(gfgenrebad[gfval["dislikes"]])
-                                        gfsat= gfsat*(85/100)
-                                    elif gfval["favorite genre"] in gamedict["genre"]:
-                                        finalstring+="%s"%(gfgenregood[gfval["favorite genre"]])
-                                        gfsat= gfsat*(115/100)
+                                        dislikes = False
+                                        if gfval["likes"] == "gaming":
+                                            finalstring+="%s"%(gflikesgaming["gaming"])
+                                            gfsat= gfsat*(115/100)
+                                        if gfval["dislikes"] in gamedict["genre"]:
+                                            dislikes = True
+                                            finalstring+="%s"%(gfgenrebad[gfval["dislikes"]])
+                                            gfsat= gfsat*(85/100)
+                                        elif gfval["favorite genre"] in gamedict["genre"]:
+                                            finalstring+="%s"%(gfgenregood[gfval["favorite genre"]])
+                                            gfsat= gfsat*(115/100)
 
-                                    
 
                                         
                                     embed = discord.Embed(title = "You played %s with %s!"%(newdict[msg.content], gfval["name"]), color = ctx.author.color)
 
                                     embed.add_field(name = "%s:"%(gfval["name"]), value = finalstring)
+                                    try:
+                                        embed.set_image(url=Globals.getGFimage(ctx.author,Globals.classifyGFEmotion(finalstring)))
+                                    except:
+                                        pass
                                     embed.set_footer(text = "You have gained %g love points"%(gfsat))
                                     try:
                                         if dislikes == True:
@@ -1400,7 +1328,11 @@ class DatingSim(commands.Cog):
                         except asyncio.TimeoutError:
                             await ctx.channel.send("You took too long! i guess we arent doing this.")
                     else:
-                        embed = discord.Embed(title = "%s"%(gfval["name"]), description = "you have any games on this pc, %s"%(ctx.author.display_name), color = ctx.author.color)
+                        try:
+                            finalstring = Globals.getGFresponse(quality, ctx.author)
+                        except:
+                            finalstring = "you dont have any games on this pc, %s"%(ctx.author.display_name)
+                        embed = discord.Embed(title = "%s"%(gfval["name"]), description = finalstring, color = ctx.author.color)
                         try:
                             embed.set_image(url = gfval["dissapointed"])
                         except:

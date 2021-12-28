@@ -3,7 +3,7 @@ from datetime import date, datetime
 from inspect import trace
 from logging import exception
 from operator import mul
-from os import name
+from os import name, truncate
 from datetime import date
 from typing import AsyncContextManager
 import discord
@@ -59,7 +59,9 @@ ServerConfig = [
     {"name":"badwords", "value":["fuck", "bitch", "shit", "cunt"]},
     {"name":"announcement channels", "value":[]},
     {"name":"suggestion channels", "value":[]},
-    {"name":"automod", "value":["spam"]}
+    {"name":"automod", "value":["spam"]},
+    {"name":"members", "value":{}},
+    {"name":"textchannels", "value":[]},
 ]
     
 
@@ -178,7 +180,6 @@ async def abilityxpcheck(user:discord.Member):
     mulah.update_one({"id":user.id}, {"$set":{"abilityxp":abilityxp}})
 
 
-
 global dbcheck
 async def dbcheck(user:discord.Member):
     global DatabaseKeys
@@ -213,12 +214,75 @@ cluster = Globals.getMongo()
 mulah = cluster["discord"]["mulah"]
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
+BotGuilds = cluster["discord"]["botguilds"]
 
 class DatabaseHandler(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    def initializeGuildMembers(self, guild_id):
+        try:
+            memberdict = DiscordGuild.find_one({"id":guild_id}, {"members"})["members"]
+        except:
+            DiscordGuild.update_one({"id":guild_id}, {"$set":{"members":{}}}, True)
+            memberdict = DiscordGuild.find_one({"id":guild_id}, {"members"})["members"]
+        guild = self.client.get_guild(guild_id)
+        for member in guild.members:
+            memberdict[str(member.id)] = str(member)
+        DiscordGuild.update_one({"id":guild_id}, {"$set":{"members":memberdict}})
+    
+    def addMember(guild_id, member:discord.Member):
+        memberdict = DiscordGuild.find_one({"id":guild_id}, {"members"})["members"]
+        memberdict[str(member.id)] = str(member)
+        DiscordGuild.update_one({"id":guild_id}, {"$set":{"members":memberdict}})
 
+
+    def initializeAllGuildMembers(self):
+        for guild in self.client.guilds:
+            DatabaseHandler.initializeGuildMembers(self, guild.id)
+
+    def initializeAllTextChannels(self):
+        for guild in self.client.guilds:
+            DatabaseHandler.initializeTextChannels(self, guild.id)
+
+    
+    def initializeTextChannels(self, guild_id):
+        try:
+            textchannellist = DiscordGuild.find_one({"id":guild_id}, {"textchannels"})["textchannels"]
+        except:
+            DiscordGuild.update_one({"id":guild_id}, {"$set":{"textchannels":[]}}, True)
+            textchannellist = DiscordGuild.find_one({"id":guild_id}, {"textchannels"})["textchannels"]
+        guild = self.client.get_guild(guild_id)
+        textchannels = guild.text_channels
+        for channel in textchannels:
+            if {channel.id:channel.name} not in textchannellist:
+                textchannellist.append({str(channel.id):channel.name})
+        textchannellist = Globals.removeDupes(textchannellist)
+        DiscordGuild.update_one({"id":guild_id}, {"$set":{"textchannels":textchannellist}})
+
+    @commands.Cog.listener()
+    async def on_guild_channel_create(self, channel:discord.channel):
+        if channel.type is discord.ChannelType.text:
+            DatabaseHandler.initializeTextChannels(self, channel.guild.id)
+
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, channel:discord.channel):
+        textchannellist = DiscordGuild.find_one({"id":channel.guild.id}, {"textchannels"})["textchannels"]
+        element = next(x for x in textchannellist if Globals.GetFirstKey(x) == str(channel.id))
+        textchannellist.remove(element)
+        DiscordGuild.update_one({"id":channel.guild.id}, {"$set":{"textchannels":textchannellist}})
+
+
+    def handleDocumentation(self):
+        commandDict = {}
+        def cmdhelp(command):
+            commandDict[command.name] = {"name": command.name, "usage":Globals.noEmbedSyntax(command), "desc":command.help}
+
+        for command in self.client.commands:
+            cmdhelp(command)
+        
+        BotGuilds.update_one({"id":str(822265614244511754)}, {"$set":{"documentation":commandDict}}, True)
+    
 
     global getNumMembers
     def getNumMembers(self):
@@ -238,6 +302,15 @@ class DatabaseHandler(commands.Cog):
         await ctx.channel.send("Guild settings have been reset to default")
 
 
+    @commands.is_owner()
+    @commands.command()
+    async def resetguildforowner(self, ctx):
+        guild = ctx.guild
+        for x in ServerConfig:
+            DiscordGuild.update_one({"id":guild.id}, {"$set":{x["name"]:x["value"]}}, True)
+        DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}})
+        await ctx.channel.send("Guild settings have been reset to default")
+
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
@@ -255,6 +328,11 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self,guild):
+        guildz = BotGuilds.find_one({"id":str(822265614244511754)}, {"guilds"})["guilds"]
+        guildz[str(guild.id)] = str(guild)
+        BotGuilds.update_one({"id":str(822265614244511754)}, {"$set":{"guilds":guildz}})
+        DatabaseHandler.initializeGuildMembers(self, guild.id)
+        DatabaseHandler.initializeTextChannels(self, guild.id)
         await ServerCheck(guild)
         await Serverdbcheck(guild)
         await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers(self))))
@@ -264,16 +342,28 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        guildThatTheyJustJoined = member.guild
+        DatabaseHandler.addMember(guildThatTheyJustJoined.id, member)
         if not member.bot:
             await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers(self))))
             await dbcheck(member)
 
     @commands.Cog.listener()
     async def on_ready(self):
+        BotGuilds.update_one({"id":str(822265614244511754)}, {"$set":{"guilds":{}}}, True)
         for guild in self.client.guilds:
+            guildz = BotGuilds.find_one({"id":str(822265614244511754)}, {"guilds"})["guilds"]
+            guildz[str(guild.id)] = str(guild)
+
+            BotGuilds.update_one({"id":str(822265614244511754)}, {"$set":{"guilds":guildz}})
+            guildz = BotGuilds.find_one({"id":str(822265614244511754)}, {"guilds"})["guilds"]
+            DatabaseHandler.handleDocumentation(self)
             for member in guild.members:
                 if not member.bot:
                     await dbcheck(member)
+        
+        DatabaseHandler.initializeAllGuildMembers(self)
+        DatabaseHandler.initializeAllTextChannels(self)
         print("The bot is ready, and the database has been updated")
 
     @commands.is_owner()
@@ -406,20 +496,11 @@ class DatabaseHandler(commands.Cog):
             
 
 
-    @commands.command()
-    async def database(self, ctx,p1:discord.Member=None):
-        if p1==None:
-            p1=ctx.author
-        if ctx.author.id==643764774362021899:
-            await dbcheck(p1)
-            await ctx.channel.send("I have completed the database check for %s"%(p1.display_name))
 
     @commands.command()
-    async def CheckDatabase(self, ctx, key:str, p1:discord.Member=None):
-        if p1==None:
-            p1=ctx.author
+    async def CheckDatabase(self, ctx, key:str):
         if ctx.author.id==643764774362021899:
-            Data = mulah.find_one({"id":p1.id}, {key})
+            Data = mulah.find_one({"id":ctx.author.id}, {key})[key]
             await ctx.channel.send("```%s```"%(Data))
 
 

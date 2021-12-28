@@ -24,7 +24,6 @@ import re
 import time
 import itertools
 from itertools import cycle, permutations, product
-import enchant
 import math
 import string
 import youtube_dl
@@ -80,13 +79,24 @@ cogs = [levelsys]
 cogsmmorpg = [mmorpgGame]
 cogDB = [DatabaseHandler]
 coggf = [DatingSim]
-d = enchant.Dict("en_US")
 cluster = Globals.getMongo()
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
 mulah = cluster["discord"]["mulah"]
 
 tagre = "\#\d{4}$"
+
+#openai api fine_tunes.create -t "C:\Users\trexx\Documents\PYTHON CODE LOL\Amoris_Bot\SCP\gpt3FineTunes\tsundereFineTune.jsonl" -m ada
+#export OPENAI_API_KEY="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"
+
+
+#Tsundere finetune: curie:ft-sentientproductions-2021-12-27-01-42-53
+#Yandere finetune:
+#Kamidere finetune:
+#Sweet finetune: Sent
+#Sadodere finetune:
+#Kuudere finetune:
+#dandere finetune:
 
 
 
@@ -552,7 +562,7 @@ async def pp(ctx, user:discord.Member=None):
 async def info(ctx):
     embed=discord.Embed(title="Amoris Information", color=discord.Color.purple())
     embed.description= "Servers: %g\nMembers:%g"%(len(client.guilds), getNumMembers())
-    embed.add_field(name="Resources", value="[Support Server](https://discord.gg/Nn6Cwmdd6U)\n [Invite Link](https://discord.com/api/oauth2/authorize?client_id=822265614244511754&permissions=8&scope=bot)\n [Server Dashboard](http://scp16tsundere.pagekite.me:443)")
+    embed.add_field(name="Resources", value="[Support Server](https://discord.gg/Nn6Cwmdd6U)\n [Invite Link](https://discord.com/api/oauth2/authorize?client_id=822265614244511754&permissions=8&scope=bot)\n [Server Dashboard](%s)"%(Globals.getDashboardURL()))
     embed.set_thumbnail(url=client.user.avatar_url)
     await ctx.channel.send(embed=embed)
 
@@ -1509,30 +1519,30 @@ async def solve(ctx):
 
 
 #unscramble
-@solve.command()
-async def scramble(ctx, wordz):
-    if len(wordz)>8:
-        toomanyletters = ["Dont ask me to calculate them all, are you trying to break me? the only person who can do that is Ooferbot.", "Thats going to take way too long.", "no thanks"]
-        factorial = 1
-        for x in range(1, len(wordz)+1):
-            factorial = factorial*x
-        embed = discord.Embed(title = "word unscrambler")
-        embed.add_field(name = "Im not doing that.", value = "Thats exactly %s possible permutations.\n %s"%(str(factorial), random.choice(toomanyletters)))
-        await ctx.channel.send(embed=embed)
-    else:
-        op = set()	
-        for characters in list(permutations(wordz.casefold(), len(wordz))):
-            bigscramble = "".join(characters)	
-            if len(bigscramble)>2:
-                if d.check(bigscramble) == True:	
-                    op.add(bigscramble)
-        joinedop = list(op)
-        joinedop = [x for x in joinedop if x not in badwords]
-        joinedopnew = [joinedopelement + "\n" for joinedopelement in joinedop]
-        joinedopfinal = "".join(joinedopnew)
-        embed = discord.Embed(title = "Word unscrambler", description = "I know why you are using this, dont pretend like you have integrity")
-        embed.add_field(name = "I unscrambled the word %s"%(wordz), value = "The possible words:\n %s"%(joinedopfinal))
-        await ctx.channel.send(embed=embed)
+#@solve.command()
+#async def scramble(ctx, wordz):
+#    if len(wordz)>8:
+#        toomanyletters = ["Dont ask me to calculate them all, are you trying to break me?", "Thats going to take way too long.", "no thanks"]
+#        factorial = 1
+#        for x in range(1, len(wordz)+1):
+#            factorial = factorial*x
+#        embed = discord.Embed(title = "word unscrambler")
+#        embed.add_field(name = "Im not doing that.", value = "Thats exactly %s possible permutations.\n %s"%(str(factorial), random.choice(toomanyletters)))
+#        await ctx.channel.send(embed=embed)
+#    else:
+#        op = set()	
+#        for characters in list(permutations(wordz.casefold(), len(wordz))):
+#            bigscramble = "".join(characters)	
+#            if len(bigscramble)>2:
+#                if d.check(bigscramble) == True:	
+#                    op.add(bigscramble)
+#        joinedop = list(op)
+#        joinedop = [x for x in joinedop if x not in badwords]
+#        joinedopnew = [joinedopelement + "\n" for joinedopelement in joinedop]
+#        joinedopfinal = "".join(joinedopnew)
+#        embed = discord.Embed(title = "Word unscrambler", description = "I know why you are using this, dont pretend like you have integrity")
+#        embed.add_field(name = "I unscrambled the word %s"%(wordz), value = "The possible words:\n %s"%(joinedopfinal))
+#        await ctx.channel.send(embed=embed)
 
 
 
@@ -1591,6 +1601,12 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.NotOwner):
         embed.title = "You are not SentientPlatypus!"
         embed.description = "```only my creator has access to that command```"
+    elif isinstance(error, asyncio.TimeoutError):
+        embed.title = "Timeout"
+        embed.description= "```you took too long for that interaction, dummy.```"
+    elif isinstance(error, commands.errors.CommandNotFound):
+        embed.title = "Command not found"
+        embed.description = "```use %shelp```"%(Globals.getPrefix(ctx.guild.id))
     elif isinstance(error, noWatchlist):
         embed.title = "Empty Watchlist"
         embed.description="```You need a watchlist to watch netflix with your girlfriend! Its not that hard!\n use %swatchlist```"%(Globals.getPrefix(ctx.guild.id))
@@ -1606,9 +1622,9 @@ async def on_command_error(ctx, error):
     elif isinstance(error, levelsys.settingNotEnabled):
         embed.title="Setting Not Enabled"
         embed.description='```The setting %s is not enabled. \nYou can enable it with: %ssettings "%s" enable\nOr you could use our new webapp```'%(error.settingToEnable, Globals.getPrefix(ctx.guild.id), error.settingToEnable)
-    elif isinstance(error, commands.CommandInvokeError):
-        embed.title="Invoke error."
-        embed.description='```%s```'%(error.__cause__)
+#    elif isinstance(error, commands.CommandInvokeError):
+#        embed.title="Invoke error."
+#        embed.description='```%s```'%(error.__cause__) 
 
     else:
         print("failed")

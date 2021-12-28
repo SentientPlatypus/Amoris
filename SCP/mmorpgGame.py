@@ -834,6 +834,7 @@ class mmorpgGame(commands.Cog):
             IsPlayer=False
             if Op.Player:
                 IsPlayer=True
+            
 
             bar = Globals.XpBar(Op.CurrentHealth, Op.TotalHealth, ":blue_square:", ":white_large_square:")
             Yourbar = Globals.XpBar(You.CurrentHealth, You.TotalHealth, "❤️", "🖤")
@@ -1300,7 +1301,8 @@ class mmorpgGame(commands.Cog):
             mulah.update_one({"id":PersonToRob.id}, {"$inc":{"money":steal*(-1)}})
 
             return
-        resultdict=await duelPlayer(ctx, PersonToRob)
+
+        resultdict= await duelPlayer(ctx, PersonToRob)
         winner=resultdict["winner"]
         loser=resultdict["loser"]
         retreater=resultdict["retreater"]

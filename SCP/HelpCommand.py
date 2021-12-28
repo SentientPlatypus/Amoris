@@ -64,25 +64,29 @@ class Help(commands.Cog):
             leave=False
             pgnum=1
             while leave==False:
+                embed = discord.Embed(title = "Help", description = "Use `%shelp <command>` for extended information on a command.\n If the command is in a group, please use `%s <group>` to get more info"%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]),color = discord.Color.from_rgb(255, 192, 203))
                 if pgnum==1:
-                    embed = discord.Embed(title = "Help", description = "Use `%shelp <command>` for extended information on a command.\n If the command is in a group, please use `%s <group>` to get more info\n [Server Dashboard](http://scp16tsundere.pagekite.me:443)"%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]),color = ctx.author.color)
-                    embed.add_field(name="Bot", value="`info`,`help`, `credit`",inline=False)
-                    embed.add_field(name = "Moderation🚨", value = Globals.getModCommands(),inline=False)
-                    embed.add_field(name = "Utility🔧", value = Globals.getUtilityCommands(),inline=False)
-                    embed.add_field(name = "Levels📈", value = Globals.getLevelCommands(),inline=False)
-                    embed.add_field(name = "economy💰", value = Globals.getEconomyCommands(),inline=False)
-                    embed.add_field(name = "DatingSim❤️", value = Globals.getGfCommands(),inline=False)
-                    embed.add_field(name = "duels ⚔️", value = Globals.getDuelsCommands(),inline=False)
-                    embed.add_field(name = "Settings ⚙️", value = Globals.getSettingsCommands(),inline=False)
+                    embed.add_field(name="Bot", value="> `info`,`help`, `credit`",inline=False)
+                    embed.add_field(name = "MODERATION🚨", value = Globals.getModCommands(),inline=False)
+                    embed.add_field(name = "ECONOMY💰", value = Globals.getEconomyCommands(),inline=False)
+                    embed.add_field(name = "DATINGSIM❤️", value = Globals.getGfCommands(),inline=False)
+                    embed.add_field(name = "DUELS ⚔️", value = Globals.getDuelsCommands(),inline=False)
                 if pgnum==2:
-                    embed = discord.Embed(title = "Help", description = "Use `%shelp <command>` for extended information on a command.\n If the command is in a group, please use `%s <group>` to get more info"%(DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"],DiscordGuild.find_one({"id":ctx.author.guild.id}, {"prefix"})["prefix"]),color = ctx.author.color)
-                    embed.add_field(name = "Fun😃", value = Globals.getFunCommands(),inline=False)
-                    embed.add_field(name = "games🎮", value = Globals.getGamesCommands(),inline=False)
-                    embed.add_field(name = "solve🖩", value = Globals.getSolveCommands(),inline=False)
-                    embed.add_field(name = "Voice Chat 🎵 ", value = Globals.getVcCommands(),inline=False)	
-                    embed.add_field(name = "Math📚📐📏", value = Globals.getMathCommands(),inline=False)
-                    embed.add_field(name = "Web🌎", value = Globals.getWebCommands(),inline=False)
-                    embed.add_field(name = "Images📷", value = Globals.getImageCommands(),inline=False)
+                    embed.add_field(name = "LEVELS📈", value = Globals.getLevelCommands(),inline=False)
+                    embed.add_field(name = "FUN😃", value = Globals.getFunCommands(),inline=False)
+                    embed.add_field(name = "IMAGES📷", value = Globals.getImageCommands(),inline=False)
+                if pgnum == 3:
+                    embed.add_field(name = "GAMES🎮", value = Globals.getGamesCommands(),inline=False)
+                    embed.add_field(name = "SOLVE🖩", value = Globals.getSolveCommands(),inline=False)
+                    embed.add_field(name = "MATH📚📐📏", value = Globals.getMathCommands(),inline=False)
+                    embed.add_field(name = "WEB🌎", value = Globals.getWebCommands(),inline=False)
+                if pgnum == 4:
+                    embed.add_field(name = "UTILITY🔧", value = Globals.getUtilityCommands(),inline=False)
+                    embed.add_field(name = "SETTINGS ⚙️", value = Globals.getSettingsCommands(),inline=False)
+                    embed.add_field(name = "VOICE CHAT 🎵 ", value = Globals.getVcCommands(),inline=False)	
+
+
+
                 embed.set_footer(text="I have a completed webapp/user interface to make server management easier, but I am currently looking for online hosting for it.")
                 try:
                     await msg.edit(embed=embed)
@@ -100,8 +104,8 @@ class Help(commands.Cog):
                             rawreaction = str(confirm[0])
                             if rawreaction=="➡️":
                                 pgnum+=1
-                                if pgnum>2:
-                                    pgnum=2
+                                if pgnum>4:
+                                    pgnum=1
                             elif rawreaction=="⬅️":
                                 pgnum-=1
                                 if pgnum<1:

@@ -49,6 +49,9 @@ def getMongo():
     return MongoClient("mongodb+srv://SCP:Geneavianina@scp16cluseter.foubt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
 
 
+def getDashboardURL():
+    return "http://scp16tsundere.pagekite.me:443"
+
 class botUser(object):
     def __init__(self, user:discord.Member):
         self.user = user
@@ -156,6 +159,13 @@ def GetFirstKey(dict:dict):
         return x
 
 
+def removeDupes(test_list:list):
+    res =[]
+    for i in test_list:
+        if i not in res:
+            res.append(i)
+    return res
+
 
 class chat(object):
     def __init__(self, chatlog):
@@ -180,6 +190,7 @@ class chat(object):
 
 
 
+#openai api completions.create -m ada:ft-sentientproductions-2021-12-27-00-47-10 -p "*bad text*"
 
 
 ##-------------------------------------------------------------INV FUNCTS
@@ -1144,6 +1155,23 @@ def getTypePraise():
         ]              
 
 
+
+def getGFimage(p:discord.Member,emotion:str="image"):
+    emotions=["embarrassed", "horny","surprised","climax", "image", "bed", "angry", "fear", "sad", "dissapointed"]
+    gfval = mulah.find_one({"id":p.id}, {"gf"})["gf"]
+    emotion = emotion.lower()
+    if emotion in emotions:
+        try:
+            return gfval[emotion]
+        except:
+            try:
+                return gfval["image"]
+            except:
+                return None
+    else:
+        return None
+
+
 openai.organization = "org-6cx7PCsPB7dbTOcOu2oI6nYX"
 openai.api_key = "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"
 
@@ -1155,49 +1183,88 @@ def gpt3Classification(query, examples, labels):
         query=query,
         labels=labels,
     )
-    return a
-def classifyText(prompt):
-    labels = [
-        "wants to kiss",
-        "wants to hug",
-        "wants to play games",
-        "wants to boink",
-        "climax",
-        "embarrassed",
-        "horny",
-        "neutral",
-        "happy",
-        "disappointed",
-        "mad",
-    ]
+    return a["label"]
+def classifyGFText(prompt):
+    labels = ["good","bad","decent"]
     examples = [
-        ["kiss me", "wants to kiss"],
-        ["hug me", "wants to hug"],
-        ["put my body on yours", "wants to boink"],
-        ["you feel so good inside", "horny"],
-        ["aaaaahhhhh im  aaaaaaah", "climax"],
-        ["im cumming","climax"],
-        ["this... its embarrassing", "embarrassed"],
-        ["...baka!!", "embarrassed"],
-        ["pervert!!", "embarrassed"],
-        ["wanna play val?", "wants to play games"],
-        ["want to play a game?", "wants to play games"],
-        ["thats great!", "happy"],
-        ["are you serious?", "disappointed"],
-        ["Im so mad at you", "mad"]
+        ["I love you", "good"],
+        ["Why dont you do this correctly?", "bad"],
+        ["where do you want to eat?", "decent"],
+        ["Im doing fine.", "decent"],
+        ["You are so pretty", "good"],
+        ["you look fat", "bad"]
     ]
     return gpt3Classification(prompt, examples=examples, labels=labels)
 
-def gpt3completion(prompt):
+
+
+def getModel(id):
+    gf = mulah.find_one({"id":id}, {"gf"})["gf"]
+    gftype = gf["type"]
+    gfdict = {
+        "Tsundere":"curie:ft-sentientproductions-2021-12-27-01-42-53",
+        "Yandere":"curie:ft-sentientproductions-2021-12-28-02-43-34",
+        "Dandere":"curie:ft-sentientproductions-2021-12-28-02-48-26",
+        "Kuudere":"curie:ft-sentientproductions-2021-12-28-16-48-27",
+        "Sweet":"curie:ft-sentientproductions-2021-12-28-02-40-26",
+        "Sadodere":"curie:ft-sentientproductions-2021-12-28-16-50-53",
+        "Kamidere":"curie:ft-sentientproductions-2021-12-28-02-51-10"
+    }
+    return gfdict[gftype]
+
+def classifyGFEmotion(prompt):
+    examples = [
+        ["sighs", "dissapointed"],
+        ["Why are you like this? Its so annoying", "angry"],
+        ["I love you", "image"],
+        ["that was unexpected", "surprised"],
+        ["stop... you are embarrassing me", "embarrassed"],
+        ["Every time I want to help you, you push me away. It makes me sad.", "sad"],
+        ["thats pretty scary", "fear"]
+    ]
+
+    labels = [
+        "dissapointed",
+        "angry",
+        "image",
+        "surprised",
+        "embarrassed",
+        "sad",
+        "fear"
+    ]
+    return gpt3Classification(
+        query=prompt,
+        examples=examples,
+        labels=labels
+    )
+
+def getGFresponse(prompt,person:discord.Member):
+    model = getModel(person.id)
+    background_prompt = chat.getprompt(person)
+    girlfriend = mulah.find_one({"id":person.id}, {"gf"})["gf"]
+    final = gpt3completion(
+        background_prompt+"\n%s:%s\n%s:"%(person.display_name, prompt, girlfriend["name"]),
+        model,
+        person.display_name,
+        girlfriend["name"]
+    )
+    return final
+
+def gpt3completion(prompt, model, you,gf):
     openai.Engine.retrieve("davinci")
     z = openai.Completion.create(
-    engine="davinci",
     prompt=prompt,
-    max_tokens=1000,
-    presence_penalty=1,
-    frequency_penalty=1
+    model=model,
+    temperature=0.9,
+    max_tokens=150,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0.6,
+    stop=["\n", "%s:"%(you), "%s:"%(gf)]
     )
     return z["choices"][0]["text"]
+
+
 class chat(object):
     def __init__(self, chatlog):
         self.chatlog = chatlog
@@ -1218,7 +1285,7 @@ class chat(object):
     def append_answer(self, answer):
         self.chatlog += "AI:" +answer+"\n"
 
-    
+    @staticmethod
     def getprompt(user:discord.Member):
         #{
         #    "kisses":0,#
@@ -1238,13 +1305,12 @@ class chat(object):
         )
 
         prompt+=" %s has been dating %s since %s. They have kissed %s times, hugged %s times, had sex %s times, played games %s times, texted %s times, watched netlix together %s times, and watched movies %s times"%(
-            gf["name"], user.display_name, gfdata["start"], gfdata["kisses"], gfdata["hugs"], gfdata["boinks"], gfdata["games"], gfdata["texts"], gfdata["netflix"], gfdata["movies"]
+            gf["name"], user.display_name, gfdata["start"], gfdata["kisses"], gfdata["hugs"], gfdata["boinks"], gfdata["games"], gfdata["text"], gfdata["netflix"], gfdata["movies"]
         )
 
         prompt+=" %s's hobby is %s. Her favorite genre is %s, her least favorite is %s. Her favorite subject is %s."%(
-            gf["name"], gf["likes"], gf["adventure"], gf["dislikes"], gf["favorite subject"]
+            gf["name"], gf["likes"], gf["favorite genre"], gf["dislikes"], gf["favorite subject"]
         )
-        prompt+="\n\nHuman: my name is sen.\n AI: I know that already."
         return prompt
 
 
@@ -1256,44 +1322,42 @@ class chat(object):
 
 
 def getFunCommands():
-    return "`pp`,`roll`,`rate`,`wisdom`, `rickroll`, `yomomma`, `8ball`, `animepic`, `cookie`, `coffee`, `story`"
+    return ">  `pp`,`roll`,`rate`,`wisdom`, `rickroll`, `yomomma`, `8ball`, `animepic`, `cookie`, `coffee`, `story`"
 
 def getModCommands():
-    return "`automod`,`ban`,`kick`,`mute`,`unmute`,`block`,`unblock`,`softban`, `swear`, `announce`,`suggest`, `swearlb`"
+    return "> `automod`,`ban`,`kick`,`mute`,`unmute`,`block`,`unblock`,`softban`, `swear`, `announce`,`suggest`, `swearlb`"
 
 def getSolveCommands():
-    return "`hangman`, `scramble`"
+    return "> `hangman`, `scramble`"
 
 def getUtilityCommands():
-    return "`snipe`, `esnipe`, `poll`, `timer`,`clean`, `choose`,`userinfo`,`serverinfo`,`channellinfo`,`permissions`"
+    return "> `snipe`, `esnipe`, `poll`, `timer`,`clean`, `choose`,`userinfo`,`serverinfo`,`channellinfo`,`permissions`"
 
 def getGamesCommands():
-    return "`mcstatus`, `mcskin`"
+    return "> `mcstatus`, `mcskin`"
 
 def getVcCommands():
-    return "`p`,`pause`,`leave`,`resume`,`stop`"
+    return "> `p`,`pause`,`leave`,`resume`,`stop`"
 def getMathCommands():
-    return "`gcf`,`points`, `simplify`, `herons`, `hardsolve`, `softsolve`"
+    return "> `gcf`,`points`, `simplify`, `herons`, `hardsolve`, `softsolve`"
 def getWebCommands():
-    return "`question`, `imdb`\n\nreddit (group):`sub`,`reset`,`set` "
+    return "> `question`, `imdb`reddit (group):`sub`,`reset`,`set` "
 def getLevelCommands():
-    return "`rank`, `ranklb`"
+    return "> `rank`, `ranklb`"
 def getEconomyCommands():
-    return """`rob`,`work`,`profile`,`worklist`,`apply`,`fish`,`hunt`,`mine`,`farm`,`chop`,`sell`,`craft`,`upgradepoint`,`send`,`achievement`,`achievement`,`balance`,`richlb`,`shop`,`use`, `give`,`gamestats`,`dep`,`withdraw`,`buy`,`inv`,`beg`,`watchlist`,`clearwatchlist`
-    \n\n pc (group):`build`,`stats`,`addram`,`install`,`dismantle`,`play`"""
+    return "> `rob`,`work`,`profile`,`worklist`,`apply`,`fish`,`hunt`,`mine`,`farm`,`chop`,`sell`,`craft`,`upgradepoint`,`send`,`achievement`,`achievement`,`balance`,`richlb`,`shop`,`use`, `give`,`gamestats`,`dep`,`withdraw`,`buy`,`inv`,`beg`,`watchlist`,`clearwatchlist` pc (group):`build`,`stats`,`addram`,`install`,`dismantle`,`play`"""
 
 def getGfCommands():
-    return "`getgf`,`gfstats`,`breakup`, \n\n gf (group):`image`,`netflix`,`hug`,`kiss`,`boink`,`propose`,`date`,`movies`,`text`,`gaming`,`talk`"
+    return "> `getgf`,`gfstats`,`breakup`, gf (group):`image`,`netflix`,`hug`,`kiss`,`boink`,`propose`,`date`,`movies`,`text`,`gaming`,`talk`"
 
 def getImageCommands():
-    return """`avatar`,`animeface`,`caption`,`ddlc`,`blurpify`,`phcomment`,`toxicity`,`weebify`,`tweet`,`nichijou`,`threats`,`bodypillow`,`baguette`,`deepfry`,`clyde`,`ship`,`lolice`,`fact`,
-    `captcha`,`trash`,`whowouldwin`,`awooify`,`changemymind`,`magik`,`jpeg`,`gif`,`cat`,`dog`,`iphonex`,`kannagen`,`minesweeper`,`wanted`,`abouttocry`,`animepic`"""
+    return "> `avatar`,`animeface`,`caption`,`ddlc`,`blurpify`,`phcomment`,`toxicity`,`weebify`,`tweet`,`nichijou`,`threats`,`bodypillow`,`baguette`,`deepfry`,`clyde`,`ship`,`lolice`,`fact`,captcha`,`trash`,`whowouldwin`,`awooify`,`changemymind`,`magik`,`jpeg`,`gif`,`cat`,`dog`,`iphonex`,`kannagen`,`minesweeper`,`wanted`,`abouttocry`,`animepic`"
 
 def getDuelsCommands():
-    return "`duel`,`equip`,`upgrade`,`begin`"
+    return "> `duel`,`equip`,`upgrade`,`begin`"
 
 def getSettingsCommands():
-    return "`settings`,\n\nconfig (group): `badword`,`announcement`,`suggestion`,`setprefix`"
+    return "> `settings`,config (group): `badword`,`announcement`,`suggestion`,`setprefix`"
 
 
 
@@ -1491,7 +1555,9 @@ def hasItem(itemToCheckFor):
                 if "parts" in x.keys():
                     return True
             raise missingItem(ctx.author, itemToCheckFor)
-        elif not InvCheck(ctx.author,itemToCheckFor):
+        elif InvCheck(ctx.author,itemToCheckFor):
+            return True
+        else:
             raise missingItem(ctx.author, itemToCheckFor)
     return commands.check(predicate)
 
