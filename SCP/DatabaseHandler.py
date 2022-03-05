@@ -152,13 +152,7 @@ async def ServerCheck(guild):
                 settings[x] = ServerSettings[x]
                 DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}}, True)
     except:
-        Dbmsg=True
-        print(traceback.format_exc())
-        stats = levelling.find_one({"id" : guild.id})
-        if stats == None:
-            DiscordGuild.insert_one({"id":guild.id, "settings":ServerSettings})
-        else:
-            DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}})
+        DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}}, True)
 
 global abilityLevelCheck
 async def abilityLevelCheck(user:discord.Member):
@@ -328,13 +322,16 @@ class DatabaseHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self,guild):
+        for x in ServerConfig:
+            DiscordGuild.update_one({"id":guild.id}, {"$set":{x["name"]:x["value"]}}, True)
+        DiscordGuild.update_one({"id":guild.id}, {"$set":{"settings":ServerSettings}})
         guildz = BotGuilds.find_one({"id":str(822265614244511754)}, {"guilds"})["guilds"]
         guildz[str(guild.id)] = str(guild)
         BotGuilds.update_one({"id":str(822265614244511754)}, {"$set":{"guilds":guildz}})
         DatabaseHandler.initializeGuildMembers(self, guild.id)
         DatabaseHandler.initializeTextChannels(self, guild.id)
-        await ServerCheck(guild)
         await Serverdbcheck(guild)
+        await ServerCheck(guild)
         await self.client.change_presence(status=discord.Status.online, activity=discord.Game(name = "^help %s users"%(getNumMembers(self))))
         for x in guild.members:
             if not x.bot:
@@ -354,7 +351,8 @@ class DatabaseHandler(commands.Cog):
         for guild in self.client.guilds:
             guildz = BotGuilds.find_one({"id":str(822265614244511754)}, {"guilds"})["guilds"]
             guildz[str(guild.id)] = str(guild)
-
+            await Serverdbcheck(guild)
+            await ServerCheck(guild)
             BotGuilds.update_one({"id":str(822265614244511754)}, {"$set":{"guilds":guildz}})
             guildz = BotGuilds.find_one({"id":str(822265614244511754)}, {"guilds"})["guilds"]
             DatabaseHandler.handleDocumentation(self)

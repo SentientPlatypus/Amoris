@@ -11,7 +11,7 @@ from io import BytesIO
 import datetime
 from urllib.parse import quote_plus
 from math import sqrt
-from prsaw import RandomStuff
+
 class General(commands.Cog):
 
     def __init__(self, bot):

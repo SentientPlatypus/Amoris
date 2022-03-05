@@ -86,8 +86,9 @@ mulah = cluster["discord"]["mulah"]
 
 tagre = "\#\d{4}$"
 
-#openai api fine_tunes.create -t "C:\Users\trexx\Documents\PYTHON CODE LOL\Amoris_Bot\SCP\gpt3FineTunes\tsundereFineTune.jsonl" -m ada
+#openai api fine_tunes.create -t "C:\Users\trexx\Documents\PYTHON CODE LOL\Amoris_Bot\SCP\gpt3FineTunes\kamidereFineTune.jsonl" -m curie
 #export OPENAI_API_KEY="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"
+#openai api models.delete -i "curie:ft-sentientproductions-2021-12-28-02-51-10"
 
 
 #Tsundere finetune: curie:ft-sentientproductions-2021-12-27-01-42-53
@@ -266,7 +267,8 @@ async def return_channels(data):
     for x in textchannels:
         textchannelnames.append({x.name:x.id})
     return textchannelnames
-
+    
+            
 
 @client.command()
 async def return_channels(data):
@@ -1077,7 +1079,7 @@ async def points(ctx, *l):
 
 
 gcfs = []	
-equations = []
+equations = []  
 #Euclidean Algorithm
 def Euclid(x,y):
     if x>y:
@@ -1518,31 +1520,31 @@ async def solve(ctx):
 
 
 
-#unscramble
-#@solve.command()
-#async def scramble(ctx, wordz):
-#    if len(wordz)>8:
-#        toomanyletters = ["Dont ask me to calculate them all, are you trying to break me?", "Thats going to take way too long.", "no thanks"]
-#        factorial = 1
-#        for x in range(1, len(wordz)+1):
-#            factorial = factorial*x
-#        embed = discord.Embed(title = "word unscrambler")
-#        embed.add_field(name = "Im not doing that.", value = "Thats exactly %s possible permutations.\n %s"%(str(factorial), random.choice(toomanyletters)))
-#        await ctx.channel.send(embed=embed)
-#    else:
-#        op = set()	
-#        for characters in list(permutations(wordz.casefold(), len(wordz))):
-#            bigscramble = "".join(characters)	
-#            if len(bigscramble)>2:
-#                if d.check(bigscramble) == True:	
-#                    op.add(bigscramble)
-#        joinedop = list(op)
-#        joinedop = [x for x in joinedop if x not in badwords]
-#        joinedopnew = [joinedopelement + "\n" for joinedopelement in joinedop]
-#        joinedopfinal = "".join(joinedopnew)
-#        embed = discord.Embed(title = "Word unscrambler", description = "I know why you are using this, dont pretend like you have integrity")
-#        embed.add_field(name = "I unscrambled the word %s"%(wordz), value = "The possible words:\n %s"%(joinedopfinal))
-#        await ctx.channel.send(embed=embed)
+unscramble
+@solve.command()
+async def scramble(ctx, wordz):
+   if len(wordz)>8:
+       toomanyletters = ["Dont ask me to calculate them all, are you trying to break me?", "Thats going to take way too long.", "no thanks"]
+       factorial = 1
+       for x in range(1, len(wordz)+1):
+           factorial = factorial*x
+       embed = discord.Embed(title = "word unscrambler")
+       embed.add_field(name = "Im not doing that.", value = "Thats exactly %s possible permutations.\n %s"%(str(factorial), random.choice(toomanyletters)))
+       await ctx.channel.send(embed=embed)
+   else:
+       op = set()	
+       for characters in list(permutations(wordz.casefold(), len(wordz))):
+           bigscramble = "".join(characters)	
+           if len(bigscramble)>2:
+               if d.check(bigscramble) == True:	
+                   op.add(bigscramble)
+       joinedop = list(op)
+       joinedop = [x for x in joinedop if x not in badwords]
+       joinedopnew = [joinedopelement + "\n" for joinedopelement in joinedop]
+       joinedopfinal = "".join(joinedopnew)
+       embed = discord.Embed(title = "Word unscrambler", description = "I know why you are using this, dont pretend like you have integrity")
+       embed.add_field(name = "I unscrambled the word %s"%(wordz), value = "The possible words:\n %s"%(joinedopfinal))
+       await ctx.channel.send(embed=embed)
 
 
 
@@ -1619,6 +1621,12 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         embed.title="Bad Argument"
         embed.description="```%s```"%(str(error))
+    elif isinstance(error, DatingSim.insufficientLovePoints):
+        embed.title="insufficient love points"
+        embed.description=f"```You need {error.requiredlb} love points to execute {commandThatFailed}```"
+    elif isinstance(error, DatingSim.tooLong):
+        embed.title="Input exceeded maximum length"
+        embed.description=f"```too long lmao```"
     elif isinstance(error, levelsys.settingNotEnabled):
         embed.title="Setting Not Enabled"
         embed.description='```The setting %s is not enabled. \nYou can enable it with: %ssettings "%s" enable\nOr you could use our new webapp```'%(error.settingToEnable, Globals.getPrefix(ctx.guild.id), error.settingToEnable)

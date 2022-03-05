@@ -1709,6 +1709,10 @@ class currencysys(commands.Cog):
                     global achievements
                     try:
                         achievementval = mulah.find_one({"id":p1.id}, {"achievements"})["achievements"]
+                        achievementts = []
+                        [achievementts.append(x) for x in achievementval if x not in achievementts]
+                        mulah.update_one({"id":p1.id}, {"$set":{"achievements":achievementts}})
+                        achievementval = mulah.find_one({"id":p1.id}, {"achievements"})["achievements"]
                         embed = discord.Embed(title = "%s's achievements!"%(p1.display_name), description = "use ^achievements for a more detailed view!", color = discord.Color.blue())
                         for y in achievementval:
                             achievementdict = next(x for x in achievements if x["name"] ==y)

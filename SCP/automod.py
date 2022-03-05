@@ -147,6 +147,10 @@ class AutoMod(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.author == self.client.user:
             return
+        try:
+            activated_features = DiscordGuild.find_one({"id":message.guild.id}, {"automod"})["automod"]
+        except:
+            DiscordGuild.update_one({"id":message.guild.id}, {"$set":{"automod":["spam"]}}, True)
         activated_features = DiscordGuild.find_one({"id":message.guild.id}, {"automod"})["automod"]
         embed = discord.Embed()
         embed.timestamp = datetime.datetime.utcnow()

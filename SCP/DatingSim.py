@@ -1,3 +1,4 @@
+from discord import message
 from discord.ext.commands.converter import RoleConverter
 from discord.ext.commands.cooldowns import BucketType
 from datetime import date
@@ -17,7 +18,7 @@ from discord.ext.commands.core import command
 from discord.member import Member
 from discord.player import PCMAudio
 from discord.utils import time_snowflake
-from pymongo import MongoClient
+from pymongo import DESCENDING, MongoClient
 import names
 from pymongo.collection import _FIND_AND_MODIFY_DOC_FIELDS
 import re
@@ -51,6 +52,11 @@ class noGirlfriend(commands.CommandError):
     def __init__(self, user, *args, **kwargs):
         self.user = user
 
+class tooLong(commands.CommandError):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+
+
 def hasGirlfriend():
     def predicate(ctx):
         gf = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
@@ -73,6 +79,18 @@ def hasWatchlist():
             return True
     return commands.check(predicate)
 
+class insufficientLovePoints(commands.CommandError):
+    def __init__(self, user, lp, *args, **kwargs):
+        self.user=user
+        self.requiredlb = lp
+def hasLovePoints(lp:int):
+    def predicate(ctx):
+        points = mulah.find_one({"id":ctx.author.id}, {"lp"})["lp"]
+        if points >= lp:
+            return True
+        else:
+            raise insufficientLovePoints(ctx.author, lp)
+    return commands.check(predicate)
 
 class DatingSim(commands.Cog):
     def __init__(self, client):
@@ -388,7 +406,7 @@ class DatingSim(commands.Cog):
 
                         gfResponse = Globals.getGFresponse("*watches %s with you*"%(emptydict[msg.content.lower()]), ctx.author)
                         embed = discord.Embed(title = "You watched %s with %s"%(emptydict[msg.content.lower()],gfval["name"]), color = ctx.author.color)
-                        embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
+                        embed.add_field(name = "%s:"%(gfval["name"]), value = gfResponse)
                         try:
                             embed.set_image(url=Globals.getGFimage(ctx.author,Globals.classifyGFEmotion(gfResponse)))
                         except:
@@ -435,7 +453,36 @@ class DatingSim(commands.Cog):
 
 
 
-
+    @gf.command()
+    @hasGirlfriend()
+    @commands.cooldown(1, 600, BucketType.user)
+    @hasLovePoints(120)
+    async def holdhand(self,ctx):
+        global typegenrepraise
+        global typeconplaint
+        global typepraise
+        global gftypes
+        try: 
+            gfvar = mulah.find_one({"id":ctx.author.id},{"gf"})   
+            gfval = gfvar["gf"]
+            lpvar = mulah.find_one({"id":ctx.author.id},{"lp"})
+            lpval = lpvar["lp"] 
+            embed = discord.Embed(title = "You held %s's hand!"%(gfval["name"]), color = ctx.author.color)
+            try:
+                dialogue = Globals.getGFresponse("*holds your hand*", ctx.author)
+            except:
+                dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["hugresponse"]
+            embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
+            try:
+                embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(dialogue)))
+            except:
+                pass
+            embed.set_footer(text = "You have gained 25 Love points!")
+            await ctx.channel.send(embed=embed)
+            lpval+=15
+            mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+        except:
+            await ctx.channel.send("You need a girlfriend lmao")
 
 
 
@@ -446,6 +493,7 @@ class DatingSim(commands.Cog):
     @gf.command()
     @hasGirlfriend()
     @commands.cooldown(1, 600, BucketType.user)
+    @hasLovePoints(150)
     async def hug(self,ctx):
         global typegenrepraise
         global typeconplaint
@@ -456,31 +504,29 @@ class DatingSim(commands.Cog):
             gfval = gfvar["gf"]
             lpvar = mulah.find_one({"id":ctx.author.id},{"lp"})
             lpval = lpvar["lp"] 
-            if lpval>=150:
-                embed = discord.Embed(title = "You hugged %s!"%(gfval["name"]), color = ctx.author.color)
-                try:
-                    dialogue = Globals.getGFresponse("*kisses you*", ctx.author)
-                except:
-                    dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["hugresponse"]
-                embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
-                try:
-                    embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(dialogue)))
-                except:
-                    pass
-                embed.set_footer(text = "You have gained 25 Love points!")
-                await ctx.channel.send(embed=embed)
-                lpval+=25
-                mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
-                data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
-                data["hugs"]+=1
-                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
-            else:
-                await ctx.channel.send("You dont have enogh love points")
+            embed = discord.Embed(title = "You hugged %s!"%(gfval["name"]), color = ctx.author.color)
+            try:
+                dialogue = Globals.getGFresponse("*hugs you*", ctx.author)
+            except:
+                dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["hugresponse"]
+            embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
+            try:
+                embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(dialogue)))
+            except:
+                pass
+            embed.set_footer(text = "You have gained 25 Love points!")
+            await ctx.channel.send(embed=embed)
+            lpval+=25
+            mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
+            data = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]    
+            data["hugs"]+=1
+            mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":data}})
         except:
             await ctx.channel.send("You need a girlfriend lmao")
 
     @gf.command()
     @hasGirlfriend()
+    @hasLovePoints(200)
     @commands.cooldown(1, 600, BucketType.user)
     async def kiss(self,ctx):
         global typegenrepraise
@@ -497,6 +543,7 @@ class DatingSim(commands.Cog):
                 try:
                     dialogue = Globals.getGFresponse("*kisses you*", ctx.author)
                 except:
+                    print(traceback.format_exc())
                     dialogue = next(item for item in gftypes if item["typename"] == gfval["type"])["kissresponse"]
                 embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
                 try:
@@ -543,6 +590,110 @@ class DatingSim(commands.Cog):
 
 
 
+    @gf.command()
+    @commands.cooldown(1,3600, BucketType.user)
+    @commands.is_nsfw()
+    @hasGirlfriend()
+    @hasLovePoints(800)
+    async def boink(self, ctx):
+        gfvar = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
+        gfname = gfvar["name"]
+        gfdata = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]
+        model = Globals.getModel(ctx.author.id)
+        backgroundInfo = Globals.chat.getprompt(ctx.author)
+        backgroundInfo += f"Right now, {gfname} is really horny, and wants to have sex with {ctx.author.display_name}. {gfname} wants to start a family with him. {gfname} wants to have sex with {ctx.author.display_name}. They are about to do it now."
+        newChat = Globals.chat(backgroundInfo, ctx.author.display_name, gfvar["name"], model)
+        openstatement = newChat.ask("Hi there!")
+
+        embed = discord.Embed(title = "%s:"%(gfvar["name"]), description= openstatement, color = discord.Color.red())
+        embed.set_footer(icon_url=ctx.author.avatar_url, text="type what you want to do. you can literally do anything. just dont do something irrelevant\n type \"end interaction\" to end")
+        try:
+            embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(openstatement, False)))
+        except:
+            pass
+        toEdit = await ctx.channel.send(embed=embed)
+
+        def check(m):
+            return m.author==ctx.author and m.channel == ctx.channel
+        
+        climax = False
+        irrelevance = 0
+        ended = False
+        lpcounted = 0
+        while not climax:
+            embed = discord.Embed(title = "%s:"%(gfvar["name"]),color = discord.Color.red())
+            embed.set_footer(icon_url=ctx.author.avatar_url, text="type what you want to do. you can literally do anything. just dont do something irrelevantn type \"end interaction\" to end")
+
+            message = await self.client.wait_for('message', check=check, timeout=100)
+            if len(message.content) >200:
+                raise tooLong(ctx.author)
+            if message.content.lower() == "end interaction":
+                ended = True
+                break
+            response = newChat.ask(message.content)
+            embed.description = response
+            try:
+                embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(response, False)))
+            except: 
+                pass
+            
+
+            actionAnalysis = Globals.classifyGFBoinking(message.content).lower()
+            if actionAnalysis == "irrelevant":
+                Globals.addIrrelevantWarning(embed)
+                irrelevance += 1
+            await toEdit.delete()
+            await message.delete()
+            toEdit = await ctx.channel.send(embed=embed)
+            if irrelevance >=3:
+                break
+            if actionAnalysis == "kiss":
+                gfdata["kisses"]+=1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":gfdata}})
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"kisses":1}})
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":40}})
+                lpcounted += 40
+            if actionAnalysis == "hug":
+                gfdata["hugs"]+=1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":gfdata}})  
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":25}})
+                lpcounted += 25
+            if actionAnalysis == "breast groping":
+                await Globals.AchievementEmbed(ctx, "bobs")         
+            if actionAnalysis == "climax":
+                climax = True
+        if irrelevance >=5:
+            embed = discord.Embed(title = "irrelevant.", description= "You went off topic.", color = discord.Color.red())
+            embed.set_footer(text="You have been penalized $100 and 50 love points")
+            mulah.update_one({"id":ctx.author.id}, {"$inc":{"money":-100}})
+            mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":-50}})
+            return await ctx.channel.send(embed=embed)
+
+        if ended:
+            embed = discord.Embed(title = "Interaction ended", color = discord.Color.red())
+            embed.set_footer(icon_url=ctx.author.avatar_url, text=f"You have gained {lpcounted} love points!\n complete the boinking to upgrade your girlfriends tier!")
+            return await ctx.channel.send(embed=embed)
+        lpcounted += 100
+        mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":100}})
+        embed = discord.Embed(title = "Boinking complete", color=discord.Color.green())
+        if gfvar["tier"]<3:
+            gfvar["tier"] = 3
+            embed.add_field(name = "%s levelled up!"%(gfvar["name"]), value = "she is now tier %s"%(gfvar["tier"]))
+        embed.set_footer(icon_url=ctx.author.avatar_url, text=f"You have gained {lpcounted} love points!")
+        await ctx.channel.send(embed=embed)
+        mulah.update_one({"id":ctx.author.id}, {"$inc":{"boinks":1}})
+        gfdata["boinks"]+=1
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":gfdata}})  
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"gf":gfvar}}) 
+        
+
+
+
+            
+
+
+
+
 
 
 
@@ -554,7 +705,7 @@ class DatingSim(commands.Cog):
     @commands.cooldown(1, 3600, BucketType.user)
     @commands.is_nsfw()
     @hasGirlfriend()
-    async def boink(self,ctx):
+    async def boinkk(self,ctx):
         global boinkmap
         global boinkresponse        
         gfvar = mulah.find_one({"id":ctx.author.id}, {"gf"})
@@ -666,9 +817,6 @@ class DatingSim(commands.Cog):
 
                 if confirmation:
                     action = emptydict[str(confirmation[0])]
-
-
-
         else:
             await ctx.channel.send("You dont have enough love points for that. Lmao get cock blocked")
 
@@ -688,7 +836,7 @@ class DatingSim(commands.Cog):
             if next((x for x in inval if x["name"] == "ring" and "parts" not in x.keys()), None) is not None:
                 if gfval["tier"] !=4:
                     try:
-                        response = Globals.getGFresponse("Will you marry me? *proposes*", ctx.author)
+                        response = Globals.getGFresponse("Will you marry me? *proposes* \n%s: YES!"%(gfval["name"]), ctx.author)
                     except:
                         response = next(x for x in gftypes if x["typename"] == gfval["type"])["proposeresponse"].format(ctx.author.display_name)
                     embed = discord.Embed(title = "You proposed to %s!"%(gfval["name"]), color = ctx.author.color)
@@ -919,6 +1067,7 @@ class DatingSim(commands.Cog):
                             await editthis.clear_reactions()
                             await editthis.delete()
                             editthis = await ctx.channel.send(embed=embed, file=finalfile)
+                            Globals.AchievementEmbed("First Date!")
                         else:
                             embed.description="Im sorry, You dont have enough money"
                             await ctx.channel.send(embed=embed, file=finalfile)
@@ -1031,7 +1180,7 @@ class DatingSim(commands.Cog):
                         gfsat+=115/100
 
 
-                    gfResponse = Globals.getGFresponse("*watches %s with you"%(emptydict[msg.content]), ctx.author)
+                    dialogue = Globals.getGFresponse("*watches %s with you"%(emptydict[msg.content]), ctx.author)
                     embed = discord.Embed(title = "You watched %s with %s"%(emptydict[msg.content],gfval["name"]), color = ctx.author.color)
                     embed.add_field(name = "%s:"%(gfval["name"]), value = dialogue)
                     try:
@@ -1378,129 +1527,88 @@ class DatingSim(commands.Cog):
     @hasGirlfriend()
     @commands.is_nsfw()
     async def talk(self, ctx):
-        global backgrounds
-        alphlist = ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
-        global talkmap
-        gfval = mulah.find_one({"id":ctx.author.id},{"gf"})["gf"]
-        decidingint = random.randint(1,2)
-        if decidingint == 1:
-            embed = discord.Embed(title = "%s"%(gfval["name"]), description = "Hello! did something happen?", color = ctx.author.color)
+        gfvar = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
+        gfname = gfvar["name"]
+        gfdata = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]
+        model = Globals.getModel(ctx.author.id)
+        backgroundInfo = Globals.chat.getprompt(ctx.author)
+        backgroundInfo += f"Right now, {gfname} is about to have a conversation with {ctx.author.display_name}"
+        newChat = Globals.chat(backgroundInfo, ctx.author.display_name, gfvar["name"], model)
+        openstatement = newChat.ask("Hi there!")
+
+        embed = discord.Embed(title = "%s:"%(gfvar["name"]), description= openstatement, color = discord.Color.red())
+        embed.set_footer(icon_url=ctx.author.avatar_url, text="type what you want to do. you can literally do anything. just dont do something irrelevant\n type \"end interaction\" to end")
+        try:
+            embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(openstatement, False)))
+        except:
+            pass
+        toEdit = await ctx.channel.send(embed=embed)
+
+        def check(m):
+            return m.author==ctx.author and m.channel == ctx.channel
+        
+        done = False
+        nsfwCounter = 0
+        ended = False
+        lpcounted = 0
+        while not done:
+            embed = discord.Embed(title = "%s:"%(gfvar["name"]),color = discord.Color.red())
+            embed.set_footer(icon_url=ctx.author.avatar_url, text="type what you want to do. you can literally do anything. just dont do something irrelevantn type \"end interaction\" to end")
+
+            message = await self.client.wait_for('message', check=check, timeout=100)
+            if len(message.content) >200:
+                raise tooLong(ctx.author)
+            if message.content.lower() == "end interaction":
+                ended = True
+                break
+            response = newChat.ask(message.content)
+            embed.description = response
             try:
-                embed.set_image(url = gfval["image"])
-            except:
+                embed.set_image(url=Globals.getGFimage(ctx.author, Globals.classifyGFEmotion(response)))
+            except: 
                 pass
-            embed.set_footer(text="tell %s about your day!"%(gfval["name"]))
-            await ctx.channel.send(embed=embed)
-            def check(m):
-                return m.author==ctx.author and m.channel==ctx.channel
-            msg = await self.client.wait_for('message', check = check)
-            emotiondict = te.get_emotion(msg.content)
-            highestemotelen = 0
-            highestemote=""
-            for x in emotiondict.keys():
-                if emotiondict[x]>highestemotelen:
-                    highestemotelen = emotiondict[x]
-                    highestemote=x
-            highestemote = highestemote.lower()
-            if highestemote == "fear":
-                highestemote = "scared"
-            if highestemote == "surprise":
-                highestemote = "sad"
-            if highestemote == "":
-                highestemote = random.choice(["angry", "sad", "happy", "scared"])
-            action = highestemote
-        elif decidingint == 2:
-            action = random.choice(["sadgf", "angrygf", "scaredgf", "happygf"])
-        end = False    
-        talklistdict = next(x for x in talkmap if x[0]["typename"] == gfval["type"])
-        while end == False:
-            if action == "accept invitation":
-                cmd = self.client.get_command("gf "+"boink")
-                await cmd(ctx)
+            
+
+            actionAnalysis = Globals.classifyGFTalking(message.content).lower()
+            print(actionAnalysis)
+            if actionAnalysis == "nsfw":
+                nsfwCounter += 1
+                embed.add_field(name="NSFW warning.", value="This sounds like NSFW content. Keep it up and I will terminate this command.")
+
+            await toEdit.delete()
+            await message.delete()
+            toEdit = await ctx.channel.send(embed=embed)
+            if nsfwCounter >=3:
                 break
-            if action == "kiss":
-                kisses = mulah.find_one({"id":ctx.author.id},{"kisses"})["kisses"]
-                kisses+=1
-                mulah.update_one({"id":ctx.author.id},{"$set":{"kisses":kisses}})
-            if action in ["comfortgf", "yeah sure what?"]:
-                action = random.choice(["comfortgf1", "comfortgf2", "comfortgf3","comfortgf4"])
-            if action in ["gaming", "movies", "netflix"]:
-                cmd = self.client.get_command("gf "+action)
-                await cmd(ctx)
-                break
-            talkdict = next(x for x in talklistdict if x["action"] == str(action))
-            penultres = random.choice(talkdict["response"])
-            if re.search("\{0\}", penultres):
-                finalstring = penultres.format(ctx.author.display_name)
-            else:
-                finalstring = penultres
+            if actionAnalysis == "kiss":
+                gfdata["kisses"]+=1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":gfdata}})
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"kisses":1}})
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":40}})
+                lpcounted += 40
+            if actionAnalysis == "hug":
+                gfdata["hugs"]+=1
+                mulah.update_one({"id":ctx.author.id}, {"$set":{"gfdata":gfdata}})  
+                mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":25}})
+                lpcounted += 25        
+            if actionAnalysis == "over":
+                done = True
+        if nsfwCounter >=3:
+            embed = discord.Embed(title = "NSFW penalty.", description= "You were not supposed to do that.", color = discord.Color.red())
+            embed.set_footer(text="You have been penalized $100 and 50 love points")
+            mulah.update_one({"id":ctx.author.id}, {"$inc":{"money":-100}})
+            mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":-50}})
+            return await ctx.channel.send(embed=embed)
 
-            embed = discord.Embed(title = "%s:"%(gfval["name"]), description = finalstring, color = ctx.author.color)
-            mapto = talkdict["map"]
-            count = 0
-            emptydict = {}
-            valuestrint = ""
-            reactions = []
-            for x in mapto:
-                valuestrint+="%s| %s\n"%(alphlist[count], x)
-                emptydict[alphlist[count]] = x
-                reactions.append(alphlist[count])
-                count+=1
-            embed.add_field(name = "what will you do?", value = valuestrint)
-            try:
-                try:
-                    try:
-                        backgroundict = next(a for a in backgrounds if a["name"] == talkdict["background"])
-                        rmbg.remove_background_from_img_url(img_url=gfval[talkdict["img"]], new_file_name="GFTALK.png")
-                        foreground = Image.open("GFTALK.png")
-                        background = Image.open(backgroundict["name"])
-                        foreground = foreground.resize(backgroundict["size"])
-                        background.paste(foreground, backgroundict["paste"], foreground)
-                        background.save("finalgf.png")
-                        file = discord.File("finalgf.png")
-                        embed.set_image(url = "attachment://finalgf.png")
-                    except:
-                        backgroundict = next(a for a in backgrounds if a["name"] == talkdict["background"])
-                        asset = requests.get(gfval[talkdict["img"]])
-                        data = BytesIO(asset.content)
-                        foreground = Image.open(data)
-                        background = Image.open(talkdict["background"])
-                        foreground = foreground.resize(backgroundict["size"])
-                        try:
-                            background.paste(foreground, backgroundict["paste"], foreground)
-                        except:
-                            background.paste(foreground, backgroundict["paste"])
-                        background.save("finalgf.png")
-                        file = discord.File("finalgf.png")
-                        embed.set_image(url = "attachment://finalgf.png")                        
-                except:
-                    embed.set_image(url = gfval[talkdict["img"]])
-            except:
-                try:
-                    embed.set_image(url = gfval["image"])
-                except:
-                    pass
-            try:
-                await editthis.delete()
-                editthis = await ctx.channel.send(embed=embed, file = file)
-            except:
-                try:
-                    editthis = await ctx.channel.send(embed=embed, file = file)
-                except:
-                    editthis = await ctx.channel.send(embed=embed)
-
-            if action == "leave":
-                end = True
-                break
-            for x in reactions:
-                await editthis.add_reaction(x)
-
-            def check(reaction,user):
-                return user==ctx.author and str(reaction.emoji) in ['1️⃣', '2️⃣', '3️⃣', '4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'] and reaction.message == editthis  
-            confirm = await self.client.wait_for('reaction_add', check=check)
-            if confirm:
-                action = emptydict[str(confirm[0])]
-
+        if ended:
+            embed = discord.Embed(title = "Interaction ended", color = discord.Color.red())
+            embed.set_footer(icon_url=ctx.author.avatar_url, text=f"You have gained {lpcounted} love points!\n complete the talking to get more lp")
+            return await ctx.channel.send(embed=embed)
+        lpcounted += 50    
+        mulah.update_one({"id":ctx.author.id}, {"$inc":{"lp":50}})
+        embed = discord.Embed(title = "Talking complete", color=discord.Color.green())
+        embed.set_footer(icon_url=ctx.author.avatar_url, text=f"You have gained {lpcounted} love points!")
+        await ctx.channel.send(embed=embed)
 
 
 
@@ -1535,6 +1643,7 @@ class DatingSim(commands.Cog):
             {"name": "🍴date", "lpincrease": 20, "lprequired":0, "itemrequired": None,"category":"relax", "desc": "go on a date with your girlfriend!"},
             {"name": "🎮gaming", "lpincrease": 25, "lprequired": 0, "itemrequired": "PC","category":"gaming", "desc":"Play Minecraft With your girlfriend! You need a laptop for this."},
             {"name": "💋kiss", "lpincrease":40, "lprequired" : 200, "itemrequired": None,"category":None, "desc": "Kiss your girlfriend!"},
+            {"name": "🧑‍🤝‍🧑holdhand", "lpincrease":15, "lprequired": 130, "itemrequired": None,"category":None,"desc": "early game move"},
             {"name": "🤗hug", "lpincrease":25, "lprequired": 150, "itemrequired": None,"category":None,"desc": "Hug your girlfriend! A great way to bond."},
             {"name": "❤️boink", "lpincrease": 100, "lprequired": 800, "itemrequired": None,"category":None, "desc":"boink your girlfriend! Late game move."},
             {"name": "💍propose", "lpincrease": 1000, "lprequired": 1600, "itemrequired": "ring","category":None, "desc": "Finally. You have the love of your life. Go live happily ever after."}]

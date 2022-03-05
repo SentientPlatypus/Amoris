@@ -4,7 +4,7 @@ from inspect import trace
 import openai
 from logging import exception
 from operator import mul
-from os import name
+from os import name, stat
 from typing import AsyncContextManager, final
 import discord
 from discord import errors
@@ -17,6 +17,7 @@ from discord.ext.commands.core import command
 from discord.member import Member
 from discord.player import PCMAudio
 from discord.utils import time_snowflake
+from openai.api_resources import model
 from pymongo import MongoClient
 import names
 from pymongo.collection import _FIND_AND_MODIFY_DOC_FIELDS
@@ -44,6 +45,10 @@ import requests
 import Globals
 import pymongo
 import ssl
+
+class noImageError(commands.CommandError):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
 
 def getMongo():
     return MongoClient("mongodb+srv://SCP:Geneavianina@scp16cluseter.foubt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
@@ -115,6 +120,7 @@ achievements = [
     {"name":"Jerk", "desc":"Turns out you were the problem", "category":"relationships"},
     {"name":"Divorcee!", "desc":"Get a life bro.", "category":"relationships"},
     {"name":"First Date!", "desc":"First date with GF!", "category":"relationships"},
+    {"name":"bobs", "desc":";)", "category":"relationships"},
     
 
     {"name":"Getting By", "desc":"finally making some money! good job!", "category":"finance"},
@@ -337,14 +343,14 @@ def ChoiceParts(choices:list, ReactionsList = ['1️⃣', '2️⃣', '3️⃣', 
 
 
 async def AchievementEmbed(ctx, EarnedAchievement):
-
-    user = botUser(ctx.author)
-    if EarnedAchievement not in user.achievements:
-        AchievementDict = next(x for x in achievements if x["name"]==EarnedAchievement)
+    yourachievements = mulah.find_one({"id":ctx.author.id}, {"achievements"})["achievements"]
+    AchievementDict = next(x for x in achievements if x["name"]==EarnedAchievement)
+    if AchievementDict["name"] not in yourachievements:
+        print(AchievementDict["name"])
         embed = discord.Embed(title = "Congratulations! you earned the achievement %s"%(AchievementDict["name"]), description = AchievementDict["desc"], color = discord.Color.gold())
         embed.set_image(url = 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/socialmedia/apple/271/trophy_1f3c6.png')
-        user.achievements.append(EarnedAchievement)
-        user.updateWholeMongo()
+        yourachievements.append(AchievementDict["name"])
+        mulah.update_one({"id":ctx.author.id}, {"$set":{"achievements":yourachievements}})
         embed.set_author(name = ctx.author.display_name, icon_url=ctx.author.avatar_url)
         await ctx.channel.send(embed=embed)    
 
@@ -1167,10 +1173,12 @@ def getGFimage(p:discord.Member,emotion:str="image"):
             try:
                 return gfval["image"]
             except:
-                return None
+                raise noImageError(p)
     else:
-        return None
+        raise noImageError(p)
 
+def addIrrelevantWarning(em:discord.Embed):
+    em.add_field(name="Irrelevance warning.", value="It appears you are going off topic. Dont.")
 
 openai.organization = "org-6cx7PCsPB7dbTOcOu2oI6nYX"
 openai.api_key = "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"
@@ -1196,23 +1204,131 @@ def classifyGFText(prompt):
     ]
     return gpt3Classification(prompt, examples=examples, labels=labels)
 
+def classifyGFBoinking(prompt):
+    labels = [
+        "kiss",
+        "hug",
+        "breast groping",
+        "pinning down",
+        "about to climax",
+        "climax",
+        "filler",
+        "irrelevant",
+    ]
 
+    examples = [
+        ["*kisses passionately", "kiss"],
+        ["*touches lips*", "kiss"],
+        ["your lips are great", "kiss"],
+        ["*pulls you closer*", "hug"],
+        ["*hugs you tightly*","hug"],
+        ["Hug me really really tight", "hug"],
+        ["your tits are great", "breast groping"],
+        ["your boobs are the best", "breast groping"],
+        ["*grabs breasts*", "breast groping"],
+        ["*pins down*", "pinning down"],
+        ["*pushes you down*", "pinning down"],
+
+        ["im cumming", "climax"],
+        ["OHHHHH IM COMING", "climax"],
+        ["*cums*", "climax"],
+        ["*nuts inside*", "climax"],
+        ["Im nutting", "climax"],
+
+        ["im about to cum", "about to climax"],
+        ["im going to nut", "about to climax"],
+        ["IM GOING TO CUM", "about to climax"],
+        ["Im going to climax", "about to climax"],
+        ["oooh, im about to cum", "about to climax"],
+
+        ["takes you to the store", "irrelevant"],
+        ["How are your grades", "irrelevant"],
+        ["What window issues are you having", "irrelevant"],
+        ["Valorant is hard", "irrelevant"],
+        ["gunfight in afghanistan", "irrelevant"],
+        ["Spiderman is terrible, dont you think", "irrelevant"],
+
+        ["ok", "filler"],
+        ["lets do that then", "filler"],
+        ["take your time", "filler"],
+        ["im sorry i guess", "filler"],
+        ["I love you too", "filler"],
+        ["sure", "filler"]
+    ]
+    return gpt3Classification(prompt, examples=examples, labels=labels)
+
+
+
+def classifyGFTalking(prompt):
+    labels = [
+        "kiss",
+        "hug",
+        "filler",
+        "over",
+        "nsfw"
+    ]
+
+    examples = [
+        ["*kisses passionately", "kiss"],
+        ["*touches lips*", "kiss"],
+        ["your lips are great", "kiss"],
+        ["*pulls you closer*", "hug"],
+        ["*hugs you tightly*","hug"],
+        ["Hug me really really tight", "hug"],
+
+        ["ok", "filler"],
+        ["lets do that then", "filler"],
+        ["take your time", "filler"],
+        ["im sorry i guess", "filler"],
+        ["I love you too", "filler"],
+        ["sure", "filler"],
+        ["yeah thats prettty cool", "filler"],
+        ["I hate when that happens", "filler"],
+        ["yeah that sucks", "filler"],
+
+        ["your boobs are the best", "nsfw"],
+        ["*grabs breasts*", "nsfw"],
+        ["*pins down*", "nsfw"],
+        ["*pushes you down*", "nsfw"],
+
+        ["im cumming", "nsfw"],
+        ["OHHHHH IM COMING", "nsfw"],
+        ["*cums*", "nsfw"],
+        ["*nuts inside*", "nsfw"],
+        ["Im nutting", "nsfw"],
+
+        ["im about to cum", "nsfw"],
+        ["im going to nut", "nsfw"],
+        ["IM GOING TO CUM", "nsfw"],
+        ["Im going to climax", "nsfw"],
+        ["oooh, im about to cum", "nsfw"],
+
+
+
+        ["bye", "over"],
+        ["cya", "over"],
+        ["Ill see you soon!", "over"],
+        ["I got to go!", "over"],
+        ["bye","over"]
+    ]
+    return gpt3Classification(prompt, examples=examples, labels=labels)
 
 def getModel(id):
     gf = mulah.find_one({"id":id}, {"gf"})["gf"]
     gftype = gf["type"]
     gfdict = {
-        "Tsundere":"curie:ft-sentientproductions-2021-12-27-01-42-53",
-        "Yandere":"curie:ft-sentientproductions-2021-12-28-02-43-34",
-        "Dandere":"curie:ft-sentientproductions-2021-12-28-02-48-26",
-        "Kuudere":"curie:ft-sentientproductions-2021-12-28-16-48-27",
-        "Sweet":"curie:ft-sentientproductions-2021-12-28-02-40-26",
-        "Sadodere":"curie:ft-sentientproductions-2021-12-28-16-50-53",
-        "Kamidere":"curie:ft-sentientproductions-2021-12-28-02-51-10"
+        "Tsundere":"curie:ft-sentientproductions-2021-12-29-17-58-33",
+        "Yandere":"curie:ft-sentientproductions-2021-12-29-18-01-46",
+        "Dandere":"curie:ft-sentientproductions-2021-12-29-18-05-49",
+        "Kuudere":"curie:ft-sentientproductions-2021-12-29-18-08-10",
+        "Sweet":"curie:ft-sentientproductions-2021-12-29-18-10-57",
+        "Sadodere":"curie:ft-sentientproductions-2021-12-29-18-13-08",
+        "Kamidere":"curie:ft-sentientproductions-2021-12-29-18-15-14"
     }
     return gfdict[gftype]
 
-def classifyGFEmotion(prompt):
+def classifyGFEmotion(prompt, filterNSFW=True):
+    nsfw = ["horny","bed","climax"]
     examples = [
         ["sighs", "dissapointed"],
         ["Why are you like this? Its so annoying", "angry"],
@@ -1220,7 +1336,15 @@ def classifyGFEmotion(prompt):
         ["that was unexpected", "surprised"],
         ["stop... you are embarrassing me", "embarrassed"],
         ["Every time I want to help you, you push me away. It makes me sad.", "sad"],
-        ["thats pretty scary", "fear"]
+        ["thats pretty scary", "fear"],
+        ["You have a nice cock", "horny"],
+        ["put it in me", "horny"],
+        ["ahhh, you are really good at doing this!", "horny"],
+        ["that was great. I want to marry you.", "bed"],
+        ["that was great. we should fuck more often", "bed"],
+        ["AHHHHHHHHhhhhhhhhhhhhhh im coming", "climax"],
+        ["Im cumming!!", "climax"],
+        ["oooohhhhhhh im climaxing!", "climax"]
     ]
 
     labels = [
@@ -1230,8 +1354,15 @@ def classifyGFEmotion(prompt):
         "surprised",
         "embarrassed",
         "sad",
-        "fear"
+        "fear",
+        "horny",
+        "bed",
+        "climax"
     ]
+
+    if filterNSFW:
+        examples = [x for x in examples if x[1] not in nsfw]
+        labels = [x for x in labels if x not in nsfw]
     return gpt3Classification(
         query=prompt,
         examples=examples,
@@ -1266,25 +1397,26 @@ def gpt3completion(prompt, model, you,gf):
 
 
 class chat(object):
-    def __init__(self, chatlog):
+    def __init__(self, chatlog, you, other, model):
         self.chatlog = chatlog
+        self.you = you
+        self.other = other
+        self.model = model
     
     def ask(self,question):
         response = openai.Completion.create(
-            engine="davinci",
-            prompt=self.chatlog + question + "\nAI:",
+            model=self.model,
+            prompt=self.chatlog +f"\n{self.you}:" +question + f"\n{self.other}:",
             temperature=0.9,
             max_tokens=150,
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0.6,
-            stop=["\n", " Human:", " AI:"]
+            stop=["\n", f"{self.you}:", f"{self.other}:"]
         )
-        return response["choices"][0]["text"]
-    
-    def append_answer(self, answer):
-        self.chatlog += "AI:" +answer+"\n"
-
+        answer = response["choices"][0]["text"]
+        self.chatlog += f"\n{self.you}:{question}"+ f"\n{self.other}:{answer}"
+        return answer
     @staticmethod
     def getprompt(user:discord.Member):
         #{
@@ -1300,8 +1432,11 @@ class chat(object):
         #}},
         gf = mulah.find_one({"id":user.id}, {"gf"})["gf"]
         gfdata = mulah.find_one({"id":user.id}, {"gfdata"})["gfdata"]
-        prompt = "The following is a conversation between a %s girlfriend whose name is %s and her lover, whose name is %s."%(
-            gf["type"], gf["name"], user.display_name
+        status = "lover"
+        if gf["tier"] == 4:
+            status = "fiance"
+        prompt = "The following is a conversation between a %s girl whose name is %s and her %s, whose name is %s."%(
+            gf["type"], gf["name"],status, user.display_name
         )
 
         prompt+=" %s has been dating %s since %s. They have kissed %s times, hugged %s times, had sex %s times, played games %s times, texted %s times, watched netlix together %s times, and watched movies %s times"%(
