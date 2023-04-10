@@ -51,7 +51,7 @@ class noImageError(commands.CommandError):
         self.user = user
 
 def getMongo():
-    return MongoClient("mongodb+srv://SCP:Geneavianina@scp16cluseter.foubt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
+    return MongoClient("mongodb+srv://SCP:PASSWORDHAHA@scp16cluseter.foubt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
 
 
 def getDashboardURL():
