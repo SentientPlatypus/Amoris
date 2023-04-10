@@ -599,9 +599,10 @@ class DatingSim(commands.Cog):
         gfvar = mulah.find_one({"id":ctx.author.id}, {"gf"})["gf"]
         gfname = gfvar["name"]
         gfdata = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]
+        
         model = Globals.getModel(ctx.author.id)
         backgroundInfo = Globals.chat.getprompt(ctx.author)
-        backgroundInfo += f"Right now, {gfname} is really horny, and wants to have sex with {ctx.author.display_name}. {gfname} wants to start a family with him. {gfname} wants to have sex with {ctx.author.display_name}. They are about to do it now."
+        backgroundInfo += f"Right now, {gfname} is really horny, and wants to have boink with {ctx.author.display_name}. {gfname} wants to start a family with him. {gfname} wants to boink with {ctx.author.display_name}. They are about to do it now."
         newChat = Globals.chat(backgroundInfo, ctx.author.display_name, gfvar["name"], model)
         openstatement = newChat.ask("Hi there!")
 
