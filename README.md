@@ -1,5 +1,5 @@
 # Amoris
-This is the repository for SCP-16-Tsundere, one of my first python projects. It is a discord bot.
+This is the repository for a discord bot, one of my first python projects.
 
 
 
