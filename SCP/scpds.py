@@ -152,7 +152,7 @@ class DatingSim(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def gf(self,ctx):
-        await ctx.send("use a command, baka.")
+        await ctx.send("use a command.")
 
 
 
@@ -601,7 +601,7 @@ class DatingSim(commands.Cog):
         gfdata = mulah.find_one({"id":ctx.author.id}, {"gfdata"})["gfdata"]
         model = Globals.getModel(ctx.author.id)
         backgroundInfo = Globals.chat.getprompt(ctx.author)
-        backgroundInfo += f"Right now, {gfname} is really horny, and wants to have sex with {ctx.author.display_name}. {gfname} wants to start a family with him. {gfname} wants to have sex with {ctx.author.display_name}. They are about to do it now."
+        backgroundInfo += f"Right now, {gfname} wants to be intimate with {ctx.author.display_name}. {gfname} wants to start a family with him. {gfname} wants to be intimate with {ctx.author.display_name}. They are about to do it now."
         newChat = Globals.chat(backgroundInfo, ctx.author.display_name, gfvar["name"], model)
         openstatement = newChat.ask("Hi there!")
 
@@ -859,9 +859,9 @@ class DatingSim(commands.Cog):
                     mulah.update_one({"id":ctx.author.id},{"$set":{"lp":lpval}})
                     Globals.RemoveFromInventory(ctx.author, "ring", 1)
                 else:
-                    await ctx.channel.send("%s is already your fiance, baka."%(gfval["name"]))
+                    await ctx.channel.send("%s is already your fiance."%(gfval["name"]))
             else:
-                await ctx.channel.send("You need a ring to propose, bakaa. this is basic shit, man. come on.")
+                await ctx.channel.send("You need a ring to propose. this is basic shit, man. come on.")
 
         else:
             await ctx.channel.send('You dont have enough Love points for that! come on bro, its gonna be weird if you move too quickly!')
@@ -1467,7 +1467,7 @@ class DatingSim(commands.Cog):
                                     await ctx.channel.send("Your PC does not meet the requirements. You should look at system requirements before installing a game!")
                                     
                             else:
-                                await ctx.channel.send("You were supposed to type a letter, Baka.")
+                                await ctx.channel.send("You were supposed to type a letter.")
 
 
                                 
