@@ -43,9 +43,9 @@ from io import BytesIO
 import mmorpgGame
 import DatabaseHandler
 from pymongo import MongoClient
-from DatingSim import noGirlfriend 
-from DatingSim import noWatchlist
-import DatingSim
+from SCP.scpds import noGirlfriend 
+from SCP.scpds import noWatchlist
+import SCP.scpds as scpds
 import GuildHandler
 import sys	
 from discord_components import DiscordComponents, Button, ButtonStyle, InteractionType
@@ -78,7 +78,7 @@ cogsmulah = [currencysys]
 cogs = [levelsys]
 cogsmmorpg = [mmorpgGame]
 cogDB = [DatabaseHandler]
-coggf = [DatingSim]
+coggf = [scpds]
 cluster = Globals.getMongo()
 levelling = cluster["discord"]["levelling"]
 DiscordGuild = cluster["discord"]["guilds"]
@@ -87,7 +87,7 @@ mulah = cluster["discord"]["mulah"]
 tagre = "\#\d{4}$"
 
 #openai api fine_tunes.create -t "C:\Users\trexx\Documents\PYTHON CODE LOL\Amoris_Bot\SCP\gpt3FineTunes\kamidereFineTune.jsonl" -m curie
-#export OPENAI_API_KEY= "I FORGOT TO REMOVE THIS HAHAHAHA"
+#export OPENAI_API_KEY="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"
 #openai api models.delete -i "curie:ft-sentientproductions-2021-12-28-02-51-10"
 
 
@@ -1621,10 +1621,10 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         embed.title="Bad Argument"
         embed.description="```%s```"%(str(error))
-    elif isinstance(error, DatingSim.insufficientLovePoints):
+    elif isinstance(error, scpds.insufficientLovePoints):
         embed.title="insufficient love points"
         embed.description=f"```You need {error.requiredlb} love points to execute {commandThatFailed}```"
-    elif isinstance(error, DatingSim.tooLong):
+    elif isinstance(error, scpds.tooLong):
         embed.title="Input exceeded maximum length"
         embed.description=f"```too long lmao```"
     elif isinstance(error, levelsys.settingNotEnabled):
