@@ -6,6 +6,3 @@ Its actually insane. Theres so much functionality in this bot. Like, I put EVERY
 I even made a webapp that communicated with this bot through interprocess communication. The webapp source code is here:
 
 https://github.com/SentientPlatypus/Amoris-Flask-Webapp
-
-Dont look too deep into the dating sim code..
-I was like 14, man. I promise I've changed.
